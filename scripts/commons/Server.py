@@ -1,13 +1,13 @@
 import subprocess
 
-class Server():
+class Server:
     def __init__(self, first_server_p, first_monitor_p, n_servers) -> None:
         try:
             import psutil
             self.check_running_servers(psutil, first_server_p, first_monitor_p, n_servers)
         except ModuleNotFoundError:
             print("Info: Cannot check if the server is already running, because the psutil module was not found")
-            
+
         self.first_server_p = first_server_p
         self.n_servers = n_servers
         self.rcss_processes = []
@@ -28,7 +28,7 @@ class Server():
         range2 = (first_monitor_p,first_monitor_p + n_servers)
         bad_processes = []
 
-        for p in p_list:  
+        for p in p_list:
             # currently ignoring remaining default port when only one of the ports is specified (uncommon scenario)
             ports = [int(arg) for arg in p.cmdline()[1:] if arg.isdigit()]
             if len(ports) == 0:
@@ -52,7 +52,6 @@ class Server():
                     for p in bad_processes:
                         p.kill()
                     return
-            
 
     def kill(self):
         for p in self.rcss_processes:

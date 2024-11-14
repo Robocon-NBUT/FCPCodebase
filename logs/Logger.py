@@ -3,11 +3,11 @@ from datetime import datetime
 import random
 from string import ascii_uppercase
 
-class Logger():
+class Logger:
     _folder = None
 
     def __init__(self, is_enabled:bool, topic:str) -> None:
-        self.no_of_entries = 0 
+        self.no_of_entries = 0
         self.enabled = is_enabled
         self.topic = topic
 
@@ -23,11 +23,13 @@ class Logger():
             simulation step is written before the message to provide additional information
             default is `None` (nothing is written before the message)
         '''
-        if not self.enabled: return
+        if not self.enabled:
+            return
 
         # The log folder is only created if needed
-        if Logger._folder is None: 
-            rnd = ''.join(random.choices(ascii_uppercase, k=6)) # Useful if multiple processes are running in parallel  
+        if Logger._folder is None:
+            # Useful if multiple processes are running in parallel
+            rnd = ''.join(random.choices(ascii_uppercase, k=6))
             Logger._folder = "./logs/" + datetime.now().strftime("%Y-%m-%d_%H.%M.%S__") + rnd + "/"
             print("\nLogger Info: see",Logger._folder)
             Path(Logger._folder).mkdir(parents=True, exist_ok=True)
@@ -39,9 +41,10 @@ class Logger():
             write_step = step is not None
             if timestamp or write_step:
                 prefix = "{"
-                if timestamp: 
+                if timestamp:
                     prefix += datetime.now().strftime("%a %H:%M:%S")
-                    if write_step: prefix += " "
+                    if write_step:
+                        prefix += " "
                 if write_step:
                     prefix += f'Step:{step}'
                 prefix += "} "

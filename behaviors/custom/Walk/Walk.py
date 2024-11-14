@@ -1,6 +1,6 @@
 from agent.Base_Agent import Base_Agent
 from behaviors.custom.Walk.Env import Env
-from math_ops.Math_Ops import Math_Ops as M
+from math_ops.math_ext import get_active_directory, vector_angle, normalize_deg, rotate_2d_vec
 from math_ops.Neural_Network import run_mlp
 import numpy as np
 import pickle
@@ -14,7 +14,7 @@ class Walk():
         self.env = Env(base_agent)
         self.last_executed = 0
 
-        with open(M.get_active_directory([
+        with open(get_active_directory([
             "/behaviors/custom/Walk/walk_R0.pkl",
             "/behaviors/custom/Walk/walk_R1_R3.pkl",
             "/behaviors/custom/Walk/walk_R2.pkl",
@@ -48,11 +48,11 @@ class Walk():
             reset = False
         self.last_executed = self.world.time_local_ms
 
-        #------------------------ 1. Define walk parameters 
+        #------------------------ 1. Define walk parameters
 
         if is_target_absolute: # convert to target relative to (head position + torso orientation)
             raw_target = target_2d - r.loc_head_position[:2]
-            self.env.walk_rel_target = M.rotate_2d_vec(raw_target, -r.imu_torso_orientation)
+            self.env.walk_rel_target = rotate_2d_vec(raw_target, -r.imu_torso_orientation)
         else:
             self.env.walk_rel_target = target_2d
 
@@ -63,18 +63,18 @@ class Walk():
 
         # Relative orientation values are decreased to avoid overshoot
         if orientation is None:
-            self.env.walk_rel_orientation = M.vector_angle(self.env.walk_rel_target) * 0.3
+            self.env.walk_rel_orientation = vector_angle(self.env.walk_rel_target) * 0.3
         elif is_orientation_absolute:
-            self.env.walk_rel_orientation = M.normalize_deg( orientation - r.imu_torso_orientation )
+            self.env.walk_rel_orientation = normalize_deg( orientation - r.imu_torso_orientation )
         else:
             self.env.walk_rel_orientation = orientation * 0.3
 
         #------------------------ 2. Execute behavior
 
         obs = self.env.observe(reset)
-        action = run_mlp(obs, self.model)   
+        action = run_mlp(obs, self.model)
         self.env.execute(action)
-        
+
         return False
 
 

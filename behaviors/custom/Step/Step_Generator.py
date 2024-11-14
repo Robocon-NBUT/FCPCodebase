@@ -4,7 +4,7 @@ import math
 class Step_Generator():
     GRAVITY = 9.81
     Z0 = 0.2
-    
+
     def __init__(self, feet_y_dev, sample_time, max_ankle_z) -> None:
         self.feet_y_dev = feet_y_dev
         self.sample_time = sample_time
@@ -25,7 +25,7 @@ class Step_Generator():
             (Left leg y, Left leg z, Right leg y, Right leg z)
         '''
 
-        assert type(ts_per_step)==int and ts_per_step > 0, "ts_per_step must be a positive integer!"
+        assert isinstance(ts_per_step, int) and ts_per_step > 0, "ts_per_step must be a positive integer!"
 
         #-------------------------- Advance 1ts
         if reset:
@@ -33,7 +33,7 @@ class Step_Generator():
             self.swing_height = z_span
             self.max_leg_extension = z_extension  # maximum distance between ankle to center of both hip joints
             self.state_current_ts = 0
-            self.state_is_left_active = False 
+            self.state_is_left_active = False
             self.switch = False
         elif self.switch:
             self.state_current_ts = 0
@@ -47,7 +47,7 @@ class Step_Generator():
 
         step_time = self.ts_per_step * self.sample_time
         time_delta = self.state_current_ts * self.sample_time
- 
+
         y0 = self.feet_y_dev # absolute initial y value
         y_swing = y0 + y0 * (  math.sinh((step_time - time_delta)/W) + math.sinh(time_delta/W)  ) / math.sinh(-step_time/W)
 
@@ -72,4 +72,3 @@ class Step_Generator():
             return y0+y_swing, active_z_swing+z0, -y0+y_swing, z0
         else:
             return y0-y_swing, z0, -y0-y_swing, active_z_swing+z0
-

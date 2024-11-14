@@ -33,16 +33,16 @@ class Fwd_Kinematics():
 
                 rp = p.world.robot.body_parts['lfoot'].transform((0.08,0,0))
                 ap = p.world.robot.loc_head_to_field_transform(rp,False)
-                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",False)  
+                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",False)
                 rp = p.world.robot.body_parts['lfoot'].transform((-0.08,0,0))
                 ap = p.world.robot.loc_head_to_field_transform(rp,False)
-                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",False) 
+                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",False)
                 rp = p.world.robot.body_parts['lfoot'].transform((0,0.04,0))
                 ap = p.world.robot.loc_head_to_field_transform(rp,False)
                 p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",False)
                 rp = p.world.robot.body_parts['lfoot'].transform((0,-0.04,0))
                 ap = p.world.robot.loc_head_to_field_transform(rp,False)
-                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",True)         
+                p.world.draw.line(ap,ap+(0,0,0.1),1,Draw.Color.red,"soup",True)
 
         Draw.clear_all()
 
@@ -62,14 +62,13 @@ class Fwd_Kinematics():
                     rp = transf.get_translation()
                     pos = p.world.robot.loc_head_to_field_transform(rp,False)
                     j_name = str(j)
-                    label_rp = np.array([rp[0]-0.0001,rp[1]*0.5,0]) 
+                    label_rp = np.array([rp[0]-0.0001,rp[1]*0.5,0])
                     label_rp /= np.linalg.norm(label_rp) / 0.4 #labels at 0.4m from body part
                     label_rp += (0,0,label_z[j])
                     label = p.world.robot.loc_head_to_field_transform(rp+label_rp,False)
                     p.world.draw.line( pos,label,2,Draw.Color.green_light,j_name,False)
                     p.world.draw.annotation( label,j_name,Draw.Color.cyan,j_name)
 
-                
         Draw.clear_all()
 
         #Draw orientation of body parts
@@ -85,7 +84,8 @@ class Fwd_Kinematics():
 
                 for key in p.world.robot.body_parts:
                     #Select only some body parts
-                    if key not in ['head', 'torso', 'llowerarm', 'rlowerarm', 'lthigh', 'rthigh', 'lshank', 'rshank', 'lfoot', 'rfoot']: continue
+                    if key not in ['head', 'torso', 'llowerarm', 'rlowerarm', 'lthigh', 'rthigh', 'lshank', 'rshank', 'lfoot', 'rfoot']:
+                        continue
                     bpart_abs_pos = p.world.robot.get_body_part_to_field_transform(key).translate((0.1,0,0)) #10cm in front of body part
                     x_axis = bpart_abs_pos((0.05,0,0),False)
                     y_axis = bpart_abs_pos((0,0.05,0),False)
@@ -97,8 +97,6 @@ class Fwd_Kinematics():
 
         Draw.clear_all()
 
-        
-        
     def execute(self):
 
         a = self.script.args

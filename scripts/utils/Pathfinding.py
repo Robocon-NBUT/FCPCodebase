@@ -1,26 +1,23 @@
-from agent.Base_Agent import Base_Agent as Agent
-from cpp.a_star import a_star
-from scripts.commons.Script import Script
-import numpy as np
-import time
-
-'''
+"""
 ::::::::::::::::::::::::::::::::::::::::::
 ::::::::a_star.compute(param_vec):::::::::
 ::::::::::::::::::::::::::::::::::::::::::
 
-param_vec (numpy array, float32)
-param_vec[0] - start x
-param_vec[1] - start y
-param_vec[2] - allow path to go out of bounds? (useful when player does not have the ball)
-param_vec[3] - go to opposite goal? (path goes to the most efficient part of the goal)
-param_vec[4] - target x (only used if param_vec[3]==0)
-param_vec[5] - target y (only used if param_vec[3]==0)
+A* 自动寻路优化算法
+
+param_vec: numpy 数组，类型是 float32
+
+param_vec[0] - 起始点的 x 坐标
+param_vec[1] - 起始点的 y 坐标
+param_vec[2] - 是否允许球员走到球场边界之外(在球员不带球的情况下会有用)
+param_vec[3] - 是否将终点定为球门(目标自动设定为对方球门最有效区域)
+param_vec[4] - 目标点的 x 坐标（仅当 param_vec[3] == 0 时有效）
+param_vec[5] - 目标点的 y 坐标（仅当 param_vec[3] == 0 时有效）
 param_vec[6] - timeout in us (maximum execution time)
 -------------- [optional] ----------------
-param_vec[ 7-11]  - obstacle 1: x, y, hard radius (max:5m), soft radius (max:5m), repulsive force for soft radius (min:0)
-param_vec[12-16]  - obstacle 2: x, y, hard radius (max:5m), soft radius (max:5m), repulsive force for soft radius (min:0)
-...               - obstacle n: x, y, hard radius (max:5m), soft radius (max:5m), repulsive force for soft radius (min:0)
+param_vec[7-11] - 障碍物 1: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
+                - 障碍物 2: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
+                - 障碍物 n: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
 ---------------- return ------------------
 path_ret : numpy array (float32)
     path_ret[:-2]
@@ -85,72 +82,91 @@ Obstacles:
         obstacle(-2.16,3,0,0,8) -> obstacle at pos(-2.2,3) with hard radius of 0m, soft radius of 0m with repulsive force 8
             - the path cannot go through (-2.2,3), the map has a precision of 10cm, so the obstacle is placed at the nearest valid position
             - the repulsive force is ignored because (soft radius <= hard radius)
-'''
+"""
+import time
+import numpy as np
+from agent.Base_Agent import Base_Agent as Agent
+from cpp.a_star import a_star
+from scripts.commons.Script import Script
 
 
-
-class Pathfinding():
-    def __init__(self, script:Script) -> None:
+class Pathfinding:
+    def __init__(self, script: Script) -> None:
         self.script = script
-        a_star.compute(np.zeros(6, np.float32)) # Initialize (not needed, but the first run takes a bit more time)
+        # Initialize (not needed, but the first run takes a bit more time)
+        a_star.compute(np.zeros(6, np.float32))
 
     def draw_grid(self):
         d = self.player.world.draw
-        MAX_RAW_COST = 0.6 # dribble cushion
+        MAX_RAW_COST = 0.6  # dribble cushion
 
-        for x in np.arange(-16,16.01,0.1):
-            for y in np.arange(-11,11.01,0.1):
-                s_in,  cost_in  = a_star.compute(np.array([x, y, 0, 0, x, y, 5000], np.float32))[-2:] # do not allow out of bounds
-                s_out, cost_out = a_star.compute(np.array([x, y, 1, 0, x, y, 5000], np.float32))[-2:] # allow out of bounds
-                #print(path_cost_in, path_cost_out)
+        for x in np.arange(-16, 16.01, 0.1):
+            for y in np.arange(-11, 11.01, 0.1):
+                # do not allow out of bounds
+                s_in,  cost_in = a_star.compute(
+                    np.array([x, y, 0, 0, x, y, 5000], np.float32))[-2:]
+
+                # allow out of bounds
+                s_out, cost_out = a_star.compute(
+                    np.array([x, y, 1, 0, x, y, 5000], np.float32))[-2:]
+                # print(path_cost_in, path_cost_out)
                 if s_out != 3:
-                    d.point((x,y), 5, d.Color.red, "grid", False)
+                    d.point((x, y), 5, d.Color.red, "grid", False)
                 elif s_in != 3:
-                    d.point((x,y), 4, d.Color.blue_pale, "grid", False)
+                    d.point((x, y), 4, d.Color.blue_pale, "grid", False)
                 elif 0 < cost_in < MAX_RAW_COST + 1e-6:
-                    d.point((x,y), 4, d.Color.get(255,(1-cost_in/MAX_RAW_COST)*255,0), "grid", False)
+                    d.point((x, y), 4, d.Color.get(
+                        255, (1-cost_in/MAX_RAW_COST)*255, 0), "grid", False)
                 elif cost_in > MAX_RAW_COST:
-                    d.point((x,y), 4, d.Color.black, "grid", False)
-                #else:
+                    d.point((x, y), 4, d.Color.black, "grid", False)
+                # else:
                 #    d.point((x,y), 4, d.Color.white, "grid", False)
         d.flush("grid")
 
     def sync(self):
         r = self.player.world.robot
         self.player.behavior.head.execute()
-        self.player.scom.commit_and_send( r.get_command() )
-        self.player.scom.receive()
+        self.player.server.commit_and_send(r.get_command())
+        self.player.server.receive()
 
     def draw_path_and_obstacles(self, obst, path_ret_pb, path_ret_bp):
         w = self.player.world
 
         # draw obstacles
-        for i in range(0,len(obst[0]),5):
-            w.draw.circle(obst[0][i:i+2], obst[0][i+2], 2, w.draw.Color.red, "obstacles", False)
-            w.draw.circle(obst[0][i:i+2], obst[0][i+3], 2, w.draw.Color.orange, "obstacles", False)
+        for i in range(0, len(obst[0]), 5):
+            w.draw.circle(obst[0][i:i+2], obst[0][i+2], 2,
+                          w.draw.Color.red, "obstacles", False)
+            w.draw.circle(obst[0][i:i+2], obst[0][i+3], 2,
+                          w.draw.Color.orange, "obstacles", False)
 
         # draw path
         path_pb = path_ret_pb[:-2]         # create view without status
-        path_status_pb  = path_ret_pb[-2]  # extract status
+        path_status_pb = path_ret_pb[-2]  # extract status
         path_cost_pb = path_ret_pb[-1]     # extract A* cost
         path_bp = path_ret_bp[:-2]         # create view without status
         path_status_bp = path_ret_bp[-2]   # extract status
         path_cost_bp = path_ret_bp[-1]     # extract A* cost
 
-        c_pb = {0: w.draw.Color.green_lime, 1: w.draw.Color.yellow, 2: w.draw.Color.red, 3: w.draw.Color.blue_light}[path_status_pb]
-        c_bp = {0: w.draw.Color.green_pale, 1: w.draw.Color.yellow_light, 2: w.draw.Color.red_salmon, 3: w.draw.Color.blue_pale}[path_status_bp]
-        
-        for i in range(2,len(path_pb)-2,2):
-            w.draw.line(path_pb[i-2:i],path_pb[i:i+2], 5, c_pb, "path_player_ball", False)
+        c_pb = {0: w.draw.Color.green_lime, 1: w.draw.Color.yellow,
+                2: w.draw.Color.red, 3: w.draw.Color.blue_light}[path_status_pb]
+        c_bp = {0: w.draw.Color.green_pale, 1: w.draw.Color.yellow_light,
+                2: w.draw.Color.red_salmon, 3: w.draw.Color.blue_pale}[path_status_bp]
 
-        if len(path_pb)>=4:
-            w.draw.arrow(path_pb[-4:-2],path_pb[-2:],0.4, 5, c_pb, "path_player_ball", False)
+        for i in range(2, len(path_pb)-2, 2):
+            w.draw.line(path_pb[i-2:i], path_pb[i:i+2], 5,
+                        c_pb, "path_player_ball", False)
 
-        for i in range(2,len(path_bp)-2,2):
-            w.draw.line(path_bp[i-2:i],path_bp[i:i+2], 5, c_bp, "path_ball_player", False)
+        if len(path_pb) >= 4:
+            w.draw.arrow(path_pb[-4:-2], path_pb[-2:], 0.4,
+                         5, c_pb, "path_player_ball", False)
 
-        if len(path_bp)>=4:
-            w.draw.arrow(path_bp[-4:-2],path_bp[-2:],0.4, 5, c_bp, "path_ball_player", False)
+        for i in range(2, len(path_bp)-2, 2):
+            w.draw.line(path_bp[i-2:i], path_bp[i:i+2], 5,
+                        c_bp, "path_ball_player", False)
+
+        if len(path_bp) >= 4:
+            w.draw.arrow(path_bp[-4:-2], path_bp[-2:], 0.4,
+                         5, c_bp, "path_ball_player", False)
 
         w.draw.flush("obstacles")
         w.draw.flush("path_player_ball")
@@ -159,22 +175,27 @@ class Pathfinding():
     def move_obstacles(self, obst):
 
         for i in range(len(obst[0])//5):
-            obst[0][i*5]  +=obst[1][i,0]
-            obst[0][i*5+1]+=obst[1][i,1]
-            if not -16<obst[0][i*5]  <16: obst[1][i,0] *=-1
-            if not -11<obst[0][i*5+1]<11: obst[1][i,1] *=-1
+            obst[0][i*5] += obst[1][i, 0]
+            obst[0][i*5+1] += obst[1][i, 1]
+            if not -16 < obst[0][i*5] < 16:
+                obst[1][i, 0] *= -1
+            if not -11 < obst[0][i*5+1] < 11:
+                obst[1][i, 1] *= -1
 
     def execute(self):
 
-        a = self.script.args    
-        self.player = Agent(a.i, a.p, a.m, a.u, a.r, a.t) # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name
+        a = self.script.args
+        # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name
+        self.player = Agent(a.i, a.p, a.m, a.u, a.r, a.t)
         w = self.player.world
         r = self.player.world.robot
         timeout = 5000
 
         go_to_goal = 0
         obst_no = 50
-        obst = [[0,0,0.5,1,1]*obst_no, np.random.uniform(-0.01,0.01,(obst_no,2))] # obst[x,y,h,s,f] + random velocity
+        # obst[x,y,h,s,f] + random velocity
+        obst = [[0, 0, 0.5, 1, 1]*obst_no,
+                np.random.uniform(-0.01, 0.01, (obst_no, 2))]
 
         print("\nMove player/ball around using RoboViz!")
         print("Press ctrl+c to return.")
@@ -182,22 +203,27 @@ class Pathfinding():
         print("Pathfinding execution time:")
 
         self.draw_grid()
-         
+
         while True:
             ball = w.ball_abs_pos[:2]
             rpos = r.loc_head_position[:2]
 
             self.move_obstacles(obst)
-            
-            param_vec_pb = np.array([*rpos,  1, go_to_goal, *ball, timeout, *obst[0]], np.float32) # allow out of bounds (player->ball)
-            param_vec_bp = np.array([*ball,  0, go_to_goal, *rpos, timeout, *obst[0]], np.float32) # don't allow (ball->player)
+
+            # allow out of bounds (player->ball)
+            param_vec_pb = np.array(
+                [*rpos,  1, go_to_goal, *ball, timeout, *obst[0]], np.float32)
+            # don't allow (ball->player)
+            param_vec_bp = np.array(
+                [*ball,  0, go_to_goal, *rpos, timeout, *obst[0]], np.float32)
             t1 = time.time()
             path_ret_pb = a_star.compute(param_vec_pb)
             t2 = time.time()
             path_ret_bp = a_star.compute(param_vec_bp)
             t3 = time.time()
 
-            print(end=f"\rplayer->ball {int((t2-t1)*1000000):5}us (len:{len(path_ret_pb[:-2])//2:4})      ball->player {int((t3-t2)*1000000):5}us  (len:{len(path_ret_bp[:-2])//2:4}) ")
+            print(
+                end=f"\rplayer->ball {int((t2-t1)*1000000):5}us (len:{len(path_ret_pb[:-2])//2:4})      ball->player {int((t3-t2)*1000000):5}us  (len:{len(path_ret_bp[:-2])//2:4}) ")
 
-            self.draw_path_and_obstacles( obst, path_ret_pb, path_ret_bp )
+            self.draw_path_and_obstacles(obst, path_ret_pb, path_ret_bp)
             self.sync()

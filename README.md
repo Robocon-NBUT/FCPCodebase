@@ -1,62 +1,87 @@
-# FC Portugal Codebase <br> for RoboCup 3D Soccer Simulation League
+# Robocup3D Darkblue 球队环境部署教程
 
-![](https://s5.gifyu.com/images/Siov6.gif)
+## 什么是 Robocup3D
 
-## About
+Robocup 是一项国际科学倡议，旨在推动智能机器人的发展的比赛。为了实现这一目标，RoboCup在不同领域提出了几个不同的比赛，Robocup3D 使用虚拟3D机器人来模拟真正的足球比赛。
 
-The FC Portugal Codebase was mainly written in Python, with some C++ modules. It was created to simplify and speed up the development of a team for participating in the RoboCup 3D Soccer Simulation League. We hope this release helps existing teams transition to Python more easily, and provides new teams with a robust and modern foundation upon which they can build new features.
+## 环境依赖构建
 
+Robocup3D 主要由服务器(rcssserver3d)，监视器(Roboviz)，和球队组成，整个环境运行在 Linux 下，因此需要安装 Ubuntu 或其他 Linux 环境。
 
-## Documentation
+### 1. 安装 Windows Subsystem For Linux (WSL)
 
-The documentation is available [here](https://docs.google.com/document/d/1aJhwK2iJtU-ri_2JOB8iYvxzbPskJ8kbk_4rb3IK3yc/edit)
+[安装教程](https://blog.csdn.net/wangtcCSDN/article/details/137950545)
 
-## Features
+### 2. 安装服务器(rcssserver3d)
 
-- The team is ready to play!
-    - Sample Agent - the active agent attempts to score with a kick, while the others maintain a basic formation
-        - Launch team with: **start.sh**
-    - Sample Agent supports [Fat Proxy](https://github.com/magmaOffenburg/magmaFatProxy) 
-        - Launch team with: **start_fat_proxy.sh**
-    - Sample Agent Penalty - a striker performs a basic kick and a goalkeeper dives to defend
-        - Launch team with: **start_penalty.sh**
-- Skills
-    - Get Ups (latest version)
-    - Walk (latest version)
-    - Dribble v1 (version used in RoboCup 2022)
-    - Step (skill-set-primitive used by Walk and Dribble)
-    - Basic kick
-    - Basic goalkeeper dive
-- Features
-    - Accurate localization based on probabilistic 6D pose estimation [algorithm](https://doi.org/10.1007/s10846-021-01385-3) and IMU
-    - Automatic head orientation
-    - Automatic communication with teammates to share location of all visible players and ball
-    - Basics: common math ops, server communication, RoboViz drawings (with arrows and preset colors)
-    - Behavior manager that internally resets skills when necessary
-    - Bundle script to generate a binary and the corresponding start/kill scripts
-    - C++ modules are automatically built into shared libraries when changes are detected
-    - Central arguments specification for all scripts
-    - Custom A* pathfinding implementation in C++, optimized for the soccer environment
-    - Easy integration of neural-network-based behaviors
-    - Integration with Open AI Gym to train models with reinforcement learning
-        - User interface to train, retrain, test & export trained models
-        - Common features from Stable Baselines were automated, added evaluation graphs in the terminal
-        - Interactive FPS control during model testing, along with logging of statistics
-    - Interactive demonstrations, tests and utilities showcasing key features of the team/agents
-    - Inverse Kinematics
-    - Multiple agents can be launched on a single thread, or one agent per thread
-    - Predictor for rolling ball position and velocity
-    - Relative/absolute position & orientation of every body part & joint through forward kinematics and vision
-    - Sample train environments
-    - User-friendly interface to check active arguments and launch utilities & gyms
+[rcssserver3d 下载链接](https://software.opensuse.org/download.html?project=science:SimSpark&package=rcssserver3d)
 
-## Citing the Project
+### 3.安装监视器(Roboviz)
 
+Roboviz 的运行需要 JRE(Java Runtime Environment) 环境，Roboviz 在 Windows 和 Linux 上均可用，但是 Java 环境建议两边都安装。
+
+### Windows
+
+Windows 平台可以下载 [OpenJDK](https://learn.microsoft.com/zh-cn/java/openjdk/download) 安装包，安装时务必添加 JAVA_HOME 环境变量。安装结束后，打开终端输入：
+
+```powershell
+java -version
 ```
-@article{abreu2023designing,
-  title={Designing a Skilled Soccer Team for RoboCup: Exploring Skill-Set-Primitives through Reinforcement Learning},
-  author={Abreu, Miguel and Reis, Luis Paulo and Lau, Nuno},
-  journal={arXiv preprint arXiv:2312.14360},
-  year={2023}
-}
+
+如果能正确的输出版本号即为安装成功。
+
+### Linux
+
+Ubuntu 平台安装 Java 直接使用包管理器即可，在终端输入：
+
+```bash
+sudo apt update && sudo apt upgrade
+sudo apt install openjdk-17-jdk
 ```
+
+安装完后，在终端输入：
+
+```bash
+java -version
+```
+
+如果能正确的输出版本号即为安装成功。
+
+### 下载 Roboviz
+
+下载 [Roboviz](https://github.com/magmaOffenburg/RoboViz/releases)，运行 `Roboviz.bat` 脚本 (Windows) 或 `Roboviz.sh`脚本 (Linux) 即可启动 Roboviz。
+
+## Darkblue 球队代码安装构建
+
+先安装基本的环境依赖：
+
+```bash
+sudo apt install libgsl-dev python3-numpy python3-pybind11 python3-psutil python3-pip
+```
+
+更新 `pip` 的软件源地址：
+
+```bash
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+用 `pip` 安装 Python 模块：
+
+```bash
+pip3 install stable-baselines3 gym shimmy pyinstaller --break-system-packages
+```
+
+最后再拉取源码
+
+```bash
+git clone https://github.com/Robocon-NBUT/FCPCodebase.git
+```
+
+输入下面两行内容验证安装是否成功：
+
+```bash
+cd FCPCodebase
+python3 Run_Utils.py
+```
+
+如果没有报错，就代表环境搭建完成。

@@ -1,7 +1,6 @@
 from agent.Agent import Agent
 from itertools import count
 from scripts.commons.Script import Script
-from typing import List
 from world.commons.Draw import Draw
 
 class Radio_Localization():
@@ -14,7 +13,7 @@ class Radio_Localization():
 
         # get draw object from same player to always overwrite previous drawing
         # could also use team channel but with this approach we could draw for both teams
-        d:Draw = self.script.players[0].world.draw 
+        d:Draw = self.script.players[0].world.draw
 
         # VISUALSTEP_MS is the time it takes to get a visual update
         is_current = last_update > w.time_local_ms - w.VISUALSTEP_MS
@@ -59,7 +58,7 @@ class Radio_Localization():
             pos = o.state_abs_pos
             is_down = o.state_fallen
             # 3D head position means head is visible, 2D means some body parts are visible but not the head, or the head position comes from radio
-            is_3D = pos is not None and len(pos)==3 
+            is_3D = pos is not None and len(pos)==3
 
             self.draw_objects(p, pos, is_down, is_3D, o.state_last_update)
 
@@ -72,7 +71,7 @@ class Radio_Localization():
 
         self.draw_objects(p, w.ball_abs_pos, False, w.is_ball_abs_pos_from_vision, w.ball_abs_pos_last_update)
         self.script.players[0].world.draw.flush("objects")
-        
+
 
     def execute(self):
         a = self.script.args
@@ -80,7 +79,7 @@ class Radio_Localization():
         # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw
         self.script.batch_create(Agent, ((a.i,a.p,a.m,u,a.t,       False,u==1) for u in range(1,12)))
         self.script.batch_create(Agent, ((a.i,a.p,a.m,u,"Opponent",False,False) for u in range(1,12)))
-        players : List[Agent] = self.script.players
+        players : list[Agent] = self.script.players
 
         # Beam opponents
         beam_pos = [(-(i//2)-3,(i%2*2-1)*(i//2+1),0) for i in range(11)]

@@ -1,37 +1,38 @@
+"""
+    Server Communication
+"""
 import socket
 import time
 import sys
-from itertools import count
 from select import select
-
-from world.World import World
+# from agent.Base_Agent import Base_Agent
 from communication.world_parser import WorldParser
+from world.World import World
+
+BUFFER_SIZE = 8192
 
 
-class Server_Comm:
-    monitor_socket = None
+class Server:
 
     def __init__(
-            self, host: str, agent_port: int, monitor_port: int, unum: int, robot_type: int,
-            team_name: str, world_parser: WorldParser, world: World,
-            other_players, wait_for_server=True) -> None:
+            self, host: str, agent_port: int, monitor_port: int, unum: int,
+            robot_type: int, team_name: str, world_parser: WorldParser,
+            world: World, other_players, wait_for_server=True) -> None:
+        self.monitor_socket = None
 
-        self.BUFFER_SIZE = 8192
-        self.rcv_buff = bytearray(self.BUFFER_SIZE)
+        self.rcv_buff = bytearray(BUFFER_SIZE)
         self.send_buff = []
         self.world_parser = world_parser
         self.unum = unum
-
-        # During initialization, it's not clear whether we are on the left or right side
-        self._unofficial_beam_msg_left  = "(agent (unum " + str(unum) + ") (team Left) (move "
-        self._unofficial_beam_msg_right = "(agent (unum " + str(unum) + ") (team Right) (move "
+        self._beam_msg = f"(agent (unum {unum}) (team {{}}) (move "
         self.world = world
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         if wait_for_server:
-            print("Waiting for server at ", host, ":",
-                  agent_port, sep="", end=".", flush=True)
+            print(f"正在等待 {host}:{agent_port} 的 server 的回应",
+                  sep="", end=".", flush=True)
+
         while True:
             try:
                 self.socket.connect((host, agent_port))
@@ -39,7 +40,7 @@ class Server_Comm:
                 break
             except ConnectionRefusedError:
                 if not wait_for_server:
-                    print("Server is down. Closing...")
+                    print("服务器停止。正在关闭...")
                     sys.exit()
                 time.sleep(1)
                 print(".", end="", flush=True)
@@ -53,32 +54,33 @@ class Server_Comm:
             b'(init (unum ' + str(unum).encode() + b') (teamname ' + team_name.encode() + b'))')
         self._receive_async(other_players, False)
 
-        # Repeat to guarantee that team side information is received
         for _ in range(3):
             # Eliminate advanced step by changing syn order (rcssserver3d protocol bug, usually seen for player 11)
             # if this syn is not needed, it will be discarded by the server
             self.send_immediate(b'(syn)')
             for p in other_players:
-                p.scom.send_immediate(b'(syn)')
+                p.server.send_immediate(b'(syn)')
             for p in other_players:
-                p.scom.receive()
+                p.server.receive()
             self.receive()
 
-        if world.team_side_is_left == None:
+        if world.team_side_is_left is None:
             print("\nError: server did not return a team side! Check server terminal!")
             sys.exit()
 
         # Monitor socket is shared by all agents on the same thread
-        if Server_Comm.monitor_socket is None and monitor_port is not None:
-            print("Connecting to server's monitor port at ", host,
-                  ":", monitor_port, sep="", end=".", flush=True)
-            Server_Comm.monitor_socket = socket.socket(
+        if self.monitor_socket is None and monitor_port is not None:
+            print(f"正在连接到服务器的监视端口 {host} : {monitor_port}",
+                  sep="", end=".", flush=True)
+            self.monitor_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
-            Server_Comm.monitor_socket.connect((host, monitor_port))
+            self.monitor_socket.connect((host, monitor_port))
             print("Done!")
 
     def _receive_async(self, other_players, first_pass) -> None:
-        '''Private function that receives asynchronous information during the initialization'''
+        """
+        私有函数，在初始化的时候接收异步信息
+        """
 
         if not other_players:
             self.receive()
@@ -86,7 +88,7 @@ class Server_Comm:
 
         self.socket.setblocking(0)
         if first_pass:
-            print("Async agent", self.unum, "initialization", end="", flush=True)
+            print(f"异步代理 {self.unum} 初始化", end="", flush=True)
 
         while True:
             try:
@@ -96,24 +98,26 @@ class Server_Comm:
             except:
                 pass
             for p in other_players:
-                p.scom.send_immediate(b'(syn)')
+                p.server.send_immediate(b'(syn)')
             for p in other_players:
-                p.scom.receive()
+                p.server.receive()
 
         self.socket.setblocking(1)
         if not first_pass:
             print("Done!")
 
     def receive(self, update=True):
-        # parse all messages and perform value updates, but heavy computation is only done once at the end
-        for i in count():
+
+        i = 0
+        # parse all messages and perform value updates,
+        # but heavy computation is only done once at the end
+        while True:
             try:
                 if self.socket.recv_into(self.rcv_buff, nbytes=4) != 4:
                     raise ConnectionResetError()
                 msg_size = int.from_bytes(
                     self.rcv_buff[:4], byteorder='big', signed=False)
-                if self.socket.recv_into(
-                    self.rcv_buff, nbytes=msg_size, flags=socket.MSG_WAITALL) != msg_size:
+                if self.socket.recv_into(self.rcv_buff, nbytes=msg_size, flags=socket.MSG_WAITALL) != msg_size:
                     raise ConnectionResetError()
             except ConnectionResetError:
                 print("\nError: socket was closed by rcssserver3d!")
@@ -123,26 +127,29 @@ class Server_Comm:
             if len(select([self.socket], [], [], 0.0)[0]) == 0:
                 break
 
+            i += 1
+
         if update:
             if i == 1:
                 self.world.log(
-                    "Server_Comm.py: The agent lost 1 packet! Is syncmode enabled?")
-            if i > 1:
-                self.world.log(f"Server_Comm.py: The agent lost {i} consecutive packets! Is syncmode disabled?")
+                    "server.py: The agent lost 1 packet! Is syncmode enabled?")
+            elif i > 1:
+                self.world.log(
+                    f"server.py: Agent 丢失了 {i} 个连续的数据包！Syncmode 是否被禁用？")
             self.world.update()
 
             if len(select([self.socket], [], [], 0.0)[0]) != 0:
                 self.world.log(
-                    "Server_Comm.py: Received a new packet while on world.update()!")
+                    "server.py: Received a new packet while on world.update()!")
                 self.receive()
 
     def send_immediate(self, msg: bytes) -> None:
         ''' Commit and send immediately '''
         try:
-            # Add message length in the first 4 bytes
+            # 使用 大端字节序传送文本数据 (message)
             self.socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
         except BrokenPipeError:
-            print("\nError: socket was closed by rcssserver3d!")
+            print("\nError: socket 被 rcssserver3d 关闭!")
             sys.exit()
 
     def send(self) -> None:
@@ -152,7 +159,7 @@ class Server_Comm:
             self.send_immediate(b''.join(self.send_buff))
         else:
             self.world.log(
-                "Server_Comm.py: Received a new packet while thinking!")
+                "server.py: Received a new packet while thinking!")
         self.send_buff = []  # clear buffer
 
     def commit(self, msg: bytes) -> None:
@@ -168,66 +175,67 @@ class Server_Comm:
 
     def commit_announcement(self, msg: bytes) -> None:
         '''
-        向场上的每个玩家发布公告。
-        最多20个字符，字符范围为ASCII码0x20到0x7E，排除' '、'('、')'。
-        可接受字符：字母+数字+符号：!"#$%&'*+,-./:;<=>?@[\]^_`{|}~
-        消息的有效范围为50米（场地对角线长度为36米，因此忽略这个限制）。
-        玩家每2步（0.04秒）只能听到队友的消息一次。
-        此功能独立于双方的消息（即我们的队伍无法通过发送消息来阻挡对方的消息）。
-        自己发送的消息总是可以听到。
+        Say something to every player on the field.
+        Maximum 20 characters, ascii between 0x20, 0x7E except ' ', '(', ')'
+        Accepted: letters+numbers+symbols: !"#$%&'*+,-./:;<=>?@[\]^_`{|}~
+        Message range: 50m (the field is 36m diagonally, so ignore this limitation)
+        A player can only hear a teammate's message every 2 steps (0.04s)
+        This ability exists independetly for messages from both teams
+        (i.e. our team cannot spam the other team to block their messages)
+        Messages from oneself are always heard
         '''
-        assert len(msg) <= 20 and isinstance(msg, bytes)  # 确保消息长度不超过20且类型为字节
+        assert len(msg) <= 20 and isinstance(msg, bytes)
         self.commit(b'(say ' + msg + b')')
 
     def commit_pass_command(self) -> None:
         ''' 
-        发出传球指令：
-        条件：
-        - 当前的游戏模式为PlayOn
-        - 代理靠近球（默认0.5米）
-        - 没有对手靠近球（默认1米）
-        - 球是静止的（默认速度小于0.05米/秒）
-        - 两次传球指令之间有一定的时间间隔
+        Issue a pass command:
+        Conditions:
+        - The current playmode is PlayOn
+        - The agent is near the ball (default 0.5m)
+        - No opponents are near the ball (default 1m)
+        - The ball is stationary (default <0.05m/s)
+        - A certain amount of time has passed between pass commands
         '''
         self.commit(b'(pass)')
 
     def commit_beam(self, pos2d, rot) -> None:
         '''
-        官方的传送指令，可在游戏中使用。
-        该传送会受到噪声的影响（除非在服务器配置中禁用）。
+        Official beam command that can be used in-game
+        This beam is affected by noise (unless it is disabled in the server configuration)
 
-        参数
+        Parameters
         ----------
         pos2d : array_like
-            绝对2D位置（无论我们在哪一方，负X轴总是指向我们的半场）。
+            Absolute 2D position (negative X is always our half of the field, no matter our side)
         rot : `int`/`float`
-            玩家角度，单位为度（0度指向前方）。
+            Player angle in degrees (0 points forward)
         '''
-        assert len(pos2d)==2, "The official beam command accepts only 2D positions!"
-        self.commit( f"(beam {pos2d[0]} {pos2d[1]} {rot})".encode() )
-
+        assert len(
+            pos2d) == 2, "The official beam command accepts only 2D positions!"
+        self.commit(f"(beam {pos2d[0]} {pos2d[1]} {rot})".encode())
 
     def unofficial_beam(self, pos3d, rot) -> None:
         ''' 
-        非官方的传送指令，不能在正式比赛中使用。
+        Unofficial beam - it cannot be used in official matches 
 
-        参数
+        Parameters
         ----------
         pos3d : array_like
-            绝对3D位置（无论我们在哪一方，负X轴总是指向我们的半场）。
+            Absolute 3D position (negative X is always our half of the field, no matter our side)
         rot : `int`/`float`
-            玩家角度，单位为度（0度指向前方）。
+            Player angle in degrees (0 points forward)
         '''
-        assert len(pos3d)==3, "The unofficial beam command accepts only 3D positions!"
+        assert len(
+            pos3d) == 3, "The unofficial beam command accepts only 3D positions!"
 
-        # 不需要对角度进行标准化，服务器接受任何角度
+        # there is no need to normalize the angle, the server accepts any angle
         if self.world.team_side_is_left:
-            msg = f"{self._unofficial_beam_msg_left}{pos3d[0]} {pos3d[1]} {pos3d[2]} {rot-90}))".encode()
+            msg = f"{self._beam_msg.format("Left")}{pos3d[0]} {pos3d[1]} {pos3d[2]} {rot-90}))".encode()
         else:
-            msg = f"{self._unofficial_beam_msg_right}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode()
+            msg = f"{self._beam_msg.format("Right")}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode()
 
-        self.monitor_socket.send((len(msg)).to_bytes(
-            4, byteorder='big') + msg)  # 发送非官方传送指令
+        self.monitor_socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
 
     def unofficial_kill_sim(self) -> None:
         ''' Unofficial kill simulator command '''
@@ -283,25 +291,28 @@ class Server_Comm:
         self.monitor_socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
 
     def unofficial_kill_player(self, unum: int, team_side_is_left: bool) -> None:
-        '''
-        Unofficial command to kill specific player
+        """
+        非官方命令，用于杀死特定球员。
 
-        Parameters
+        参数
         ----------
         unum : int
-            Uniform number
+            球员的球衣号码。
         team_side_is_left : bool
-            True if player to kill belongs to left team
-        '''
-        msg = f"(kill (unum {unum}) (team {'Left' if team_side_is_left else 'Right'}))".encode()
+            是否属于左侧队伍
+        """
+        # 构造消息
+        team_side = 'Left' if team_side_is_left else 'Right'
+        msg = f"(kill (unum {unum}) (team {team_side}))".encode()
+
+        # 发送消息长度和消息本身
         self.monitor_socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
 
     def close(self, close_monitor_socket=False):
         """
-        Close agent socket,
-        and optionally the monitor socket (shared by players running on the same thread)
+        关闭 agent socket，并关闭可选的监视套接字 (由在同一线程上运行的玩家共享)
         """
         self.socket.close()
-        if close_monitor_socket and Server_Comm.monitor_socket is not None:
-            Server_Comm.monitor_socket.close()
-            Server_Comm.monitor_socket = None
+        if close_monitor_socket and self.monitor_socket is not None:
+            self.monitor_socket.close()
+            self.monitor_socket = None

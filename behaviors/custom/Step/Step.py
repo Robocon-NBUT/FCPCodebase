@@ -1,6 +1,7 @@
+import numpy as np
 from agent.Base_Agent import Base_Agent
 from behaviors.custom.Step.Step_Generator import Step_Generator
-import numpy as np
+
 
 class Step():
 
@@ -24,10 +25,10 @@ class Step():
     def execute(self,reset, ts_per_step=7, z_span=0.03, z_max=0.8):
 
         lfy,lfz,rfy,rfz = self.step_generator.get_target_positions(reset, ts_per_step, z_span, self.leg_length * z_max)
- 
+
         #----------------- Apply IK to each leg + Set joint targets
-          
-        # Left leg 
+
+        # Left leg
         indices, self.values_l, error_codes = self.ik.leg((0,lfy,lfz), (0,0,0), True, dynamic_pose=False)
         for i in error_codes:
             print(f"Joint {i} is out of range!" if i!=-1 else "Position is out of reach!")
@@ -52,7 +53,7 @@ class Step():
         self.world.robot.set_joints_target_position_direct(indices,values)
 
         return False
-        
+
 
     def is_ready(self):
         ''' Returns True if Step Behavior is ready to start under current game/robot conditions '''

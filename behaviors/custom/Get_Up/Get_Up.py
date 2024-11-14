@@ -22,7 +22,7 @@ class Get_Up():
 
         r = self.world.robot
         execute_sub_behavior = self.behavior.execute_sub_behavior
-        
+
         if reset:
             self.reset()
 
@@ -32,7 +32,7 @@ class Get_Up():
             self.gyro_queue.append( max(abs(r.gyro)) ) # log last STABILITY_THRESHOLD values
 
             # advance to next state if behavior is complete & robot is stable
-            if (execute_sub_behavior("Zero",None) and len(self.gyro_queue) == self.STABILITY_THRESHOLD 
+            if (execute_sub_behavior("Zero",None) and len(self.gyro_queue) == self.STABILITY_THRESHOLD
                 and all(g < 10 for g in self.gyro_queue)) or self.watchdog > 100:
 
                 # determine how to get up
@@ -59,7 +59,7 @@ class Get_Up():
                 self.reset()
 
         return False
-        
+
 
     def is_ready(self):
         ''' Returns True if the Get Up behavior is ready (= robot is down) '''

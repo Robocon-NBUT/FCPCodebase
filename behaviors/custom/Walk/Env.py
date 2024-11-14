@@ -1,8 +1,8 @@
-from agent.Base_Agent import Base_Agent
-from behaviors.custom.Step.Step_Generator import Step_Generator
-from math_ops.Math_Ops import Math_Ops as M
 import math
 import numpy as np
+from agent.Base_Agent import Base_Agent
+from behaviors.custom.Step.Step_Generator import Step_Generator
+from math_ops.math_ext import normalize_deg
 
 
 class Env():
@@ -10,16 +10,16 @@ class Env():
 
         self.world = base_agent.world
         self.ik = base_agent.inv_kinematics
-        
-        # State space  
+
+        # State space
         self.obs = np.zeros(63, np.float32)
-        
+
         # Step behavior defaults
         self.STEP_DUR = 8
         self.STEP_Z_SPAN = 0.02
         self.STEP_Z_MAX = 0.70
 
-        # IK 
+        # IK
         nao_specs = self.ik.NAO_SPECS
         self.leg_length = nao_specs[1] + nao_specs[3] # upper leg height + lower leg height
         feet_y_dev = nao_specs[0] * 1.12 # wider step
@@ -45,7 +45,7 @@ class Env():
         # index       observation              naive normalization
         self.obs[0] = min(self.step_counter,15*8) /100  # simple counter: 0,1,2,3...
         self.obs[1] = r.loc_head_z                *3   # z coordinate (torso)
-        self.obs[2] = r.loc_head_z_vel            /2   # z velocity (torso)  
+        self.obs[2] = r.loc_head_z_vel            /2   # z velocity (torso)
         self.obs[3] = r.imu_torso_roll            /15   # absolute torso roll  in deg
         self.obs[4] = r.imu_torso_pitch           /15   # absolute torso pitch in deg
         self.obs[5:8] = r.gyro                    /100  # gyroscope
@@ -99,21 +99,21 @@ class Env():
         MAX_ROTATION_DIST = 45
 
 
-        if init:      
+        if init:
             self.internal_rel_orientation = 0
             self.internal_target = np.zeros(2)
 
         previous_internal_target = np.copy(self.internal_target)
-       
+
         #---------------------------------------------------------------- compute internal linear target
-        
+
         rel_raw_target_size = np.linalg.norm(self.walk_rel_target)
 
         if rel_raw_target_size == 0:
             rel_target = self.walk_rel_target
         else:
             rel_target = self.walk_rel_target / rel_raw_target_size * min(self.walk_distance, MAX_LINEAR_DIST)
-       
+
         internal_diff = rel_target - self.internal_target
         internal_diff_size = np.linalg.norm(internal_diff)
 
@@ -124,11 +124,11 @@ class Env():
 
         #---------------------------------------------------------------- compute internal rotation target
 
-        internal_ori_diff =  np.clip( M.normalize_deg( self.walk_rel_orientation - self.internal_rel_orientation ), -MAX_ROTATION_DIFF, MAX_ROTATION_DIFF)
-        self.internal_rel_orientation = np.clip(M.normalize_deg( self.internal_rel_orientation + internal_ori_diff ), -MAX_ROTATION_DIST, MAX_ROTATION_DIST)
+        internal_ori_diff =  np.clip( normalize_deg( self.walk_rel_orientation - self.internal_rel_orientation ), -MAX_ROTATION_DIFF, MAX_ROTATION_DIFF)
+        self.internal_rel_orientation = np.clip(normalize_deg( self.internal_rel_orientation + internal_ori_diff ), -MAX_ROTATION_DIST, MAX_ROTATION_DIST)
 
         #----------------------------------------------------------------- observations
-        
+
         internal_target_vel = self.internal_target - previous_internal_target
 
         self.obs[58] = self.internal_target[0] / MAX_LINEAR_DIST
@@ -143,8 +143,8 @@ class Env():
     def execute_ik(self, l_pos, l_rot, r_pos, r_rot):
         r = self.world.robot
         # Apply IK to each leg + Set joint targets
-          
-        # Left leg 
+
+        # Left leg
         indices, self.values_l, error_codes = self.ik.leg(l_pos, l_rot, True, dynamic_pose=False)
 
         r.set_joints_target_position_direct(indices, self.values_l, harmonize=False)
@@ -156,7 +156,7 @@ class Env():
 
 
     def execute(self, action):
-        
+
         r = self.world.robot
 
         # Actions:
@@ -172,7 +172,7 @@ class Env():
 
         # exponential moving average
         self.act = 0.8 * self.act + 0.2 * action * action_mult * 0.7
-        
+
         # execute Step behavior to extract the target positions of each leg (we will override these targets)
         lfy,lfz,rfy,rfz = self.step_generator.get_target_positions(self.step_counter == 0, self.STEP_DUR, self.STEP_Z_SPAN, self.leg_length * self.STEP_Z_MAX)
 
@@ -195,7 +195,7 @@ class Env():
         arms[0:4] += a[12:16]*4 + (-arm_swing*inv,arm_swing*inv,0,0) # arms pitch+roll
 
         # Set target positions
-        self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos, r_foot_rot)           # legs 
+        self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos, r_foot_rot)           # legs
         r.set_joints_target_position_direct( slice(14,22), arms, harmonize=False )  # arms
 
         self.step_counter += 1

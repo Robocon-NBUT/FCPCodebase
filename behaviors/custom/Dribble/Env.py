@@ -1,24 +1,25 @@
-from agent.Base_Agent import Base_Agent
-from behaviors.custom.Step.Step_Generator import Step_Generator
-from math_ops.Math_Ops import Math_Ops as M
 import math
 import numpy as np
+from agent.Base_Agent import Base_Agent
+from behaviors.custom.Step.Step_Generator import Step_Generator
+from math_ops.math_ext import normalize_deg
+
 
 class Env():
     def __init__(self, base_agent : Base_Agent, step_width) -> None:
 
         self.world = base_agent.world
         self.ik = base_agent.inv_kinematics
-        
-        # State space  
+
+        # State space
         self.obs = np.zeros(76, np.float32)
-        
+
         # Step behavior defaults
         self.STEP_DUR = 8
         self.STEP_Z_SPAN = 0.02
         self.STEP_Z_MAX = 0.70
 
-        # IK 
+        # IK
         r = self.world.robot
         nao_specs = self.ik.NAO_SPECS
         self.leg_length = nao_specs[1] + nao_specs[3] # upper leg height + lower leg height
@@ -45,7 +46,7 @@ class Env():
         # index       observation              naive normalization
         self.obs[0] = min(self.step_counter,12*8) /100  # simple counter: 0,1,2,3...
         self.obs[1] = r.loc_head_z                *3    # z coordinate (torso)
-        self.obs[2] = r.loc_head_z_vel            /2    # z velocity (torso)  
+        self.obs[2] = r.loc_head_z_vel            /2    # z velocity (torso)
         self.obs[3] = r.imu_torso_roll            /15   # absolute torso roll  in deg
         self.obs[4] = r.imu_torso_pitch           /15   # absolute torso pitch in deg
         self.obs[5:8] = r.gyro                    /100  # gyroscope
@@ -84,7 +85,7 @@ class Env():
             self.obs[67:70] = (0,0,0) # Initial velocity is 0
         elif w.ball_is_visible:
             self.obs[67:70] = (ball_rel_hip_center - self.obs[70:73]) * 10  # Ball velocity, relative to ankle's midpoint
-            
+
         self.obs[70:73] = ball_rel_hip_center # Ball position, relative to hip
         self.obs[73] = ball_dist_hip_center * 2
 
@@ -103,15 +104,15 @@ class Env():
             self.internal_target_vel = 0
             self.gym_last_internal_abs_ori = r.imu_torso_orientation # for training purposes (reward)
 
-       
+
         #---------------------------------------------------------------- compute internal target
-        
+
         if w.vision_is_up_to_date:
 
             previous_internal_rel_orientation = np.copy(self.internal_rel_orientation)
 
-            internal_ori_diff =  np.clip( M.normalize_deg( self.dribble_rel_orientation - self.internal_rel_orientation ), -MAX_ROTATION_DIFF, MAX_ROTATION_DIFF)
-            self.internal_rel_orientation = np.clip(M.normalize_deg( self.internal_rel_orientation + internal_ori_diff ), -MAX_ROTATION_DIST, MAX_ROTATION_DIST)
+            internal_ori_diff =  np.clip( normalize_deg( self.dribble_rel_orientation - self.internal_rel_orientation ), -MAX_ROTATION_DIFF, MAX_ROTATION_DIFF)
+            self.internal_rel_orientation = np.clip(normalize_deg( self.internal_rel_orientation + internal_ori_diff ), -MAX_ROTATION_DIST, MAX_ROTATION_DIST)
 
             # Observations
             self.internal_target_vel = self.internal_rel_orientation - previous_internal_rel_orientation
@@ -119,7 +120,7 @@ class Env():
             self.gym_last_internal_abs_ori = self.internal_rel_orientation + r.imu_torso_orientation
 
         #----------------------------------------------------------------- observations
-        
+
         self.obs[74] = self.internal_rel_orientation / MAX_ROTATION_DIST
         self.obs[75] = self.internal_target_vel / MAX_ROTATION_DIFF
 
@@ -129,8 +130,8 @@ class Env():
     def execute_ik(self, l_pos, l_rot, r_pos, r_rot):
         r = self.world.robot
         # Apply IK to each leg + Set joint targets
-          
-        # Left leg 
+
+        # Left leg
         indices, self.values_l, error_codes = self.ik.leg(l_pos, l_rot, True, dynamic_pose=False)
 
         r.set_joints_target_position_direct(indices, self.values_l, harmonize=False)
@@ -142,7 +143,7 @@ class Env():
 
 
     def execute(self, action):
-        
+
         r = self.world.robot
 
         # Actions:
@@ -175,7 +176,7 @@ class Env():
         arms[0:4] += a[12:16]*4 # arms pitch+roll
 
         # Set target positions
-        self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos, r_foot_rot)           # legs 
+        self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos, r_foot_rot)           # legs
         r.set_joints_target_position_direct( slice(14,22), arms, harmonize=False )  # arms
 
         self.step_counter += 1
