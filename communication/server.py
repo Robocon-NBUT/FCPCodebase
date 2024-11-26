@@ -231,9 +231,11 @@ class Server:
 
         # there is no need to normalize the angle, the server accepts any angle
         if self.world.team_side_is_left:
-            msg = f"{self._beam_msg.format("Left")}{pos3d[0]} {pos3d[1]} {pos3d[2]} {rot-90}))".encode()
+            msg = f"{self._beam_msg.format(
+                "Left")}{pos3d[0]} {pos3d[1]} {pos3d[2]} {rot-90}))".encode()
         else:
-            msg = f"{self._beam_msg.format("Right")}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode()
+            msg = f"{self._beam_msg.format(
+                "Right")}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode()
 
         self.monitor_socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
 

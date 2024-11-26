@@ -8,26 +8,27 @@ from world.commons.Joint_Info import Joint_Info
 import numpy as np
 import xml.etree.ElementTree as xmlp
 
+
 class Robot:
     STEPTIME = 0.02   # Fixed step time
-    VISUALSTEP = 0.04 # Fixed visual step time
+    VISUALSTEP = 0.04  # Fixed visual step time
     SQ_STEPTIME = STEPTIME * STEPTIME
-    GRAVITY = np.array([0,0,-9.81])
-    IMU_DECAY = 0.996 #IMU's velocity decay
+    GRAVITY = np.array([0, 0, -9.81])
+    IMU_DECAY = 0.996  # IMU's velocity decay
 
-    #------------------ constants to force symmetry in joints/effectors
+    # ------------------ constants to force symmetry in joints/effectors
 
     MAP_PERCEPTOR_TO_INDEX = {
-        "hj1":0,  "hj2":1,  "llj1":2, "rlj1":3,
-        "llj2":4, "rlj2":5, "llj3":6, "rlj3":7,
-        "llj4":8, "rlj4":9, "llj5":10,"rlj5":11,
-        "llj6":12,"rlj6":13,"laj1":14,"raj1":15,
-        "laj2":16,"raj2":17,"laj3":18,"raj3":19,
-        "laj4":20,"raj4":21,"llj7":22,"rlj7":23}
+        "hj1": 0,  "hj2": 1,  "llj1": 2, "rlj1": 3,
+        "llj2": 4, "rlj2": 5, "llj3": 6, "rlj3": 7,
+        "llj4": 8, "rlj4": 9, "llj5": 10, "rlj5": 11,
+        "llj6": 12, "rlj6": 13, "laj1": 14, "raj1": 15,
+        "laj2": 16, "raj2": 17, "laj3": 18, "raj3": 19,
+        "laj4": 20, "raj4": 21, "llj7": 22, "rlj7": 23}
 
     # Fix symmetry issues 1a/4 (identification)
-    FIX_PERCEPTOR_SET = {'rlj2','rlj6','raj2','laj3','laj4'}
-    FIX_INDICES_LIST = [5,13,17,18,20]
+    FIX_PERCEPTOR_SET = {'rlj2', 'rlj6', 'raj2', 'laj3', 'laj4'}
+    FIX_INDICES_LIST = [5, 13, 17, 18, 20]
 
     # Recommended height for unofficial beam (near ground)
     BEAM_HEIGHTS = [0.4, 0.43, 0.4, 0.46, 0.4]
@@ -49,7 +50,7 @@ class Robot:
         self.acc = np.zeros(3)  # 机器人躯干在三自由度轴上的加速度（单位：m/s²）
         self.frp = {}  # 足部和脚趾的阻力传感器数据，例如 {"lf":(px,py,pz,fx,fy,fz)}
         self.feet_toes_last_touch = {"lf": 0, "rf": 0,
-                                    "lf1": 0, "rf1": 0}  # 记录足部和脚趾最后一次接触地面的时间
+                                     "lf1": 0, "rf1": 0}  # 记录足部和脚趾最后一次接触地面的时间
         self.feet_toes_are_touching = {
             "lf": False, "rf": False, "lf1": False, "rf1": False}  # 标记足部和脚趾是否接触地面
         self.fwd_kinematics_list = None  # 保存按照依赖关系排序的身体部件列表
@@ -64,7 +65,7 @@ class Robot:
             self.no_of_joints)  # 关节的上一个目标角速度（单位：弧度/秒）
         self.joints_info = [None] * self.no_of_joints  # 关节的常量信息（见Joint_Info类）
         self.joints_transform = [Matrix_4x4()
-                                for _ in range(self.no_of_joints)]  # 关节的变换矩阵
+                                 for _ in range(self.no_of_joints)]  # 关节的变换矩阵
 
         # 相对于头部的定位变量
         self.loc_head_to_field_transform = Matrix_4x4()  # 从头部到场地的变换矩阵
@@ -130,7 +131,8 @@ class Robot:
         self.imu_weak_torso_to_field_transform = Matrix_4x4()  # 从躯干到场地的变换矩阵（来源：定位+陀螺仪+加速度计）
         self.imu_weak_head_to_field_transform = Matrix_4x4()  # 从头部到场地的变换矩阵（来源：定位+陀螺仪+加速度计）
         self.imu_weak_field_to_head_transform = Matrix_4x4()  # 从场地到头部的变换矩阵（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_position = np.zeros(3)  # 躯干的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
+        self.imu_weak_torso_position = np.zeros(
+            3)  # 躯干的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
         self.imu_weak_torso_velocity = np.zeros(
             3)  # 躯干的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
         self.imu_weak_torso_acceleration = np.zeros(
@@ -139,8 +141,10 @@ class Robot:
             3)  # 预测下一步的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
         self.imu_weak_torso_next_velocity = np.zeros(
             3)  # 预测下一步的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_CoM_position = np.zeros(3)  # 质心的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_CoM_velocity = np.zeros(3)  # 质心的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
+        self.imu_weak_CoM_position = np.zeros(
+            3)  # 质心的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
+        self.imu_weak_CoM_velocity = np.zeros(
+            3)  # 质心的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
 
         # 使用显式变量以启用IDE建议
         self.J_HEAD_YAW = 0
@@ -189,15 +193,14 @@ class Robot:
 
                 joint_no += 1
                 if joint_no == self.no_of_joints:
-                    break #ignore extra joints
+                    break  # ignore extra joints
 
             else:
                 raise NotImplementedError
 
         assert joint_no == self.no_of_joints, "The Robot XML and the robot type don't match!"
 
-
-    def get_head_abs_vel(self, history_steps:int):
+    def get_head_abs_vel(self, history_steps: int):
         '''
         Get robot's head absolute velocity (m/s)
 
@@ -222,11 +225,10 @@ class Robot:
 
         return (self.loc_head_position - self.loc_head_position_history[h_step-1]) / t
 
-
     def _initialize_kinematics(self):
 
-        #starting with head
-        parts={"head"}
+        # starting with head
+        parts = {"head"}
         sequential_body_parts = ["head"]
 
         while len(parts) > 0:
@@ -236,25 +238,26 @@ class Robot:
 
                 p = self.joints_info[j].anchor1_part
 
-                if len(self.body_parts[p].joints) > 0: #add body part if it is the 1st anchor of some joint
+                # add body part if it is the 1st anchor of some joint
+                if len(self.body_parts[p].joints) > 0:
                     parts.add(p)
                     sequential_body_parts.append(p)
 
-        self.fwd_kinematics_list = [(self.body_parts[part],j, self.body_parts[self.joints_info[j].anchor1_part] )
-                                     for part in sequential_body_parts for j in self.body_parts[part].joints]
+        self.fwd_kinematics_list = [(self.body_parts[part], j, self.body_parts[self.joints_info[j].anchor1_part])
+                                    for part in sequential_body_parts for j in self.body_parts[part].joints]
 
-        #Fix symmetry issues 4/4 (kinematics)
+        # Fix symmetry issues 4/4 (kinematics)
         for i in Robot.FIX_INDICES_LIST:
             self.joints_info[i].axes *= -1
             aux = self.joints_info[i].min
             self.joints_info[i].min = -self.joints_info[i].max
             self.joints_info[i].max = -aux
 
-
     def update_localization(self, localization_raw, time_local_ms):
 
         # parse raw data
-        loc = localization_raw.astype(float) #32bits to 64bits for consistency
+        # 32bits to 64bits for consistency
+        loc = localization_raw.astype(float)
         self.loc_is_up_to_date = bool(loc[32])
         self.loc_head_z_is_up_to_date = bool(loc[34])
 
@@ -265,13 +268,14 @@ class Robot:
             self.loc_head_z_last_update = time_local_ms
 
         # Save last position to history at every vision cycle (even if not up to date) (update_localization is only called at vision cycles)
-        self.loc_head_position_history.appendleft(np.copy(self.loc_head_position))
+        self.loc_head_position_history.appendleft(
+            np.copy(self.loc_head_position))
 
         if self.loc_is_up_to_date:
             time_diff = (time_local_ms - self.loc_last_update) / 1000
             self.loc_last_update = time_local_ms
-            self.loc_head_to_field_transform.m[:] = loc[0:16].reshape((4,4))
-            self.loc_field_to_head_transform.m[:] = loc[16:32].reshape((4,4))
+            self.loc_head_to_field_transform.m[:] = loc[0:16].reshape((4, 4))
+            self.loc_field_to_head_transform.m[:] = loc[16:32].reshape((4, 4))
 
             # extract data (related to the robot's head)
             self.loc_rotation_head_to_field = self.loc_head_to_field_transform.get_rotation()
@@ -299,8 +303,8 @@ class Robot:
             p = t.get_translation()
             self.loc_torso_velocity = (p - self.loc_torso_position) / time_diff
             self.loc_torso_position = p
-            self.loc_torso_acceleration = self.loc_torso_to_field_rotation.multiply(self.acc) + Robot.GRAVITY
-
+            self.loc_torso_acceleration = self.loc_torso_to_field_rotation.multiply(
+                self.acc) + Robot.GRAVITY
 
     def head_to_body_part_transform(self, body_part_name, coords, is_batch=False):
         '''
@@ -309,7 +313,7 @@ class Robot:
 
         If coord is a Matrix_4x4 or a list of Matrix_4x4:
         Convert pose that is relative to head to a pose that is relative to a body part 
-        
+
         Parameters
         ----------
         body_part_name : `str`
@@ -324,14 +328,13 @@ class Robot:
         coord : `list` or ndarray
             A numpy array is returned if is_batch is False, otherwise, a list of arrays is returned
         '''
-        head_to_bp_transform : Matrix_4x4 = self.body_parts[body_part_name].transform.invert()
+        head_to_bp_transform: Matrix_4x4 = self.body_parts[body_part_name].transform.invert(
+        )
 
         if is_batch:
             return [head_to_bp_transform(c) for c in coords]
         else:
             return head_to_bp_transform(coords)
-
-
 
     def get_body_part_to_field_transform(self, body_part_name) -> Matrix_4x4:
         '''
@@ -375,12 +378,12 @@ class Robot:
             self.joints_transform[j].m[:] = body_part.transform.m
             self.joints_transform[j].translate(ji.anchor0_axes, True)
             child_body_part.transform.m[:] = self.joints_transform[j].m
-            child_body_part.transform.rotate_deg(ji.axes, self.joints_position[j], True)
+            child_body_part.transform.rotate_deg(
+                ji.axes, self.joints_position[j], True)
             child_body_part.transform.translate(ji.anchor1_axes_neg, True)
 
         self.rel_cart_CoM_position = np.average([b.transform.get_translation() for b in self.body_parts.values()], 0,
-                                                [b.mass                        for b in self.body_parts.values()])
-
+                                                [b.mass for b in self.body_parts.values()])
 
     def update_imu(self, time_local_ms):
 
@@ -390,56 +393,77 @@ class Robot:
             self.imu_torso_pitch = self.loc_torso_pitch
             self.imu_torso_orientation = self.loc_torso_orientation
             self.imu_torso_inclination = self.loc_torso_inclination
-            self.imu_torso_to_field_rotation.m[:] = self.loc_torso_to_field_rotation.m
-            self.imu_weak_torso_to_field_transform.m[:] = self.loc_torso_to_field_transform.m
-            self.imu_weak_head_to_field_transform.m[:] = self.loc_head_to_field_transform.m
-            self.imu_weak_field_to_head_transform.m[:] = self.loc_field_to_head_transform.m
+            self.imu_torso_to_field_rotation.m[:
+                                               ] = self.loc_torso_to_field_rotation.m
+            self.imu_weak_torso_to_field_transform.m[:
+                                                     ] = self.loc_torso_to_field_transform.m
+            self.imu_weak_head_to_field_transform.m[:
+                                                    ] = self.loc_head_to_field_transform.m
+            self.imu_weak_field_to_head_transform.m[:
+                                                    ] = self.loc_field_to_head_transform.m
             self.imu_weak_torso_position[:] = self.loc_torso_position
             self.imu_weak_torso_velocity[:] = self.loc_torso_velocity
             self.imu_weak_torso_acceleration[:] = self.loc_torso_acceleration
-            self.imu_weak_torso_next_position = self.loc_torso_position + self.loc_torso_velocity * Robot.STEPTIME + self.loc_torso_acceleration * (0.5 * Robot.SQ_STEPTIME)
-            self.imu_weak_torso_next_velocity = self.loc_torso_velocity + self.loc_torso_acceleration * Robot.STEPTIME
+            self.imu_weak_torso_next_position = self.loc_torso_position + self.loc_torso_velocity * \
+                Robot.STEPTIME + self.loc_torso_acceleration * \
+                (0.5 * Robot.SQ_STEPTIME)
+            self.imu_weak_torso_next_velocity = self.loc_torso_velocity + \
+                self.loc_torso_acceleration * Robot.STEPTIME
             self.imu_weak_CoM_position[:] = self.loc_CoM_position
             self.imu_weak_CoM_velocity[:] = self.loc_CoM_velocity
             self.imu_last_visual_update = time_local_ms
         else:
-            g = self.gyro / 50 # convert degrees per second to degrees per step
+            g = self.gyro / 50  # convert degrees per second to degrees per step
 
-            self.imu_torso_to_field_rotation.multiply( Matrix_3x3.from_rotation_deg(g), in_place=True, reverse_order=True)
+            self.imu_torso_to_field_rotation.multiply(
+                Matrix_3x3.from_rotation_deg(g), in_place=True, reverse_order=True)
 
             self.imu_torso_orientation = self.imu_torso_to_field_rotation.get_yaw_deg()
             self.imu_torso_pitch = self.imu_torso_to_field_rotation.get_pitch_deg()
             self.imu_torso_roll = self.imu_torso_to_field_rotation.get_roll_deg()
 
-            self.imu_torso_inclination = atan(sqrt(tan(self.imu_torso_roll/180*pi)**2+tan(self.imu_torso_pitch/180*pi)**2))*180/pi
+            self.imu_torso_inclination = atan(sqrt(
+                tan(self.imu_torso_roll/180*pi)**2+tan(self.imu_torso_pitch/180*pi)**2))*180/pi
 
             # Update position and velocity until 0.2 seconds has passed since last visual update
             if time_local_ms < self.imu_last_visual_update + 200:
                 self.imu_weak_torso_position[:] = self.imu_weak_torso_next_position
-                if self.imu_weak_torso_position[2] < 0: self.imu_weak_torso_position[2] = 0 # limit z coordinate to positive values
-                self.imu_weak_torso_velocity[:] = self.imu_weak_torso_next_velocity * Robot.IMU_DECAY # stability tradeoff
+                if self.imu_weak_torso_position[2] < 0:
+                    # limit z coordinate to positive values
+                    self.imu_weak_torso_position[2] = 0
+                # stability tradeoff
+                self.imu_weak_torso_velocity[:] = self.imu_weak_torso_next_velocity * \
+                    Robot.IMU_DECAY
             else:
-                self.imu_weak_torso_velocity *= 0.97 # without visual updates for 0.2s, the position is locked, and the velocity decays to zero
+                # without visual updates for 0.2s, the position is locked, and the velocity decays to zero
+                self.imu_weak_torso_velocity *= 0.97
 
             # convert proper acceleration to coordinate acceleration and fix rounding bias
-            self.imu_weak_torso_acceleration = self.imu_torso_to_field_rotation.multiply(self.acc) + Robot.GRAVITY
-            self.imu_weak_torso_to_field_transform = Matrix_4x4.from_3x3_and_translation(self.imu_torso_to_field_rotation,self.imu_weak_torso_position)
-            self.imu_weak_head_to_field_transform = self.imu_weak_torso_to_field_transform.multiply(self.body_parts["torso"].transform.invert())
+            self.imu_weak_torso_acceleration = self.imu_torso_to_field_rotation.multiply(
+                self.acc) + Robot.GRAVITY
+            self.imu_weak_torso_to_field_transform = Matrix_4x4.from_3x3_and_translation(
+                self.imu_torso_to_field_rotation, self.imu_weak_torso_position)
+            self.imu_weak_head_to_field_transform = self.imu_weak_torso_to_field_transform.multiply(
+                self.body_parts["torso"].transform.invert())
             self.imu_weak_field_to_head_transform = self.imu_weak_head_to_field_transform.invert()
-            p = self.imu_weak_head_to_field_transform(self.rel_cart_CoM_position)
-            self.imu_weak_CoM_velocity = (p-self.imu_weak_CoM_position)/Robot.STEPTIME
+            p = self.imu_weak_head_to_field_transform(
+                self.rel_cart_CoM_position)
+            self.imu_weak_CoM_velocity = (
+                p-self.imu_weak_CoM_position)/Robot.STEPTIME
             self.imu_weak_CoM_position = p
 
             # Next Position = x0 + v0*t + 0.5*a*t^2,   Next velocity = v0 + a*t
-            self.imu_weak_torso_next_position = self.imu_weak_torso_position + self.imu_weak_torso_velocity * Robot.STEPTIME + self.imu_weak_torso_acceleration * (0.5 * Robot.SQ_STEPTIME)
-            self.imu_weak_torso_next_velocity = self.imu_weak_torso_velocity + self.imu_weak_torso_acceleration * Robot.STEPTIME
-
+            self.imu_weak_torso_next_position = self.imu_weak_torso_position + self.imu_weak_torso_velocity * \
+                Robot.STEPTIME + self.imu_weak_torso_acceleration * \
+                (0.5 * Robot.SQ_STEPTIME)
+            self.imu_weak_torso_next_velocity = self.imu_weak_torso_velocity + \
+                self.imu_weak_torso_acceleration * Robot.STEPTIME
 
     def set_joints_target_position_direct(
             self,
             indices: int | list | slice | np.ndarray,
             values: np.ndarray,
-            harmonize: bool=True,
+            harmonize: bool = True,
             max_speed=7.03,
             tolerance=0.012,
             limit_joints=True) -> int:
@@ -493,28 +517,35 @@ class Robot:
                 Joint[3]   p[t0]: 0  target pos: 5   ->  p[t1]=5,   p[t2]=5  
         '''
 
-        assert isinstance(values, np.ndarray), "'values' argument must be a numpy array"
-        np.nan_to_num(values, copy=False) # Replace NaN with zero and infinity with large finite numbers
+        assert isinstance(
+            values, np.ndarray), "'values' argument must be a numpy array"
+        # Replace NaN with zero and infinity with large finite numbers
+        np.nan_to_num(values, copy=False)
 
         # limit range of joints
         if limit_joints:
             if isinstance(indices, list | np.ndarray):
                 for index, value in enumerate(indices):
-                    values[index] = np.clip(values[index], self.joints_info[value].min, self.joints_info[value].max)
+                    values[index] = np.clip(
+                        values[index], self.joints_info[value].min, self.joints_info[value].max)
             elif isinstance(indices, slice):
                 info = self.joints_info[indices]
                 for index, value in enumerate(info):
-                    values[index] = np.clip(values[index], value.min, value.max)
-            else: # int
-                values[0] = np.clip(values[0], self.joints_info[indices].min, self.joints_info[indices].max)
+                    values[index] = np.clip(
+                        values[index], value.min, value.max)
+            else:  # int
+                values[0] = np.clip(
+                    values[0], self.joints_info[indices].min, self.joints_info[indices].max)
 
-        #predicted_diff: predicted difference between reported position and actual position
+        # predicted_diff: predicted difference between reported position and actual position
 
-        predicted_diff = self.joints_target_last_speed[indices] * 1.1459156 #rad/s to deg/step
+        # rad/s to deg/step
+        predicted_diff = self.joints_target_last_speed[indices] * 1.1459156
         predicted_diff = np.asarray(predicted_diff)
-        np.clip(predicted_diff,-7.03,7.03,out=predicted_diff) #saturate predicted movement in-place
+        # saturate predicted movement in-place
+        np.clip(predicted_diff, -7.03, 7.03, out=predicted_diff)
 
-        #reported_dist: difference between reported position and target position
+        # reported_dist: difference between reported position and target position
 
         reported_dist = values - self.joints_position[indices]
         if np.all((np.abs(reported_dist) < tolerance)) and np.all((np.abs(predicted_diff) < tolerance)):
@@ -523,8 +554,8 @@ class Robot:
 
         deg_per_step = reported_dist - predicted_diff
 
-        relative_max = np.max( np.abs(deg_per_step) ) / max_speed
-        remaining_steps = np.ceil( relative_max  )
+        relative_max = np.max(np.abs(deg_per_step)) / max_speed
+        remaining_steps = np.ceil(relative_max)
 
         if remaining_steps == 0:
             self.joints_target_speed[indices] = 0
@@ -533,9 +564,11 @@ class Robot:
         if harmonize:
             deg_per_step /= remaining_steps
         else:
-            np.clip(deg_per_step,-max_speed,max_speed,out=deg_per_step) #limit maximum speed
+            np.clip(deg_per_step, -max_speed, max_speed,
+                    out=deg_per_step)  # limit maximum speed
 
-        self.joints_target_speed[indices] = deg_per_step * 0.87266463 #convert to rad/s
+        # convert to rad/s
+        self.joints_target_speed[indices] = deg_per_step * 0.87266463
 
         return remaining_steps
 
@@ -543,9 +576,13 @@ class Robot:
         '''
         Builds commands string from self.joints_target_speed
         '''
-        j_speed = self.joints_target_speed * self.FIX_EFFECTOR_MASK #Fix symmetry issues 3/4 (effectors)
-        cmd = "".join(f"({self.joints_info[i].effector} {j_speed[i]:.5f})" for i in range(self.no_of_joints)).encode('utf-8')
+        j_speed = self.joints_target_speed * \
+            self.FIX_EFFECTOR_MASK  # Fix symmetry issues 3/4 (effectors)
+        cmd = "".join(f"({self.joints_info[i].effector} {
+                      j_speed[i]:.5f})" for i in range(self.no_of_joints)).encode('utf-8')
 
-        self.joints_target_last_speed = self.joints_target_speed           #1. both point to the same array
-        self.joints_target_speed = np.zeros_like(self.joints_target_speed) #2. create new array for joints_target_speed
+        # 1. both point to the same array
+        self.joints_target_last_speed = self.joints_target_speed
+        # 2. create new array for joints_target_speed
+        self.joints_target_speed = np.zeros_like(self.joints_target_speed)
         return cmd

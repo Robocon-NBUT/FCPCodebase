@@ -24,7 +24,7 @@ class WorldParser:
             b'G2R': (+15, -1.05, 0.8),
             # mapping between flag names and their corrected location, when playing on the left side
             b'G1R': (+15, +1.05, 0.8)
-            }
+        }
         self.RIGHT_SIDE_FLAGS = {
             b'F2L': (+15, +10, 0),
             b'F1L': (+15, -10, 0),
@@ -34,7 +34,7 @@ class WorldParser:
             b'G1L': (+15, -1.05, 0.8),
             b'G2R': (-15, +1.05, 0.8),
             b'G1R': (-15, -1.05, 0.8)
-            }
+        }
         self.play_mode_to_id = None
         self.LEFT_PLAY_MODE_TO_ID = {
             "KickOff_Left": OurMode.KICK_OFF, "KickIn_Left": OurMode.KICK_IN,
@@ -48,7 +48,7 @@ class WorldParser:
             "Goal_Right": TheirMode.GOAL, "offside_right": TheirMode.OFFSIDE,
             "BeforeKickOff": NeuMode.BEFORE_KICKOFF, "GameOver": NeuMode.GAME_OVER,
             "PlayOn": NeuMode.PLAY_ON
-            }
+        }
         self.RIGHT_PLAY_MODE_TO_ID = {
             "KickOff_Left": TheirMode.KICKOFF, "KickIn_Left": TheirMode.KICK_IN,
             "corner_kick_left": TheirMode.CORNER_KICK, "goal_kick_left": TheirMode.GOAL_KICK,
@@ -61,7 +61,7 @@ class WorldParser:
             "Goal_Right": OurMode.GOAL, "offside_right": OurMode.OFFSIDE,
             "BeforeKickOff": NeuMode.BEFORE_KICKOFF, "GameOver": NeuMode.GAME_OVER,
             "PlayOn": NeuMode.PLAY_ON
-            }
+        }
 
     def find_non_digit(self, start):
         while True:
@@ -221,7 +221,8 @@ class WorldParser:
                         self.world.robot.gyro[2], end = self.read_float(end+1)
                         self.world.robot.gyro[1] *= -1
                     else:
-                        self.world.log(f"{self.file_name}Unknown tag inside 'GYR': {tag} at {end}, \nMsg: {exp.decode()}")
+                        self.world.log(
+                            f"{self.file_name}Unknown tag inside 'GYR': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'ACC':
                 while True:
@@ -246,7 +247,8 @@ class WorldParser:
                         self.world.robot.acc[2], end = self.read_float(end+1)
                         self.world.robot.acc[1] *= -1
                     else:
-                        self.world.log(f"{self.file_name}Unknown tag inside 'ACC': {tag} at {end}, \nMsg: {exp.decode()}")
+                        self.world.log(
+                            f"{self.file_name}Unknown tag inside 'ACC': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'HJ':
                 while True:
@@ -269,7 +271,8 @@ class WorldParser:
                             joint_angle - old_angle) / World.STEPTIME * math.pi / 180
                         self.world.robot.joints_position[joint_index] = joint_angle
                     else:
-                        self.world.log(f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}, \nMsg: {exp.decode()}")
+                        self.world.log(
+                            f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'FRP':
                 while True:
@@ -303,7 +306,8 @@ class WorldParser:
                         foot_toe_ref[5], end = self.read_float(end+1)
                         foot_toe_ref[4] *= -1
                     else:
-                        self.world.log(f"{self.file_name}Unknown tag inside 'FRP': {tag} at {end}, \nMsg: {exp.decode()}")
+                        self.world.log(
+                            f"{self.file_name}Unknown tag inside 'FRP': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'See':
                 self.world.vision_is_up_to_date = True
@@ -425,7 +429,8 @@ class WorldParser:
                                     self.world.opponents[player_id-1].body_parts_cart_rel_pos[tag_str] = deg_sph2cart(
                                         (c1, c2, c3))
                             else:
-                                self.world.log(f"{self.file_name}Unknown tag inside 'P': {tag} at {end}, \nMsg: {exp.decode()}")
+                                self.world.log(
+                                    f"{self.file_name}Unknown tag inside 'P': {tag} at {end}, \nMsg: {exp.decode()}")
 
                     elif tag == b'L':
                         l = self.world.lines[self.world.line_count]
@@ -446,7 +451,8 @@ class WorldParser:
                             self.world.line_count += 1  # accept field line if there are no NaNs
 
                     else:
-                        self.world.log(f"{self.file_name}Unknown tag inside 'see': {tag} at {end}, \nMsg: {exp.decode()}")
+                        self.world.log(
+                            f"{self.file_name}Unknown tag inside 'see': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'hear':
 

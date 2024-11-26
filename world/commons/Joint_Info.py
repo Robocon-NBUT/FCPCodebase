@@ -1,8 +1,10 @@
+import xml.etree.ElementTree
+
 import numpy as np
 
 
-class Joint_Info():
-    def __init__(self, xml_element) -> None:
+class Joint_Info:
+    def __init__(self, xml_element: xml.etree.ElementTree.Element) -> None:
         self.perceptor = xml_element.attrib['perceptor']
         self.effector = xml_element.attrib['effector']
         self.axes = np.array([

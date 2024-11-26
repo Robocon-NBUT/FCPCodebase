@@ -6,18 +6,18 @@ from math_ops.math_ext import to_3d
 class Draw():
     _socket = None
 
-    def __init__(self, is_enabled:bool, unum:int, host:str, port:int) -> None:
+    def __init__(self, is_enabled: bool, unum: int, host: str, port: int) -> None:
         self.enabled = is_enabled
         self._is_team_right = None
         self._unum = unum
-        self._prefix = f'?{unum}_'.encode() # temporary prefix that should never be used in normal circumstances
+        # temporary prefix that should never be used in normal circumstances
+        self._prefix = f'?{unum}_'.encode()
 
-        #Create one socket for all instances
+        # Create one socket for all instances
         if Draw._socket is None:
-            Draw._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM )
+            Draw._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             Draw._socket.connect((host, port))
             Draw.clear_all()
-
 
     def set_team_side(self, is_right):
         """
@@ -29,8 +29,8 @@ class Draw():
             'l_10' and 'l_11'. To avoid that, we swap the separator to 'l-10', 'l-11'
         """
         self._is_team_right = is_right
-        self._prefix = f"{'r' if is_right else 'l'}{'_' if self._unum < 10 else '-'}{self._unum}_".encode() #e.g. b'l_5', b'l-10'
-
+        self._prefix = f"{'r' if is_right else 'l'}{
+            '_' if self._unum < 10 else '-'}{self._unum}_".encode()  # e.g. b'l_5', b'l-10'
 
     @staticmethod
     def _send(msg, id, flush):
@@ -43,8 +43,7 @@ class Draw():
         except ConnectionRefusedError:
             pass
 
-
-    def circle(self, pos2d, radius, thickness, color:bytes, id:str, flush=True):
+    def circle(self, pos2d, radius, thickness, color: bytes, id: str, flush=True):
         ''' 
         Draw circle
 
@@ -54,22 +53,23 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
-        assert not np.isnan(pos2d).any(), "Argument 'pos2d' contains 'nan' values"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert not np.isnan(pos2d).any(
+        ), "Argument 'pos2d' contains 'nan' values"
 
         if self._is_team_right:
-            pos2d = (-pos2d[0],-pos2d[1])
+            pos2d = (-pos2d[0], -pos2d[1])
 
         msg = b'\x01\x00' + (
-        f'{f"{pos2d[0]  :.4f}":.6s}'
-        f'{f"{pos2d[1]  :.4f}":.6s}'
-        f'{f"{radius    :.4f}":.6s}'
-        f'{f"{thickness :.4f}":.6s}').encode() + color
+            f'{f"{pos2d[0]:.4f}":.6s}'
+            f'{f"{pos2d[1]:.4f}":.6s}'
+            f'{f"{radius:.4f}":.6s}'
+            f'{f"{thickness:.4f}":.6s}').encode() + color
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def line(self, p1, p2, thickness, color:bytes, id:str, flush=True):
+    def line(self, p1, p2, thickness, color: bytes, id: str, flush=True):
         ''' 
         Draw line
 
@@ -80,30 +80,30 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
         assert not np.isnan(p1).any(), "Argument 'p1' contains 'nan' values"
         assert not np.isnan(p2).any(), "Argument 'p2' contains 'nan' values"
 
-        z1 = p1[2] if len(p1)==3 else 0
-        z2 = p2[2] if len(p2)==3 else 0
+        z1 = p1[2] if len(p1) == 3 else 0
+        z2 = p2[2] if len(p2) == 3 else 0
 
         if self._is_team_right:
-            p1 = (-p1[0],-p1[1],p1[2]) if len(p1)==3 else (-p1[0],-p1[1])
-            p2 = (-p2[0],-p2[1],p2[2]) if len(p2)==3 else (-p2[0],-p2[1])
+            p1 = (-p1[0], -p1[1], p1[2]) if len(p1) == 3 else (-p1[0], -p1[1])
+            p2 = (-p2[0], -p2[1], p2[2]) if len(p2) == 3 else (-p2[0], -p2[1])
 
         msg = b'\x01\x01' + (
-        f'{f"{p1[0]  :.4f}":.6s}'
-        f'{f"{p1[1]  :.4f}":.6s}'
-        f'{f"{z1     :.4f}":.6s}'
-        f'{f"{p2[0]  :.4f}":.6s}'
-        f'{f"{p2[1]  :.4f}":.6s}'
-        f'{f"{z2     :.4f}":.6s}'
-        f'{f"{thickness :.4f}":.6s}').encode() + color
+            f'{f"{p1[0]:.4f}":.6s}'
+            f'{f"{p1[1]:.4f}":.6s}'
+            f'{f"{z1:.4f}":.6s}'
+            f'{f"{p2[0]:.4f}":.6s}'
+            f'{f"{p2[1]:.4f}":.6s}'
+            f'{f"{z2:.4f}":.6s}'
+            f'{f"{thickness:.4f}":.6s}').encode() + color
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def point(self, pos, size, color:bytes, id:str, flush=True):
+    def point(self, pos, size, color: bytes, id: str, flush=True):
         ''' 
         Draw point
 
@@ -114,24 +114,25 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
         assert not np.isnan(pos).any(), "Argument 'pos' contains 'nan' values"
 
-        z = pos[2] if len(pos)==3 else 0
+        z = pos[2] if len(pos) == 3 else 0
 
         if self._is_team_right:
-            pos = (-pos[0],-pos[1],pos[2]) if len(pos)==3 else (-pos[0],-pos[1])
+            pos = (-pos[0], -pos[1], pos[2]
+                   ) if len(pos) == 3 else (-pos[0], -pos[1])
 
         msg = b'\x01\x02' + (
-        f'{f"{pos[0]  :.4f}":.6s}'
-        f'{f"{pos[1]  :.4f}":.6s}'
-        f'{f"{z       :.4f}":.6s}'
-        f'{f"{size      :.4f}":.6s}').encode() + color
+            f'{f"{pos[0]:.4f}":.6s}'
+            f'{f"{pos[1]:.4f}":.6s}'
+            f'{f"{z:.4f}":.6s}'
+            f'{f"{size:.4f}":.6s}').encode() + color
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def sphere(self, pos, radius, color:bytes, id:str, flush=True):
+    def sphere(self, pos, radius, color: bytes, id: str, flush=True):
         ''' 
         Draw sphere
 
@@ -142,24 +143,25 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
         assert not np.isnan(pos).any(), "Argument 'pos' contains 'nan' values"
 
-        z = pos[2] if len(pos)==3 else 0
+        z = pos[2] if len(pos) == 3 else 0
 
         if self._is_team_right:
-            pos = (-pos[0],-pos[1],pos[2]) if len(pos)==3 else (-pos[0],-pos[1])
+            pos = (-pos[0], -pos[1], pos[2]
+                   ) if len(pos) == 3 else (-pos[0], -pos[1])
 
         msg = b'\x01\x03' + (
-        f'{f"{pos[0]  :.4f}":.6s}'
-        f'{f"{pos[1]  :.4f}":.6s}'
-        f'{f"{z       :.4f}":.6s}'
-        f'{f"{radius    :.4f}":.6s}').encode() + color
+            f'{f"{pos[0]:.4f}":.6s}'
+            f'{f"{pos[1]:.4f}":.6s}'
+            f'{f"{z:.4f}":.6s}'
+            f'{f"{radius:.4f}":.6s}').encode() + color
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def polygon(self, vertices, color:bytes, alpha:int, id:str, flush=True):
+    def polygon(self, vertices, color: bytes, alpha: int, id: str, flush=True):
         ''' 
         Draw polygon
 
@@ -169,24 +171,25 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
-        assert 0<=alpha<=255, "The alpha channel (degree of opacity) must be in range [0,255]"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert 0 <= alpha <= 255, "The alpha channel (degree of opacity) must be in range [0,255]"
 
         if self._is_team_right:
-            vertices = [(-v[0],-v[1],v[2]) for v in vertices]
+            vertices = [(-v[0], -v[1], v[2]) for v in vertices]
 
-        msg = b'\x01\x04' + bytes([len(vertices)]) + color + alpha.to_bytes(1,'big')
+        msg = b'\x01\x04' + bytes([len(vertices)]) + \
+            color + alpha.to_bytes(1, 'big')
 
         for v in vertices:
             msg += (
-                f'{f"{v[0]  :.4f}":.6s}'
-                f'{f"{v[1]  :.4f}":.6s}'
-                f'{f"{v[2]  :.4f}":.6s}').encode()
+                f'{f"{v[0]:.4f}":.6s}'
+                f'{f"{v[1]:.4f}":.6s}'
+                f'{f"{v[2]:.4f}":.6s}').encode()
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def annotation(self, pos, text, color:bytes, id:str, flush=True):
+    def annotation(self, pos, text, color: bytes, id: str, flush=True):
         ''' 
         Draw annotation
 
@@ -199,21 +202,22 @@ class Draw():
             return
         if not isinstance(text, bytes):
             text = str(text).encode()
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
-        z = pos[2] if len(pos)==3 else 0
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        z = pos[2] if len(pos) == 3 else 0
 
         if self._is_team_right:
-            pos = (-pos[0],-pos[1],pos[2]) if len(pos)==3 else (-pos[0],-pos[1])
+            pos = (-pos[0], -pos[1], pos[2]
+                   ) if len(pos) == 3 else (-pos[0], -pos[1])
 
         msg = b'\x02\x00' + (
-        f'{f"{pos[0]  :.4f}":.6s}'
-        f'{f"{pos[1]  :.4f}":.6s}'
-        f'{f"{z       :.4f}":.6s}').encode() + color + text + b'\x00'
+            f'{f"{pos[0]:.4f}":.6s}'
+            f'{f"{pos[1]:.4f}":.6s}'
+            f'{f"{z:.4f}":.6s}').encode() + color + text + b'\x00'
 
         Draw._send(msg, self._prefix + id.encode(), flush)
 
-
-    def arrow(self, p1, p2, arrowhead_size, thickness, color:bytes, id:str, flush=True):
+    def arrow(self, p1, p2, arrowhead_size, thickness, color: bytes, id: str, flush=True):
         ''' 
         Draw arrow
 
@@ -224,37 +228,40 @@ class Draw():
         '''
         if not self.enabled:
             return
-        assert isinstance(color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
+        assert isinstance(
+            color, bytes), "The RGB color must be a bytes object, e.g. red: b'\xFF\x00\x00'"
 
         # No need to invert sides, the called shapes will handle that
-        if len(p1)==2:
+        if len(p1) == 2:
             p1 = to_3d(p1)
-        else: p1 = np.asarray(p1)
-        if len(p2)==2:
+        else:
+            p1 = np.asarray(p1)
+        if len(p2) == 2:
             p2 = to_3d(p2)
-        else: p2 = np.asarray(p2)
+        else:
+            p2 = np.asarray(p2)
 
-        vec  = p2-p1
+        vec = p2-p1
         vec_size = np.linalg.norm(vec)
         if vec_size == 0:
-            return #return without warning/error
+            return  # return without warning/error
         arrowhead_size = min(arrowhead_size, vec_size)
 
-        ground_proj_perpendicular = np.array([ vec[1], -vec[0], 0 ])
+        ground_proj_perpendicular = np.array([vec[1], -vec[0], 0])
 
-        if np.all(ground_proj_perpendicular == 0): #vertical arrow
-            ground_proj_perpendicular = np.array([ arrowhead_size/2, 0, 0 ])
+        if np.all(ground_proj_perpendicular == 0):  # vertical arrow
+            ground_proj_perpendicular = np.array([arrowhead_size/2, 0, 0])
         else:
-            ground_proj_perpendicular *= arrowhead_size/2 / np.linalg.norm(ground_proj_perpendicular)
+            ground_proj_perpendicular *= arrowhead_size / \
+                2 / np.linalg.norm(ground_proj_perpendicular)
 
         head_start = p2 - vec * (arrowhead_size/vec_size)
         head_pt1 = head_start + ground_proj_perpendicular
         head_pt2 = head_start - ground_proj_perpendicular
 
-        self.line(p1,p2,thickness,color,id,False)
-        self.line(p2,head_pt1,thickness,color,id,False)
-        self.line(p2,head_pt2,thickness,color,id,flush)
-
+        self.line(p1, p2, thickness, color, id, False)
+        self.line(p2, head_pt1, thickness, color, id, False)
+        self.line(p2, head_pt2, thickness, color, id, flush)
 
     def flush(self, id):
         ''' Flush specific drawing by ID '''
@@ -268,23 +275,22 @@ class Draw():
         if not self.enabled:
             return
 
-        Draw._send(b'\x00\x00', self._prefix + id.encode(), True) #swap buffer twice
-
+        Draw._send(b'\x00\x00', self._prefix +
+                   id.encode(), True)  # swap buffer twice
 
     def clear_player(self):
         ''' Clear all drawings made by this player '''
         if not self.enabled:
             return
 
-        Draw._send(b'\x00\x00', self._prefix, True) #swap buffer twice
-
+        Draw._send(b'\x00\x00', self._prefix, True)  # swap buffer twice
 
     @staticmethod
     def clear_all():
         ''' Clear all drawings of all players '''
         if Draw._socket is not None:
-            Draw._send(b'\x00\x00\x00\x00\x00',b'',False) #swap buffer twice using no id
-
+            # swap buffer twice using no id
+            Draw._send(b'\x00\x00\x00\x00\x00', b'', False)
 
     class Color():
         '''
@@ -312,7 +318,7 @@ class Draw():
         yellow = b'\xFF\xFF\x00'
         yellow_light = b'\xBD\xB7\x6B'
 
-        brown_maroon =b'\x80\x00\x00'
+        brown_maroon = b'\x80\x00\x00'
         brown_dark = b'\x8B\x45\x13'
         brown = b'\xA0\x52\x2D'
         brown_gold = b'\xB8\x86\x0B'
@@ -356,6 +362,6 @@ class Draw():
         black = b'\x00\x00\x00'
 
         @staticmethod
-        def get(r,g,b):
+        def get(r, g, b):
             ''' Get RGB color (0-255) '''
-            return bytes([int(r),int(g),int(b)])
+            return bytes([int(r), int(g), int(b)])

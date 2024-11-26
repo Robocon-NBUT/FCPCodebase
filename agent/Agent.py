@@ -197,16 +197,17 @@ class Agent(Base_Agent):
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
             else:
                 # 根据球的位置计算基本阵型位置
-                new_x = max(0.5, (ball_2d[0]+15)/15) * (self.init_pos[0]+15) - 15
+                new_x = max(0.5, (ball_2d[0]+15)/15) * \
+                    (self.init_pos[0]+15) - 15
                 if self.min_teammate_ball_dist < self.min_opponent_ball_dist:
                     # 如果球队控球，则前进
                     new_x = min(new_x + 3.5, 13)
                 self.move((new_x, self.init_pos[1]), orientation=ball_dir, priority_unums=[
-                        active_player_unum])
+                    active_player_unum])
         else:  # 我是活跃球员
             # 启用活跃球员的路径绘制（如果self.enable_draw为False则忽略）
             path_draw_options(enable_obstacles=True,
-                            enable_path=True, use_team_drawing_channel=True)
+                              enable_path=True, use_team_drawing_channel=True)
             enable_pass_command = (
                 w.play_mode == NeuMode.PLAY_ON and ball_2d[0] < 6)
 
@@ -221,7 +222,7 @@ class Agent(Base_Agent):
                     self.state = 0 if self.kick(abort=True) else 2
                 else:  # 向球移动，但将自己定位在球和我方球门之间
                     self.move(slow_ball_pos + normalize_vec((-16, 0) -
-                            slow_ball_pos) * 0.2, is_aggressive=True)
+                                                            slow_ball_pos) * 0.2, is_aggressive=True)
             else:
                 self.state = 0 if self.kick(
                     goal_dir, 9, False, enable_pass_command) else 2
@@ -236,7 +237,8 @@ class Agent(Base_Agent):
         if self.fat_proxy_cmd is None:  # 正常行为
             self.server.commit_and_send(r.get_command())  # 提交并发送命令
         else:  # 特殊代理行为
-            self.server.commit_and_send(self.fat_proxy_cmd.encode())  # 提交并发送特殊命令
+            self.server.commit_and_send(
+                self.fat_proxy_cmd.encode())  # 提交并发送特殊命令
             self.fat_proxy_cmd = ""
 
         # ---------------------- annotations for debugging
@@ -246,9 +248,10 @@ class Agent(Base_Agent):
                 # 当球速<=0.5 m/s时预测的未来2D球位置
                 d.point(slow_ball_pos, 3, d.Color.pink, "status", False)
                 # 最后一次球的预测位置
-                d.point(w.ball_2d_pred_pos[-1], 5, d.Color.pink, "status", False)
+                d.point(w.ball_2d_pred_pos[-1], 5,
+                        d.Color.pink, "status", False)
                 d.annotation((*my_head_pos_2d, 0.6), "I've got it!",
-                            d.Color.yellow, "status")
+                             d.Color.yellow, "status")
             else:
                 d.clear("status")  # 清除状态信息
 

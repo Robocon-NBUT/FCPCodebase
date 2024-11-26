@@ -54,7 +54,7 @@ class Agent(Base_Agent):
             # 起身动作完成后恢复正常状态
             self.state = 0 if self.behavior.execute("Get_Up") else 1
         elif (w.play_mode == OurMode.KICK_OFF and r.unum == 1) or \
-            (w.play_mode == TheirMode.KICKOFF and r.unum != 1):
+                (w.play_mode == TheirMode.KICKOFF and r.unum != 1):
             self.state = 4  # 守门员在开球或对方开球时等待
         elif r.unum == 1:  # 守门员逻辑
             y_coordinate = np.clip(ball_2d[1], -1.1, 1.1)

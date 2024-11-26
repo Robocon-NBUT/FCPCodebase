@@ -114,9 +114,9 @@ class Path_Manager:
             # 获取近距离队友（中心，硬半径，软半径，力）
             obstacles.extend(
                 (*t.state_ground_area[0],
-                get_hard_radius(t),
-                1.5 if t.unum in priority_unums else soft_radius,
-                1.0)  # 排斥力
+                 get_hard_radius(t),
+                 1.5 if t.unum in priority_unums else soft_radius,
+                 1.0)  # 排斥力
                 for t in w.teammates if not t.is_self and check_age(t.state_last_update) and t.state_horizontal_dist < max_distance)
 
         # ---------------------------------------------- 获取最近看到的近距离对手
@@ -142,10 +142,10 @@ class Path_Manager:
             # 获取近距离对手（中心，硬半径，软半径，力）
             obstacles.extend(
                 (*o.state_ground_area[0],
-                hard_radius(o),
-                soft_radius,
-                # 排斥力（门将的额外值）
-                1.5 if o.unum == 1 else 1.0)
+                 hard_radius(o),
+                 soft_radius,
+                 # 排斥力（门将的额外值）
+                 1.5 if o.unum == 1 else 1.0)
                 for o in w.opponents if o.state_last_update > 0 and w.time_local_ms - o.state_last_update <= max_age and o.state_horizontal_dist < max_distance)
 
         # ---------------------------------------------- 获取比赛模式限制
@@ -178,10 +178,10 @@ class Path_Manager:
                 for o in obstacles:
                     if o[3] > 0:
                         d.circle(o[:2], o[3], o[4]/2, d.Color.orange,
-                                "path_obstacles", False)
+                                 "path_obstacles", False)
                     if o[2] > 0:
                         d.circle(o[:2], o[2], 1, d.Color.red,
-                                "path_obstacles", False)
+                                 "path_obstacles", False)
                 d.flush("path_obstacles")
 
         return obstacles

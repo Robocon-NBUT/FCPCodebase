@@ -10,10 +10,9 @@ class Step_Generator():
         self.sample_time = sample_time
         self.state_is_left_active = False
         self.state_current_ts = 0
-        self.switch = False # switch legs
-        self.external_progress = 0 # non-overlaped progress
+        self.switch = False  # switch legs
+        self.external_progress = 0  # non-overlaped progress
         self.max_ankle_z = max_ankle_z
-
 
     def get_target_positions(self, reset, ts_per_step, z_span, z_extension):
         '''
@@ -25,49 +24,55 @@ class Step_Generator():
             (Left leg y, Left leg z, Right leg y, Right leg z)
         '''
 
-        assert isinstance(ts_per_step, int) and ts_per_step > 0, "ts_per_step must be a positive integer!"
+        assert isinstance(
+            ts_per_step, int) and ts_per_step > 0, "ts_per_step must be a positive integer!"
 
-        #-------------------------- Advance 1ts
+        # -------------------------- Advance 1ts
         if reset:
             self.ts_per_step = ts_per_step        # step duration in time steps
             self.swing_height = z_span
-            self.max_leg_extension = z_extension  # maximum distance between ankle to center of both hip joints
+            # maximum distance between ankle to center of both hip joints
+            self.max_leg_extension = z_extension
             self.state_current_ts = 0
             self.state_is_left_active = False
             self.switch = False
         elif self.switch:
             self.state_current_ts = 0
-            self.state_is_left_active = not self.state_is_left_active # switch leg
+            self.state_is_left_active = not self.state_is_left_active  # switch leg
             self.switch = False
         else:
             self.state_current_ts += 1
 
-        #-------------------------- Compute COM.y
+        # -------------------------- Compute COM.y
         W = math.sqrt(self.Z0/self.GRAVITY)
 
         step_time = self.ts_per_step * self.sample_time
         time_delta = self.state_current_ts * self.sample_time
 
-        y0 = self.feet_y_dev # absolute initial y value
-        y_swing = y0 + y0 * (  math.sinh((step_time - time_delta)/W) + math.sinh(time_delta/W)  ) / math.sinh(-step_time/W)
+        y0 = self.feet_y_dev  # absolute initial y value
+        y_swing = y0 + y0 * (math.sinh((step_time - time_delta)/W) +
+                             math.sinh(time_delta/W)) / math.sinh(-step_time/W)
 
-        #-------------------------- Cap maximum extension and swing height
-        z0 = min(-self.max_leg_extension, self.max_ankle_z) #  capped initial z value
-        zh = min(self.swing_height, self.max_ankle_z - z0) # capped swing height
+        # -------------------------- Cap maximum extension and swing height
+        # capped initial z value
+        z0 = min(-self.max_leg_extension, self.max_ankle_z)
+        # capped swing height
+        zh = min(self.swing_height, self.max_ankle_z - z0)
 
-        #-------------------------- Compute Z Swing
+        # -------------------------- Compute Z Swing
         progress = self.state_current_ts / self.ts_per_step
         self.external_progress = self.state_current_ts / (self.ts_per_step-1)
         active_z_swing = zh * math.sin(math.pi * progress)
 
-        #-------------------------- Accept new parameters after final step
+        # -------------------------- Accept new parameters after final step
         if self.state_current_ts + 1 >= self.ts_per_step:
             self.ts_per_step = ts_per_step        # step duration in time steps
             self.swing_height = z_span
-            self.max_leg_extension = z_extension  # maximum distance between ankle to center of both hip joints
+            # maximum distance between ankle to center of both hip joints
+            self.max_leg_extension = z_extension
             self.switch = True
 
-        #-------------------------- Distinguish active leg
+        # -------------------------- Distinguish active leg
         if self.state_is_left_active:
             return y0+y_swing, active_z_swing+z0, -y0+y_swing, z0
         else:

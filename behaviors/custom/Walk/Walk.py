@@ -5,9 +5,10 @@ from math_ops.Neural_Network import run_mlp
 import numpy as np
 import pickle
 
+
 class Walk():
 
-    def __init__(self, base_agent : Base_Agent) -> None:
+    def __init__(self, base_agent: Base_Agent) -> None:
         self.world = base_agent.world
         self.description = "Omnidirectional RL walk"
         self.auto_head = True
@@ -20,9 +21,8 @@ class Walk():
             "/behaviors/custom/Walk/walk_R2.pkl",
             "/behaviors/custom/Walk/walk_R1_R3.pkl",
             "/behaviors/custom/Walk/walk_R4.pkl"
-            ][self.world.robot.type]), 'rb') as f:
+        ][self.world.robot.type]), 'rb') as f:
             self.model = pickle.load(f)
-
 
     def execute(self, reset, target_2d, is_target_absolute, orientation, is_orientation_absolute, distance):
         '''
@@ -43,40 +43,43 @@ class Walk():
         '''
         r = self.world.robot
 
-        #------------------------ 0. Override reset (since some behaviors use this as a sub-behavior)
+        # ------------------------ 0. Override reset (since some behaviors use this as a sub-behavior)
         if reset and self.world.time_local_ms - self.last_executed == 20:
             reset = False
         self.last_executed = self.world.time_local_ms
 
-        #------------------------ 1. Define walk parameters
+        # ------------------------ 1. Define walk parameters
 
-        if is_target_absolute: # convert to target relative to (head position + torso orientation)
+        # convert to target relative to (head position + torso orientation)
+        if is_target_absolute:
             raw_target = target_2d - r.loc_head_position[:2]
-            self.env.walk_rel_target = rotate_2d_vec(raw_target, -r.imu_torso_orientation)
+            self.env.walk_rel_target = rotate_2d_vec(
+                raw_target, -r.imu_torso_orientation)
         else:
             self.env.walk_rel_target = target_2d
 
         if distance is None:
             self.env.walk_distance = np.linalg.norm(self.env.walk_rel_target)
         else:
-            self.env.walk_distance = distance # MAX_LINEAR_DIST = 0.5
+            self.env.walk_distance = distance  # MAX_LINEAR_DIST = 0.5
 
         # Relative orientation values are decreased to avoid overshoot
         if orientation is None:
-            self.env.walk_rel_orientation = vector_angle(self.env.walk_rel_target) * 0.3
+            self.env.walk_rel_orientation = vector_angle(
+                self.env.walk_rel_target) * 0.3
         elif is_orientation_absolute:
-            self.env.walk_rel_orientation = normalize_deg( orientation - r.imu_torso_orientation )
+            self.env.walk_rel_orientation = normalize_deg(
+                orientation - r.imu_torso_orientation)
         else:
             self.env.walk_rel_orientation = orientation * 0.3
 
-        #------------------------ 2. Execute behavior
+        # ------------------------ 2. Execute behavior
 
         obs = self.env.observe(reset)
         action = run_mlp(obs, self.model)
         self.env.execute(action)
 
         return False
-
 
     def is_ready(self):
         ''' Returns True if Walk Behavior is ready to start under current game/robot conditions '''

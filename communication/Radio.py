@@ -173,7 +173,7 @@ class Radio:
         -------
         ready: bool
             如果所有要求都得到满足则返回 True
-        
+
         Check if broadcast group is valid
 
         Returns

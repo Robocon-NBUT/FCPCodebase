@@ -22,9 +22,9 @@ def run_mlp(obs: np.ndarray, weights: list, activation_function: str = "tanh"):
 
     # 遍历所有 hidden layer
     for w in weights[:-1]:
-        out = np.matmul(w[1],out) + w[0]
+        out = np.matmul(w[1], out) + w[0]
         if activation_function == "tanh":
             np.tanh(out, out=out)
         elif activation_function != "none":
             raise NotImplementedError
-    return np.matmul(weights[-1][1],out) + weights[-1][0] # final layer
+    return np.matmul(weights[-1][1], out) + weights[-1][0]  # final layer
