@@ -11,7 +11,7 @@ class Agent(Base_Agent):
                  team_name: str, enable_log, enable_draw, wait_for_server=True, is_fat_proxy=False) -> None:
 
         # define robot type
-        robot_type = (0, 1, 1, 1, 2, 3, 3, 3, 4, 4, 4)[unum-1]
+        robot_type = (0, 1, 1, 1, 2, 3, 3, 4, 3, 4, 4)[unum-1]
 
         # Initialize base agent
         # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw, play mode correction, Wait for Server, Hear Callback
@@ -124,6 +124,23 @@ class Agent(Base_Agent):
             return self.behavior.execute("Basic_Kick", self.kick_direction, abort)
         else:  # fat proxy behavior
             return self.fat_proxy_kick()
+        
+    def dribble(self):
+        '''
+        Dribble to ball
+
+        Parameters
+        ----------
+        orientation : float
+            absolute or relative orientation of torso, in degrees
+            set to None to dribble towards the ball (is_orientation_absolute is ignored)
+        is_orientation_absolute : bool
+            True if orientation is relative to the field, False if relative to the robot's torso
+        '''
+        if self.fat_proxy_cmd is None:  # normal behavior
+            return self.behavior.execute("Dribble", None, True)
+        else:  # fat proxy behavior
+            self.fat_proxy_cmd += "(proxy dribble 0 0 0)"
 
     def think_and_send(self):
         w = self.world
@@ -215,17 +232,20 @@ class Agent(Base_Agent):
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
             if w.play_mode == OurMode.CORNER_KICK:
                 # 将球踢到对方球门前的空位
-                self.kick(-np.sign(ball_2d[1])*95, 5.5)
+                # self.kick(-np.sign(ball_2d[1])*95, 5.5)
+                self.dribble()
             # 如果对手明显更接近球，则防守
             elif self.min_opponent_ball_dist + 0.5 < self.min_teammate_ball_dist:
                 if self.state == 2:  # 中止踢球并提交
-                    self.state = 0 if self.kick(abort=True) else 2
+                    # self.state = 0 if self.kick(abort=True) else 2
+                    self.state = 0 if self.dribble() else 2
                 else:  # 向球移动，但将自己定位在球和我方球门之间
                     self.move(slow_ball_pos + normalize_vec((-16, 0) -
                                                             slow_ball_pos) * 0.2, is_aggressive=True)
             else:
-                self.state = 0 if self.kick(
-                    goal_dir, 9, False, enable_pass_command) else 2
+                # self.state = 0 if self.kick(
+                #     goal_dir, 9, False, enable_pass_command) else 2
+                self.state = 0 if self.dribble() else 2
 
             # 禁用路径绘制
             path_draw_options(enable_obstacles=False, enable_path=False)
