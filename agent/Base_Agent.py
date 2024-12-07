@@ -50,5 +50,5 @@ class Base_Agent:
     @staticmethod
     def terminate_all():
         for o in Base_Agent.all_agents:
-            o.scom.close(True)  # close shared monitor socket, if it exists
+            o.server.close(True)  # close shared monitor socket, if it exists
         Base_Agent.all_agents = []

@@ -251,7 +251,7 @@ class Script:
             by default, all agents are selected
         '''
         for p in self.players[index]:
-            p.scom.commit_and_send(p.world.robot.get_command())
+            p.server.commit_and_send(p.world.robot.get_command())
 
     def batch_receive(self, index: slice = slice(None), update=True):
         ''' 
@@ -270,7 +270,7 @@ class Script:
             which is useful for reducing cpu resources for dummy agents in demonstrations
         '''
         for p in self.players[index]:
-            p.scom.receive(update)
+            p.server.receive(update)
 
     def batch_commit_beam(self, pos2d_and_rotation, index: slice = slice(None)):
         '''
@@ -287,7 +287,7 @@ class Script:
             by default, all agents are selected
         '''
         for p, pos_rot in zip(self.players[index], pos2d_and_rotation):
-            p.scom.commit_beam(pos_rot[0:2], pos_rot[2])
+            p.server.commit_beam(pos_rot[0:2], pos_rot[2])
 
     def batch_unofficial_beam(self, pos3d_and_rotation, index: slice = slice(None)):
         '''
@@ -304,7 +304,7 @@ class Script:
             by default, all agents are selected
         '''
         for p, pos_rot in zip(self.players[index], pos3d_and_rotation):
-            p.scom.unofficial_beam(pos_rot[0:3], pos_rot[3])
+            p.server.unofficial_beam(pos_rot[0:3], pos_rot[3])
 
     def batch_terminate(self, index: slice = slice(None)):
         '''

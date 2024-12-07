@@ -7,6 +7,7 @@ import numpy as np
 from agent.Agent import Agent
 from agent.Base_Agent import Base_Agent
 from scripts.commons.Script import Script
+from world.World import TheirMode, PlayMode
 
 
 class Dribble:
@@ -39,11 +40,11 @@ class Dribble:
 
         while True:
 
-            if w.play_mode == w.M_THEIR_KICKOFF:
+            if w.play_mode == TheirMode.KICKOFF:
                 p.server.unofficial_set_play_mode("PlayOn")
 
             # execute dribbler
-            if behavior.is_ready("Get_Up") or w.play_mode_group in [w.MG_ACTIVE_BEAM, w.MG_PASSIVE_BEAM]:
+            if behavior.is_ready("Get_Up") or w.play_mode_group in [PlayMode.ACTIVE_BEAM, PlayMode.PASSIVE_BEAM]:
                 p.server.unofficial_beam(
                     (*(w.ball_abs_pos[:2]-(1, 0)), r.beam_height), 0)
                 behavior.execute("Zero_Bent_Knees")
