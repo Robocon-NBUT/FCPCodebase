@@ -93,9 +93,9 @@ class Basic_Run(gym.Env):
         self.obs[15:18] /= 100  # naive normalization of force vector
         self.obs[21:24] /= 100  # naive normalization of force vector
         # position of all joints except head & toes (for robot type 4)
-        self.obs[24:44] = r.joints_position[2:22] / 100
+        self.obs[24:44] = np.array([joint.position for joint in r.joints[2:22]]) / 100
         # speed of    all joints except head & toes (for robot type 4)
-        self.obs[44:64] = r.joints_speed[2:22] / 6.1395
+        self.obs[44:64] = np.array([joint.speed for joint in r.joints[2:22]]) / 6.1395
         # *if foot is not touching the ground, then (px=0,py=0,pz=0,fx=0,fy=0,fz=0)
 
         # the walking parameters refer to the last parameters in effect (after a reset, they are pointless)
@@ -158,7 +158,7 @@ class Basic_Run(gym.Env):
         # beam player to ground
         self.player.server.unofficial_beam((-14, 0, r.beam_height), 0)
         # move head to trigger physics update (rcssserver3d bug when no joint is moving)
-        r.joints_target_speed[0] = 0.01
+        r.joints[0].target_speed = 0.01
         self.sync()
 
         # stabilize on ground
@@ -216,7 +216,7 @@ class Basic_Run(gym.Env):
 
         r.set_joints_target_position_direct(  # commit actions:
             # act on all joints except head & toes (for robot type 4)
-            slice(2, 22),
+            range(2, 22),
             new_action,         # target joint positions
             # there is no point in harmonizing actions if the targets change at every step
             harmonize=False

@@ -73,10 +73,8 @@ class Slot_Engine:
 
         self.state_slot_number = 0
         self.state_slot_start_time_ms = self.world.time_local_ms
-        self.state_slot_start_angles = np.copy(
-            self.world.robot.joints_position)
-        assert name in self.behaviors, f"Requested slot behavior does not exist: {
-            name}"
+        self.state_slot_start_angles = np.array([joint.position for joint in self.world.robot.joints]).copy()
+        assert name in self.behaviors, f"Requested slot behavior does not exist: {name}"
 
     def execute(self, name, reset) -> bool:
         ''' Execute one step '''

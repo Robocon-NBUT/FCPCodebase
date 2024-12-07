@@ -20,19 +20,19 @@ class Joints():
         zstep = 0.05
         label_z = [3*zstep, 5*zstep, 0, 0, zstep, zstep, 2*zstep, 2*zstep, 0, 0, 0, 0,
                    zstep, zstep, 0, 0, zstep, zstep, 4*zstep, 4*zstep, 5*zstep, 5*zstep, 0, 0]
-        for j, transf in enumerate(player.world.robot.joints_transform):
-            rp = transf.get_translation()
+        for index, joint in enumerate(player.world.robot.joints):
+            rp = joint.transform.get_translation()
             pos = player.world.robot.loc_head_to_field_transform(rp, False)
-            j_id = f"{j}"
-            j_name = f"{j}"
+            j_id = f"{index}"
+            j_name = f"{index}"
             color = Draw.Color.cyan
-            if player.world.robot.joints_position[j] != 0:
-                j_name += f" ({int(player.world.robot.joints_position[j])})"
+            if joint.position != 0:
+                j_name += f" ({int(joint.position)})"
                 color = Draw.Color.red
             label_rp = np.array([rp[0]-0.0001, rp[1]*0.5, 0])
             # labels at 0.5m from body part
             label_rp /= np.linalg.norm(label_rp) / 0.5
-            label_rp += (0, 0, label_z[j])
+            label_rp += (0, 0, label_z[index])
             label = player.world.robot.loc_head_to_field_transform(
                 rp+label_rp, False)
             player.world.draw.line(
@@ -73,7 +73,7 @@ Examples:
                 self.enable_pos = not self.enable_pos
                 print("Using", "position" if self.enable_pos else "velocity", "control.")
                 if self.enable_pos:
-                    self.joints_value[:] = player.world.robot.joints_position
+                    self.joints_value[:] = [joint.position for joint in player.world.robot.joints]
                 else:
                     self.joints_value.fill(0)
                 continue
@@ -149,12 +149,11 @@ Examples:
 
             if self.enable_pos:
                 player.world.robot.set_joints_target_position_direct(
-                    slice(self.joints_no), self.joints_value, harmonize=self.enable_harmonize)
+                    range(self.joints_no), self.joints_value, harmonize=self.enable_harmonize)
             else:
                 # deg/step to rad/s
-                player.world.robot.joints_target_speed[:
-                                                       ] = self.joints_value * 0.87266463
-
+                for index in range(player.world.robot.no_of_joints):
+                    player.world.robot.joints[index] = self.joints_value[index] * 0.87266463
             if not self.enable_gravity:
                 player.server.unofficial_beam(self.agent_pos, 0)
             player.server.commit_and_send(player.world.robot.get_command())

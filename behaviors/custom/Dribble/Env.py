@@ -65,9 +65,9 @@ class Env():
         # *if foot is not touching the ground, then (px=0,py=0,pz=0,fx=0,fy=0,fz=0)
 
         # position of all joints except head & toes (for robot type 4)
-        self.obs[23:43] = r.joints_position[2:22] / 100
+        self.obs[23:43] = np.array([joint.position for joint in r.joints[2:22]]) / 100
         # speed of    all joints except head & toes (for robot type 4)
-        self.obs[43:63] = r.joints_speed[2:22] / 6.1395
+        self.obs[43:63] = np.array([joint.speed for joint in r.joints[2:22]]) / 6.1395
 
         '''
         Expected observations for walking state:
@@ -203,6 +203,6 @@ class Env():
         self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos,
                         r_foot_rot)           # legs
         r.set_joints_target_position_direct(
-            slice(14, 22), arms, harmonize=False)  # arms
+            range(14, 22), arms, harmonize=False)  # arms
 
         self.step_counter += 1

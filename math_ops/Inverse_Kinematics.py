@@ -251,9 +251,9 @@ class Inverse_Kinematics():
 
         # 检查并限制关节的范围
         for index, value in enumerate(indices):
-            if values[index] < self.robot.joints_info[value].min or values[index] > self.robot.joints_info[value].max:
+            if values[index] < self.robot.joints[value].info.min or values[index] > self.robot.joints[value].info.max:
                 error_codes.append(value)
                 values[index] = np.clip(
-                    values[index], self.robot.joints_info[value].min, self.robot.joints_info[value].max)
+                    values[index], self.robot.joints[value].info.min, self.robot.joints[value].info.max)
 
         return indices, values, error_codes

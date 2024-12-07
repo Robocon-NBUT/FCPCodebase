@@ -83,11 +83,11 @@ class Env():
         self.obs[26:29] = rel_rankle * (8, 8, 5)
         self.obs[29:32] = lf_rot_rel_torso / 20
         self.obs[32:35] = rf_rot_rel_torso / 20
-        self.obs[35:39] = r.joints_position[14:18] / 100  # arms (pitch + roll)
+        self.obs[35:39] = np.array([joint.position for joint in r.joints[14:18]]) / 100
 
         # velocity
         # predictions == last action
-        self.obs[39:55] = r.joints_target_last_speed[2:18]
+        self.obs[39:55] = np.array([joint.target_last_speed for joint in r.joints[2:18]])
 
         '''
         Expected observations for walking state:
@@ -228,6 +228,6 @@ class Env():
         self.execute_ik(l_ankle_pos, l_foot_rot, r_ankle_pos,
                         r_foot_rot)           # legs
         r.set_joints_target_position_direct(
-            slice(14, 22), arms, harmonize=False)  # arms
+            range(14, 22), arms, harmonize=False)  # arms
 
         self.step_counter += 1

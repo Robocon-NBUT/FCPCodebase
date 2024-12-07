@@ -41,7 +41,8 @@ class Get_Up:
                     behavior.execute(
                         ["Fall_Front", "Fall_Back", "Fall_Left", "Fall_Right"][i % 4])
                 else:
-                    r.joints_target_speed[:] = rnd  # Second, fall randomly
+                    for index in range(r.no_of_joints):
+                        r.joints[index].target_speed = rnd[index]
                 self.sync()
 
             # Get up

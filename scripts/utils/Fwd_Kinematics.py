@@ -69,14 +69,14 @@ class Fwd_Kinematics():
                 zstep = 0.05
                 label_z = [0, 0, 0, 0, zstep, zstep, 2*zstep, 2*zstep, 0, 0, 0, 0, zstep,
                            zstep, 0, 0, zstep, zstep, 2*zstep, 2*zstep, 3*zstep, 3*zstep, 0, 0]
-                for j, transf in enumerate(p.world.robot.joints_transform):
-                    rp = transf.get_translation()
+                for index, joint in enumerate(p.world.robot.joints):
+                    rp = joint.transform.get_translation()
                     pos = p.world.robot.loc_head_to_field_transform(rp, False)
-                    j_name = str(j)
+                    j_name = str(index)
                     label_rp = np.array([rp[0]-0.0001, rp[1]*0.5, 0])
                     # labels at 0.4m from body part
                     label_rp /= np.linalg.norm(label_rp) / 0.4
-                    label_rp += (0, 0, label_z[j])
+                    label_rp += (0, 0, label_z[index])
                     label = p.world.robot.loc_head_to_field_transform(
                         rp+label_rp, False)
                     p.world.draw.line(

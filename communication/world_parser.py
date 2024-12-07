@@ -266,10 +266,10 @@ class WorldParser:
                         if joint_name in Robot.FIX_PERCEPTOR_SET:
                             joint_angle = -joint_angle
 
-                        old_angle = self.world.robot.joints_position[joint_index]
-                        self.world.robot.joints_speed[joint_index] = (
+                        old_angle = self.world.robot.joints[joint_index].position
+                        self.world.robot.joints[joint_index].speed = (
                             joint_angle - old_angle) / World.STEPTIME * math.pi / 180
-                        self.world.robot.joints_position[joint_index] = joint_angle
+                        self.world.robot.joints[joint_index].position = joint_angle
                     else:
                         self.world.log(
                             f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}, \nMsg: {exp.decode()}")

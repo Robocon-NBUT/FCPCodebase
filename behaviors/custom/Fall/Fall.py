@@ -27,7 +27,7 @@ class Fall():
         r = self.world.robot
 
         for i in range(self.action_size):
-            self.obs[i] = r.joints_position[i] / \
+            self.obs[i] = r.joints[i].position / \
                 100  # naive scale normalization
 
         # head.z (alternative: r.loc_head_z)
@@ -38,7 +38,7 @@ class Fall():
         action = run_mlp(self.obs, self.model)
 
         self.world.robot.set_joints_target_position_direct(  # commit actions:
-            slice(self.controllable_joints),  # act on trained joints
+            range(self.controllable_joints),  # act on trained joints
             action*10,                       # scale actions up to motivate early exploration
             # there is no point in harmonizing actions if the targets change at every step
             harmonize=False

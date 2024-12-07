@@ -84,7 +84,7 @@ class Fall(gym.Env):
         r = self.player.world.robot
 
         for i in range(self.no_of_joints):
-            self.obs[i] = r.joints_position[i] / \
+            self.obs[i] = r.joints[i].position / \
                 100  # naive scale normalization
 
         # head.z (alternative: r.loc_head_z)
@@ -116,7 +116,7 @@ class Fall(gym.Env):
         # beam player to ground
         self.player.server.unofficial_beam((-3, 0, r.beam_height), 0)
         # move head to trigger physics update (rcssserver3d bug when no joint is moving)
-        r.joints_target_speed[0] = 0.01
+        r.joints[0].target_speed = 0.01
         self.sync()
 
         # stabilize on ground
@@ -137,7 +137,7 @@ class Fall(gym.Env):
 
         r = self.player.world.robot
         r.set_joints_target_position_direct(  # commit actions:
-            slice(self.no_of_joints),        # act on all available joints
+            range(self.no_of_joints),        # act on all available joints
             action*10,                       # scale actions up to motivate early exploration
             # there is no point in harmonizing actions if the targets change at every step
             harmonize=False

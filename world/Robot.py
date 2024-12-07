@@ -1,3 +1,4 @@
+import warnings
 from collections import deque
 from math import atan, pi, sqrt, tan
 from math_ops.math_ext import get_active_directory
@@ -7,6 +8,17 @@ from world.commons.Body_Part import Body_Part
 from world.commons.Joint_Info import Joint_Info
 import numpy as np
 import xml.etree.ElementTree as xmlp
+
+
+class Joint:
+    def __init__(self):
+        self.position = 0.0
+        self.speed = 0.0
+        self.target_speed = 0.0
+        self.target_last_speed = 0.0
+        self.info: Joint_Info = None
+        self.transform = Matrix_4x4()
+        self.fix_effector_mask = 1
 
 
 class Robot:
@@ -39,10 +51,11 @@ class Robot:
         self.type = robot_type
         self.beam_height = Robot.BEAM_HEIGHTS[robot_type]
         self.no_of_joints = 24 if robot_type == 4 else 22
+        self.joints = [Joint() for _ in range(self.no_of_joints)]
 
         # 修复对称性问题1b/4（标识）
-        self.FIX_EFFECTOR_MASK = np.ones(self.no_of_joints)  # 初始化所有关节的修复掩码为1
-        self.FIX_EFFECTOR_MASK[Robot.FIX_INDICES_LIST] = -1  # 对特定关节设置修复掩码为-1
+        for index in Robot.FIX_INDICES_LIST:
+            self.joints[index].fix_effector_mask = -1
 
         self.body_parts = {}  # 保存机器人的身体部件，键为部件名称，值为Body_Part对象
         self.unum = unum  # 机器人的编号
@@ -55,17 +68,6 @@ class Robot:
             "lf": False, "rf": False, "lf1": False, "rf1": False}  # 标记足部和脚趾是否接触地面
         self.fwd_kinematics_list = None  # 保存按照依赖关系排序的身体部件列表
         self.rel_cart_CoM_position = np.zeros(3)  # 质心相对于头部的位置（笛卡尔坐标系，单位：米）
-
-        # 关节变量优化以提高性能/支持数组操作
-        self.joints_position = np.zeros(self.no_of_joints)  # 关节的角度位置（单位：度）
-        self.joints_speed = np.zeros(self.no_of_joints)  # 关节的角速度（单位：弧度/秒）
-        # 关节的目标角速度（单位：弧度/秒，最大值：6.1395 rad/s）
-        self.joints_target_speed = np.zeros(self.no_of_joints)
-        self.joints_target_last_speed = np.zeros(
-            self.no_of_joints)  # 关节的上一个目标角速度（单位：弧度/秒）
-        self.joints_info = [None] * self.no_of_joints  # 关节的常量信息（见Joint_Info类）
-        self.joints_transform = [Matrix_4x4()
-                                 for _ in range(self.no_of_joints)]  # 关节的变换矩阵
 
         # 相对于头部的定位变量
         self.loc_head_to_field_transform = Matrix_4x4()  # 从头部到场地的变换矩阵
@@ -183,9 +185,9 @@ class Robot:
                 self.body_parts[child.attrib['name']] = Body_Part(
                     child.attrib['mass'])  # 保存部件质量信息
             elif child.tag == "joint":  # 如果是关节
-                self.joints_info[joint_no] = Joint_Info(child)  # 保存关节信息
-                self.joints_position[joint_no] = 0.0  # 初始化关节位置为0
-                ji = self.joints_info[joint_no]
+                self.joints[joint_no].info = Joint_Info(child)
+                self.joints[joint_no].position = 0.0
+                ji = self.joints[joint_no].info
 
                 # 如果身体部件是第一个锚点，则保存关节信息（简化模型遍历的方向）
                 self.body_parts[ji.anchor0_part].joints.append(
@@ -236,22 +238,22 @@ class Robot:
 
             for j in self.body_parts[part].joints:
 
-                p = self.joints_info[j].anchor1_part
+                p = self.joints[j].info.anchor1_part
 
                 # add body part if it is the 1st anchor of some joint
                 if len(self.body_parts[p].joints) > 0:
                     parts.add(p)
                     sequential_body_parts.append(p)
 
-        self.fwd_kinematics_list = [(self.body_parts[part], j, self.body_parts[self.joints_info[j].anchor1_part])
+        self.fwd_kinematics_list = [(self.body_parts[part], j, self.body_parts[self.joints[j].info.anchor1_part])
                                     for part in sequential_body_parts for j in self.body_parts[part].joints]
 
         # Fix symmetry issues 4/4 (kinematics)
         for i in Robot.FIX_INDICES_LIST:
-            self.joints_info[i].axes *= -1
-            aux = self.joints_info[i].min
-            self.joints_info[i].min = -self.joints_info[i].max
-            self.joints_info[i].max = -aux
+            self.joints[i].info.axes *= -1
+            aux = self.joints[i].info.min
+            self.joints[i].info.min = -self.joints[i].info.max
+            self.joints[i].info.max = -aux
 
     def update_localization(self, localization_raw, time_local_ms):
 
@@ -358,7 +360,7 @@ class Robot:
         For best results, use this method when self.loc_is_up_to_date is True. Otherwise, the forward kinematics
         will not be synced with the localization data and strange results may occur.
         '''
-        return self.loc_head_to_field_transform.multiply(self.joints_transform[joint_index])
+        return self.loc_head_to_field_transform.multiply(self.joints[joint_index].transform)
 
     def get_joint_abs_position(self, joint_index) -> np.ndarray:
         '''
@@ -374,12 +376,12 @@ class Robot:
             self._initialize_kinematics()
 
         for body_part, j, child_body_part in self.fwd_kinematics_list:
-            ji = self.joints_info[j]
-            self.joints_transform[j].m[:] = body_part.transform.m
-            self.joints_transform[j].translate(ji.anchor0_axes, True)
-            child_body_part.transform.m[:] = self.joints_transform[j].m
+            ji = self.joints[j].info
+            self.joints[j].transform.m[:] = body_part.transform.m
+            self.joints[j].transform.translate(ji.anchor0_axes, True)
+            child_body_part.transform.m[:] = self.joints[j].transform.m
             child_body_part.transform.rotate_deg(
-                ji.axes, self.joints_position[j], True)
+                ji.axes, self.joints[j].position, True)
             child_body_part.transform.translate(ji.anchor1_axes_neg, True)
 
         self.rel_cart_CoM_position = np.average([b.transform.get_translation() for b in self.body_parts.values()], 0,
@@ -491,65 +493,39 @@ class Robot:
         -------
         remaining_steps : `int`
             predicted number of remaining steps or -1 if target was already reached
-
-        Examples
-        -------
-        (let p[tx] be the joint position at t=x)
-
-        Example for return value: moving joint[0] from 0deg to 10deg
-                pos[t0]: 0,  speed[t0]: 7deg/step,  ret=2   # target will predictedly be reached in 2 steps
-                pos[t1]: 7,  speed[t1]: 3deg/step,  ret=1   # target will predictedly be reached in 1 step (send final action)
-                pos[t2]: 10, speed[t2]: 0deg/step,  ret=0   # target was predictedly already reached 
-                pos[t3]: 10, speed[t3]: 0deg/step,  ret=-1  # (best case scenario) server reported with delay, that target was reached (see tolerance)
-                pos[t?]: 10, speed[t?]: 0deg/step,  ret=-1  # if there is friction, it may take some additional steps 
-
-                If everything worked as predicted we could stop calling this function when ret==1
-                If we need precision, it is recommended to wait for ret==-1
-
-        Example 1:
-            set_joints_target_position_direct(range(2,4),np.array([10.0,5.0]),harmonize=True)    
-                Joint[2]   p[t0]: 0  target pos: 10  ->  p[t1]=5,   p[t2]=10
-                Joint[3]   p[t0]: 0  target pos: 5   ->  p[t1]=2.5, p[t2]=5
-
-        Example 2:
-            set_joints_target_position_direct([2,3],np.array([10.0,5.0]),harmonize=False)  
-                Joint[2]   p[t0]: 0  target pos: 10  ->  p[t1]=7,   p[t2]=10
-                Joint[3]   p[t0]: 0  target pos: 5   ->  p[t1]=5,   p[t2]=5  
         '''
-
+        if isinstance(indices, slice):
+            warnings.warn("将 slice 替换为 list 或 int")
         assert isinstance(
             values, np.ndarray), "'values' argument must be a numpy array"
         # Replace NaN with zero and infinity with large finite numbers
         np.nan_to_num(values, copy=False)
 
-        # limit range of joints
-        if limit_joints:
-            if isinstance(indices, list | np.ndarray):
-                for index, value in enumerate(indices):
-                    values[index] = np.clip(
-                        values[index], self.joints_info[value].min, self.joints_info[value].max)
-            elif isinstance(indices, slice):
-                info = self.joints_info[indices]
-                for index, value in enumerate(info):
-                    values[index] = np.clip(
-                        values[index], value.min, value.max)
-            else:  # int
-                values[0] = np.clip(
-                    values[0], self.joints_info[indices].min, self.joints_info[indices].max)
+        if isinstance(indices, slice):
+            print(indices.start, indices.stop, indices.step)
+            indices = list(range(indices.start, indices.stop, indices.step))
+        
+        predicted_diff = []
+        joints_positions = []
 
-        # predicted_diff: predicted difference between reported position and actual position
+        for i, idx in enumerate(indices):
+            joint: Joint = self.joints[idx]
 
-        # rad/s to deg/step
-        predicted_diff = self.joints_target_last_speed[indices] * 1.1459156
-        predicted_diff = np.asarray(predicted_diff)
-        # saturate predicted movement in-place
+            if limit_joints:
+                values[i] = np.clip(values[i], joint.info.min, joint.info.max)
+
+            predicted_diff.append(joint.target_last_speed * 1.1459156)
+            joints_positions.append(joint.position)  # joint's current position
+
+        predicted_diff = np.array(predicted_diff)
+        joints_positions = np.array(joints_positions)
+
         np.clip(predicted_diff, -7.03, 7.03, out=predicted_diff)
 
-        # reported_dist: difference between reported position and target position
-
-        reported_dist = values - self.joints_position[indices]
+        reported_dist = values - joints_positions
         if np.all((np.abs(reported_dist) < tolerance)) and np.all((np.abs(predicted_diff) < tolerance)):
-            self.joints_target_speed[indices] = 0
+            for index in indices:
+                self.joints[index].target_speed = 0
             return -1
 
         deg_per_step = reported_dist - predicted_diff
@@ -558,7 +534,8 @@ class Robot:
         remaining_steps = np.ceil(relative_max)
 
         if remaining_steps == 0:
-            self.joints_target_speed[indices] = 0
+            for index in indices:
+                self.joints[index].target_speed = 0
             return 0
 
         if harmonize:
@@ -568,7 +545,9 @@ class Robot:
                     out=deg_per_step)  # limit maximum speed
 
         # convert to rad/s
-        self.joints_target_speed[indices] = deg_per_step * 0.87266463
+
+        for i, idx in enumerate(indices):
+            self.joints[idx].target_speed = deg_per_step[i] * 0.87266463
 
         return remaining_steps
 
@@ -576,13 +555,11 @@ class Robot:
         '''
         Builds commands string from self.joints_target_speed
         '''
-        j_speed = self.joints_target_speed * \
-            self.FIX_EFFECTOR_MASK  # Fix symmetry issues 3/4 (effectors)
-        cmd = "".join(f"({self.joints_info[i].effector} {
-                      j_speed[i]:.5f})" for i in range(self.no_of_joints)).encode('utf-8')
-
-        # 1. both point to the same array
-        self.joints_target_last_speed = self.joints_target_speed
-        # 2. create new array for joints_target_speed
-        self.joints_target_speed = np.zeros_like(self.joints_target_speed)
-        return cmd
+        cmd = ""
+        j_speed = []
+        for i, joint in enumerate(self.joints):
+            j_speed.append(joint.target_speed * joint.fix_effector_mask)
+            cmd += f"({joint.info.effector} {j_speed[i]:.5f})"
+            joint.target_last_speed = joint.target_speed
+            joint.target_speed = 0.0
+        return cmd.encode("utf-8")
