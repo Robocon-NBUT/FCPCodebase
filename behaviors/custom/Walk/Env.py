@@ -36,13 +36,23 @@ class Env():
         self.walk_rel_target = None
         self.walk_distance = None
 
+        # self.act = np.zeros(16, np.float32)  # memory variable
+        # self.step_counter = 0
+
+        # self.internal_rel_orientation = 0
+        # self.internal_target = np.zeros(2)
+        self.isinit = False
+
     def observe(self, init=False):
 
         r = self.world.robot
 
-        if init:  # reset variables
+        if not self.isinit:  # reset variables
             self.act = np.zeros(16, np.float32)  # memory variable
             self.step_counter = 0
+            self.internal_rel_orientation = 0
+            self.internal_target = np.zeros(2)
+            self.isinit = True
 
         # index       observation              naive normalization
         # simple counter: 0,1,2,3...
@@ -118,13 +128,9 @@ class Env():
         MAX_ROTATION_DIFF = 1.6  # max difference (degrees) per step
         MAX_ROTATION_DIST = 45
 
-        if init:
-            self.internal_rel_orientation = 0
-            self.internal_target = np.zeros(2)
-
         previous_internal_target = np.copy(self.internal_target)
 
-        # ---------------------------------------------------------------- compute internal linear target
+        #  compute internal linear target
 
         rel_raw_target_size = np.linalg.norm(self.walk_rel_target)
 
@@ -143,14 +149,14 @@ class Env():
         else:
             self.internal_target[:] = rel_target
 
-        # ---------------------------------------------------------------- compute internal rotation target
+        #  compute internal rotation target
 
         internal_ori_diff = np.clip(normalize_deg(
             self.walk_rel_orientation - self.internal_rel_orientation), -MAX_ROTATION_DIFF, MAX_ROTATION_DIFF)
         self.internal_rel_orientation = np.clip(normalize_deg(
             self.internal_rel_orientation + internal_ori_diff), -MAX_ROTATION_DIST, MAX_ROTATION_DIST)
 
-        # ----------------------------------------------------------------- observations
+        # - observations
 
         internal_target_vel = self.internal_target - previous_internal_target
 

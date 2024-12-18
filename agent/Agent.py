@@ -124,7 +124,42 @@ class Agent(Base_Agent):
             return self.behavior.execute("Basic_Kick", self.kick_direction, abort)
         else:  # fat proxy behavior
             return self.fat_proxy_kick()
-        
+
+    def kick_long(self, kick_direction=None, kick_distance=None, abort=False, enable_pass_command=False):
+        '''
+        Walk to ball and kick
+
+        Parameters
+        ----------
+        kick_direction : float
+            kick direction, in degrees, relative to the field
+        kick_distance : float
+            kick distance in meters
+        abort : bool
+            True to abort.
+            The method returns True upon successful abortion, which is immediate while the robot is aligning itself. 
+            However, if the abortion is requested during the kick, it is delayed until the kick is completed.
+        avoid_pass_command : bool
+            When False, the pass command will be used when at least one opponent is near the ball
+
+        Returns
+        -------
+        finished : bool
+            Returns True if the behavior finished or was successfully aborted.
+        '''
+
+        if self.min_opponent_ball_dist < 1.45 and enable_pass_command:
+            self.server.commit_pass_command()
+
+        self.kick_direction = self.kick_direction if kick_direction is None else kick_direction
+        self.kick_distance = self.kick_distance if kick_distance is None else kick_distance
+
+        if self.fat_proxy_cmd is None:  # normal behavior
+            # Basic_Kick has no kick distance control
+            return self.behavior.execute("Kick_Long", self.kick_direction)
+        else:  # fat proxy behavior
+            return self.fat_proxy_kick()
+
     def dribble(self):
         '''
         Dribble to ball
@@ -232,20 +267,17 @@ class Agent(Base_Agent):
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
             if w.play_mode == OurMode.CORNER_KICK:
                 # 将球踢到对方球门前的空位
-                # self.kick(-np.sign(ball_2d[1])*95, 5.5)
-                self.dribble()
+                self.kick_long(-np.sign(ball_2d[1])*95, 5.5)
             # 如果对手明显更接近球，则防守
             elif self.min_opponent_ball_dist + 0.5 < self.min_teammate_ball_dist:
                 if self.state == 2:  # 中止踢球并提交
-                    # self.state = 0 if self.kick(abort=True) else 2
-                    self.state = 0 if self.dribble() else 2
+                    self.state = 0 if self.kick_long(abort=True) else 2
                 else:  # 向球移动，但将自己定位在球和我方球门之间
-                    self.move(slow_ball_pos + normalize_vec((-16, 0) -
-                                                            slow_ball_pos) * 0.2, is_aggressive=True)
+                    self.move(slow_ball_pos + normalize_vec(
+                        (-16, 0) - slow_ball_pos) * 0.2, is_aggressive=True)
             else:
-                # self.state = 0 if self.kick(
-                #     goal_dir, 9, False, enable_pass_command) else 2
-                self.state = 0 if self.dribble() else 2
+                self.state = 0 if self.kick_long(
+                    goal_dir, 9, False, enable_pass_command) else 2
 
             # 禁用路径绘制
             path_draw_options(enable_obstacles=False, enable_path=False)

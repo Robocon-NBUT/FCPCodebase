@@ -1,4 +1,4 @@
-import warnings
+import xml.etree.ElementTree as xmlp
 from collections import deque
 from math import atan, pi, sqrt, tan
 from math_ops.math_ext import get_active_directory
@@ -7,10 +7,12 @@ from math_ops.Matrix_4x4 import Matrix_4x4
 from world.commons.Body_Part import Body_Part
 from world.commons.Joint_Info import Joint_Info
 import numpy as np
-import xml.etree.ElementTree as xmlp
 
 
 class Joint:
+    """
+    关节类
+    """
     def __init__(self):
         self.position = 0.0
         self.speed = 0.0
@@ -494,8 +496,6 @@ class Robot:
         remaining_steps : `int`
             predicted number of remaining steps or -1 if target was already reached
         '''
-        if isinstance(indices, slice):
-            warnings.warn("将 slice 替换为 list 或 int")
         assert isinstance(
             values, np.ndarray), "'values' argument must be a numpy array"
         # Replace NaN with zero and infinity with large finite numbers
@@ -504,7 +504,7 @@ class Robot:
         if isinstance(indices, slice):
             print(indices.start, indices.stop, indices.step)
             indices = list(range(indices.start, indices.stop, indices.step))
-        
+
         predicted_diff = []
         joints_positions = []
 

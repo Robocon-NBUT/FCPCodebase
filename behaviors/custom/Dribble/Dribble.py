@@ -122,11 +122,11 @@ class Dribble():
             # reset walk if it wasn't the previous behavior
             reset_walk = reset and behavior.previous_behavior != "Walk" and behavior.previous_behavior != "Push_RL"
 
-            # ------------------------ 1. Decide if a better approach orientation is needed (when ball is nearly out of bounds)
+            #  1. Decide if a better approach orientation is needed (when ball is nearly out of bounds)
             if reset or b_dist > 0.4:  # stop defining orientation after getting near the ball to avoid noise
                 self.define_approach_orientation()
 
-            # ------------------------ 2A. A better approach orientation is needed (ball is almost out of bounds)
+            #  2A. A better approach orientation is needed (ball is almost out of bounds)
             if self.approach_orientation is not None:
                 next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
                     x_ori=self.approach_orientation, x_dev=-0.24, torso_ori=self.approach_orientation, safety_margin=0.4)
@@ -141,14 +141,14 @@ class Dribble():
                     behavior.execute_sub_behavior(
                         "Walk", reset_walk, next_pos, True, next_ori, True, dist)
 
-            # ------------------------ 2B. A better approach orientation is not needed but the robot cannot see the ball
+            #  2B. A better approach orientation is not needed but the robot cannot see the ball
             elif w.time_local_ms - w.ball_last_seen > 200:  # walk to absolute target if ball was not seen
                 abs_ori = vector_angle(b - me)
                 # target, is_target_abs, ori, is_ori_abs, distance
                 behavior.execute_sub_behavior(
                     "Walk", reset_walk, b, True, abs_ori, True, None)
 
-            # ------------------------ 2C. A better approach orientation is not needed and the robot can see the ball
+            #  2C. A better approach orientation is not needed and the robot can see the ball
             else:  # walk to relative target
                 # ready to start dribble
                 if 0.18 < b_rel[0] < 0.25 and abs(b_rel[1]) < 0.05 and w.ball_is_visible:
@@ -172,7 +172,7 @@ class Dribble():
         if self.phase == 1 and (stop or (b_dist > 0.5 and lost_ball)):
             self.phase += 1
         elif self.phase == 1:  # dribble
-            # ------------------------ 1. Define dribble parameters
+            #  1. Define dribble parameters
             self.env.dribble_speed = speed
 
             # Relative orientation values are decreased to avoid overshoot
@@ -193,7 +193,7 @@ class Dribble():
                 self.env.dribble_rel_orientation = float(
                     orientation)  # copy if numpy float
 
-            # ------------------------ 2. Execute behavior
+            #  2. Execute behavior
             obs = self.env.observe(reset_dribble)
             action = run_mlp(obs, self.model)
             self.env.execute(action)
@@ -201,16 +201,16 @@ class Dribble():
         # wind down dribbling, and then reset phase
         if self.phase > 1:
             WIND_DOWN_STEPS = 60
-            # ------------------------ 1. Define dribble wind down parameters
+            #  1. Define dribble wind down parameters
             self.env.dribble_speed = 1 - self.phase/WIND_DOWN_STEPS
             self.env.dribble_rel_orientation = 0
 
-            # ------------------------ 2. Execute behavior
+            #  2. Execute behavior
             obs = self.env.observe(reset_dribble, virtual_ball=True)
             action = run_mlp(obs, self.model)
             self.env.execute(action)
 
-            # ------------------------ 3. Reset behavior
+            #  3. Reset behavior
             self.phase += 1
             if self.phase >= WIND_DOWN_STEPS - 5:
                 self.phase = 0
