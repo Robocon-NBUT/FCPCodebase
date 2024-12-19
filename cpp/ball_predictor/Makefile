@@ -1,7 +1,7 @@
 src = $(wildcard *.cpp)
 obj = $(src:.c=.o)
 
-CFLAGS = -O3 -shared -std=c++11 -fPIC -Wall $(PYBIND_INCLUDES)
+CFLAGS = -O3 -shared -std=c++20 -fPIC -Wall $(PYBIND_INCLUDES)
 
 all: $(obj)
 	g++ $(CFLAGS) -o ball_predictor.so $^
