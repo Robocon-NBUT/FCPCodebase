@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from agent.Base_Agent import Base_Agent
 from world.World import OurMode, NeuMode, PlayMode, TheirMode
@@ -216,9 +215,9 @@ class Agent(Base_Agent):
             for p in w.opponents]
 
         min_teammate_ball_sq_dist = min(teammates_ball_sq_dist)  # 最近的队友与球的距离平方
-        self.min_teammate_ball_dist = math.sqrt(
+        self.min_teammate_ball_dist = np.sqrt(
             min_teammate_ball_sq_dist)  # 最近的队友与球的距离
-        self.min_opponent_ball_dist = math.sqrt(
+        self.min_opponent_ball_dist = np.sqrt(
             min(opponents_ball_sq_dist))  # 最近的对手与球的距离
 
         # 最近的队友的编号

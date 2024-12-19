@@ -1,4 +1,3 @@
-import math
 from pathlib import Path
 import numpy as np
 
@@ -268,7 +267,7 @@ class WorldParser:
 
                         old_angle = self.world.robot.joints[joint_index].position
                         self.world.robot.joints[joint_index].speed = (
-                            joint_angle - old_angle) / World.STEPTIME * math.pi / 180
+                            joint_angle - old_angle) / World.STEPTIME * np.pi / 180
                         self.world.robot.joints[joint_index].position = joint_angle
                     else:
                         self.world.log(

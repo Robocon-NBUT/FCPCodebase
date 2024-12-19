@@ -1,6 +1,4 @@
 import csv
-import math
-import os
 import pickle
 import select
 import sys
@@ -136,17 +134,17 @@ class Train_Base():
         '''
 
         if model_path is not None:
-            assert os.path.isdir(model_path), f"{model_path} is not a valid path"
+            assert Path(model_path).is_dir(), f"{model_path} is not a valid path"
             self.display_evaluations(model_path)
 
         if log_path is not None:
-            assert os.path.isdir(log_path), f"{log_path} is not a valid path"
+            assert Path(log_path).is_dir(), f"{log_path} is not a valid path"
 
             # If file already exists, don't overwrite
-            if os.path.isfile(log_path + "/test.csv"):
+            if Path(log_path + "/test.csv").is_file():
                 for i in range(1000):
                     p = f"{log_path}/test_{i:03}.csv"
-                    if not os.path.isfile(p):
+                    if not Path(p).is_file():
                         log_path = p
                         break
             else:
@@ -163,8 +161,8 @@ class Train_Base():
         ep_reward = 0
         ep_length = 0
         rewards_sum = 0
-        reward_min = math.inf
-        reward_max = -math.inf
+        reward_min = np.inf
+        reward_max = -np.inf
         ep_lengths_sum = 0
         ep_no = 0
 
@@ -254,17 +252,17 @@ class Train_Base():
         start_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         # 如果路径已存在，添加后缀以避免覆盖
-        if os.path.isdir(path):
+        if Path(path).is_dir():
             for i in count():
                 p = path.rstrip("/") + f'_{i:03}/'
-                if not os.path.isdir(p):
+                if not Path(p).is_dir():
                     path = p
                     break
-        os.makedirs(path)
+        Path(path).mkdir(parents=True, exist_ok=True)
 
         # 备份环境文件
         if backup_env_file is not None:
-            backup_file = os.path.join(path, os.path.basename(backup_env_file))
+            backup_file = Path(path) / Path(backup_env_file).name
             copy(backup_env_file, backup_file)
 
         # 检查是否需要评估
@@ -293,7 +291,7 @@ class Train_Base():
 
         # 开始训练
         model.learn(total_timesteps=total_steps, callback=callbacks)
-        model.save(os.path.join(path, "last_model"))
+        model.save(str(Path(path) / "last_model"))
 
         # 如果存在评估结果，则显示
         if evaluate:
@@ -318,9 +316,9 @@ class Train_Base():
 
     def display_evaluations(self, path, save_csv=False):
 
-        eval_npz = os.path.join(path, "evaluations.npz")
+        eval_npz = Path(path) / "evaluations.npz"
 
-        if not os.path.isfile(eval_npz):
+        if not eval_npz.is_file():
             return
 
         console_width = 80
@@ -382,8 +380,8 @@ class Train_Base():
 
         # save CSV
         if save_csv:
-            eval_csv = os.path.join(path, "evaluations.csv")
-            with open(eval_csv, 'a+') as f:
+            eval_csv = Path(path) / "evaluations.csv"
+            with eval_csv.open('a+') as f:
                 writer = csv.writer(f)
                 if sample_no == 1:
                     writer.writerow(["time_steps", "reward ep.", "length"])
@@ -394,8 +392,7 @@ class Train_Base():
         '''
         Function that generates the XML file for the optimized slot behavior, overwriting previous files
         '''
-
-        file = os.path.join(path, xml_name)
+        file = str(Path(path) / xml_name)
 
         # create the file structure
         auto_head = '1' if auto_head else '0'
@@ -466,7 +463,7 @@ class Train_Base():
         if add_sufix:
             for i in count():
                 f = f"{output_file}_{i:03}.pkl"
-                if not os.path.isfile(f):
+                if not Path(f).is_file():
                     output_file = f
                     break
 
@@ -510,6 +507,6 @@ class Export_Callback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.n_calls % self.freq == 0:
-            path = os.path.join(self.load_path, f"model_{self.num_timesteps}_steps.zip")
+            path = str(Path(self.load_path) / f"model_{self.num_timesteps}_steps.zip")
             Train_Base.export_model(path, f"./scripts/gyms/export/{self.export_name}")
         return True # If the callback returns False, training is aborted early

@@ -1,10 +1,10 @@
 from agent.Agent import Agent
 from cpp.localization import localization
-from math_ops.math_ext import deg_cos, deg_sin, to_3d
+from math_ops.math_ext import to_3d
 from scripts.commons.Script import Script
 from world.commons.Draw import Draw
 from world.commons.Other_Robot import Other_Robot
-
+import numpy as np
 
 class Localization():
 
@@ -87,14 +87,14 @@ class Localization():
         # orientation
         if len(o.state_abs_pos) == 3:
             line_tip = o.state_abs_pos + \
-                (0.5*deg_cos(o.state_orientation),
-                 0.5*deg_sin(o.state_orientation), 0)
+                (0.5*np.cos(np.deg2rad(o.state_orientation)),
+                 0.5*np.sin(np.deg2rad(o.state_orientation)), 0)
             d.line(o.state_abs_pos, line_tip, 3, white, "world", False)
         else:
             temp_pos = to_3d(o.state_abs_pos, 0.3)
             line_tip = temp_pos + \
-                (0.5*deg_cos(o.state_orientation),
-                 0.5*deg_sin(o.state_orientation), 0)
+                (0.5*np.cos(np.deg2rad(o.state_orientation)),
+                 0.5*np.sin(np.deg2rad(o.state_orientation)), 0)
             d.line(temp_pos, line_tip, 3, Draw.Color.yellow, "world", False)
 
         # body parts

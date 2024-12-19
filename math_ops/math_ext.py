@@ -22,20 +22,6 @@ def deg_sph2cart(spherical_vec):
     return np.array([r * np.cos(v) * np.cos(h), r * np.cos(v) * np.sin(h), r * np.sin(v)])
 
 
-def deg_sin(deg: Number) -> float:
-    """
-    返回用角度计算的 sin 值
-    """
-    return np.sin(deg * np.pi / 180)
-
-
-def deg_cos(deg: Number) -> float:
-    """
-    返回用角度计算的 cos 值
-    """
-    return np.cos(deg * np.pi / 180)
-
-
 def to_3d(vec_2d, value=0) -> np.ndarray:
     """
     Returns new 3d vector from 2d vector
@@ -94,21 +80,6 @@ def normalize_rad(rad: Number) -> float:
     """
     return (rad + np.pi) % (2 * np.pi) - np.pi
 
-
-def deg_to_rad(deg: Number) -> float:
-    """
-    角度转弧度
-    """
-    return deg * np.pi / 180
-
-
-def rad_to_deg(rad: Number) -> float:
-    """
-    弧度转角度
-    """
-    return rad / np.pi * 180
-
-
 def vector_angle(vector, is_rad=False):
     ''' angle (degrees or radians) of 2D vector '''
     if is_rad:
@@ -128,7 +99,7 @@ def vector_from_angle(angle, is_rad=False):
     if is_rad:
         return np.array([np.cos(angle), np.sin(angle)], float)
     else:
-        return np.array([deg_cos(angle), deg_sin(angle)], float)
+        return np.array([np.cos(np.deg2rad(angle)), np.sin(np.deg2rad(angle))], float)
 
 
 def target_abs_angle(pos2d, target, is_rad=False):

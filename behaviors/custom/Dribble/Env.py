@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from agent.Base_Agent import Base_Agent
 from behaviors.custom.Step.Step_Generator import Step_Generator
@@ -89,8 +88,8 @@ class Env():
             self.obs[64] = float(self.step_generator.state_is_left_active)
             # 1 if right leg is active
             self.obs[65] = float(not self.step_generator.state_is_left_active)
-            self.obs[66] = math.sin(
-                self.step_generator.state_current_ts / self.step_generator.ts_per_step * math.pi)
+            self.obs[66] = np.sin(
+                self.step_generator.state_current_ts / self.step_generator.ts_per_step * np.pi)
 
         # Ball
         ball_rel_hip_center = self.ik.torso_to_hip_transform(

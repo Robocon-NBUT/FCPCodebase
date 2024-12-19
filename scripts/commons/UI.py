@@ -1,5 +1,4 @@
 from itertools import zip_longest
-import math
 import shutil
 import numpy as np
 
@@ -8,7 +7,7 @@ class UI:
     console_height = 24
 
     @staticmethod
-    def read_particle(prompt, str_options, dtype=str, interval=[-math.inf, math.inf]):
+    def read_particle(prompt, str_options, dtype=str, interval=[-np.inf, np.inf]):
         '''
         Read particle from user from a given dtype or from a str_options list
 
@@ -145,9 +144,9 @@ class UI:
                         [len(str(item))+numbering_width for item in data[i]]) + margins[i]*2
                 else:
                     # subcolumn maximum length
-                    subcol[i][0] = math.ceil(len(data[i])/cols_per_title[i])
+                    subcol[i][0] = np.ceil(len(data[i])/cols_per_title[i])
                     # reduce number of columns as needed
-                    cols_per_title[i] = math.ceil(len(data[i])/subcol[i][0])
+                    cols_per_title[i] = np.ceil(len(data[i])/subcol[i][0])
                     # remove one if numbering, same as when printing
                     cols_width[i] = margins[i] * \
                         (1+cols_per_title[i]) - (1 if numbering[i] else 0)
@@ -270,7 +269,7 @@ class UI:
 
         # width + len(divider) because it is not needed in last col
         max_cols = np.clip((WIDTH+len(divider)) // min(items_len),
-                           1, math.ceil(data_size/max(min_per_col, 1)))
+                           1, np.ceil(data_size/max(min_per_col, 1)))
 
         # --------------------------------------------- Check maximum number of columns, considering content width (min:1)
         for i in range(max_cols, 0, -1):
@@ -291,7 +290,7 @@ class UI:
 
         # --------------------------------------------- Print columns
         print("="*table_width)
-        for row in range(math.ceil(data_size / i)):
+        for row in range(np.ceil(data_size / i)):
             for col in range(i):
                 # print divider when there are no items
                 content = cols_items[col][row] if len(

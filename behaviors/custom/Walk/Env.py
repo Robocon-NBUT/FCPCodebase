@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from agent.Base_Agent import Base_Agent
 from behaviors.custom.Step.Step_Generator import Step_Generator
@@ -224,8 +223,8 @@ class Env():
 
         # Arms actions
         arms = np.copy(self.DEFAULT_ARMS)  # default arms pose
-        arm_swing = math.sin(
-            self.step_generator.state_current_ts / self.STEP_DUR * math.pi) * 6
+        arm_swing = np.sin(
+            self.step_generator.state_current_ts / self.STEP_DUR * np.pi) * 6
         inv = 1 if self.step_generator.state_is_left_active else -1
         arms[0:4] += a[12:16]*4 + \
             (-arm_swing*inv, arm_swing*inv, 0, 0)  # arms pitch+roll

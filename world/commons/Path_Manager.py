@@ -1,9 +1,8 @@
-import math
 import numpy as np
 
 from cpp.a_star import a_star
 from math_ops.math_ext import (
-    vector_angle, vector_from_angle, normalize_deg, normalize_vec, deg_to_rad)
+    vector_angle, vector_from_angle, normalize_deg, normalize_vec)
 from world.World import PlayMode, World, TheirMode
 
 
@@ -204,7 +203,7 @@ class Path_Manager:
         self.last_start_dist = start_distance
 
     def _extract_target_from_path(self, path, path_len, ret_segments):
-        ret_seg_ceil = math.ceil(ret_segments)
+        ret_seg_ceil = int(np.ceil(ret_segments))
 
         if path_len >= ret_seg_ceil:
             i = ret_seg_ceil * 2  # path index of ceil point (x)
@@ -549,7 +548,7 @@ class Path_Manager:
         # ------------------------------------------ update hot start for next run
 
         if path_len != 0:
-            self._update_hot_start(deg_to_rad(
+            self._update_hot_start(np.deg2rad(
                 r.imu_torso_orientation), Path_Manager.HOT_START_DIST_DRIBBLE)
 
         # ------------------------------------------ draw
