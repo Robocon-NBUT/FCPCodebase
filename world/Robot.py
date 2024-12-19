@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as xmlp
 from collections import deque
-from math import atan, pi, sqrt, tan
 from math_ops.math_ext import get_active_directory
 from math_ops.Matrix_3x3 import Matrix_3x3
 from math_ops.Matrix_4x4 import Matrix_4x4
@@ -426,8 +425,8 @@ class Robot:
             self.imu_torso_pitch = self.imu_torso_to_field_rotation.get_pitch_deg()
             self.imu_torso_roll = self.imu_torso_to_field_rotation.get_roll_deg()
 
-            self.imu_torso_inclination = atan(sqrt(
-                tan(self.imu_torso_roll/180*pi)**2+tan(self.imu_torso_pitch/180*pi)**2))*180/pi
+            self.imu_torso_inclination = np.atan(np.sqrt(
+                np.tan(self.imu_torso_roll/180*np.pi)**2+np.tan(self.imu_torso_pitch/180*np.pi)**2))*180/np.pi
 
             # Update position and velocity until 0.2 seconds has passed since last visual update
             if time_local_ms < self.imu_last_visual_update + 200:

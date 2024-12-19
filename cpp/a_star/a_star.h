@@ -7,18 +7,18 @@
  * DATE:         2022
  */
 
-struct Node{
+struct Node
+{
 
     //------------- BST parameters
-    Node* left;
-    Node* right;
-    Node* up;
+    Node *left;
+    Node *right;
+    Node *up;
 
-    //------------- A* parameters 
-    Node* parent;
+    //------------- A* parameters
+    Node *parent;
     float g;
     float f;
-
 };
 
 extern void astar(float params[], int params_size);
