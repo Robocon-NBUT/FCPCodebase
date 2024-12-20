@@ -10,7 +10,7 @@ class Agent(Base_Agent):
                  team_name: str, enable_log, enable_draw, wait_for_server=True, is_fat_proxy=False) -> None:
 
         # define robot type
-        robot_type = (0, 1, 1, 1, 2, 3, 3, 4, 3, 4, 4)[unum-1]
+        robot_type = (0, 1, 1, 1, 2, 3, 3, 3, 3, 3, 4)[unum-1]
 
         # Initialize base agent
         # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw, play mode correction, Wait for Server, Hear Callback
@@ -190,6 +190,7 @@ class Agent(Base_Agent):
         behavior = self.behavior  # 机器人行为对象
         goal_dir = target_abs_angle(ball_2d, (15.05, 0))  # 球门方向角度
         path_draw_options = self.path_manager.draw_options  # 路径绘制选项
+        opposing_goal = (15.05, 0)  # 对方球门位置
 
         # --------------------------------------- 1. 预处理
 
@@ -246,15 +247,38 @@ class Agent(Base_Agent):
         elif active_player_unum != r.unum:  # 当前队员不是活跃球员
             if r.unum == 1:  # 当前球员是守门员
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
-            else:
+            elif r.unum in (2, 3, 4):  # 当前球员是后卫
                 # 根据球的位置计算基本阵型位置
                 new_x = max(0.5, (ball_2d[0]+15)/15) * \
                     (self.init_pos[0]+15) - 15
-                if self.min_teammate_ball_dist < self.min_opponent_ball_dist:
-                    # 如果球队控球，则前进
-                    new_x = min(new_x + 3.5, 13)
                 self.move((new_x, self.init_pos[1]), orientation=ball_dir, priority_unums=[
                     active_player_unum])
+            else:
+                # # 根据球的位置计算基本阵型位置
+                # new_x = max(0.5, (ball_2d[0]+15)/15) * \
+                #     (self.init_pos[0]+15) - 15
+                # if self.min_teammate_ball_dist < self.min_opponent_ball_dist:
+                #     # 如果球队控球，则前进
+                #     new_x = min(new_x + 3.5, 13)
+                # self.move((new_x, self.init_pos[1]), orientation=ball_dir, priority_unums=[
+                #     active_player_unum])
+                if r.unum == 10:
+                    if ball_2d[0] < 0:
+                        self.move((ball_2d[0]+15, ball_2d[1]*15/(15-ball_2d[0])), orientation=ball_dir, priority_unums=[
+                            active_player_unum])
+                    else:
+                        self.move((13, (13-ball_2d[0])*ball_2d[1]/(15-ball_2d[0])), orientation=ball_dir, priority_unums=[
+                            active_player_unum])
+                elif r.unum == 8:
+                    self.move(((ball_2d[0]+opposing_goal[0])/2, ball_2d[1]/2), orientation=ball_dir, priority_unums=[
+                        active_player_unum])
+                else:
+                    if r.unum % 2 == 0:
+                        self.move((ball_2d[0]-0.5, ball_2d[1]-0.5), orientation=ball_dir, priority_unums=[
+                            active_player_unum])
+                    else:
+                        self.move((ball_2d[0]-0.5, ball_2d[1]+0.5), orientation=ball_dir, priority_unums=[
+                            active_player_unum])
         else:  # 我是活跃球员
             # 启用活跃球员的路径绘制（如果self.enable_draw为False则忽略）
             path_draw_options(enable_obstacles=True,
