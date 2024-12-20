@@ -431,7 +431,7 @@ class Robot:
             self.imu_torso_pitch = self.imu_torso_to_field_rotation.get_pitch_deg()
             self.imu_torso_roll = self.imu_torso_to_field_rotation.get_roll_deg()
 
-            self.imu_torso_inclination = np.atan(np.sqrt(
+            self.imu_torso_inclination = np.arctan(np.sqrt(
                 np.tan(self.imu_torso_roll/180*np.pi)**2+np.tan(self.imu_torso_pitch/180*np.pi)**2))*180/np.pi
 
             # Update position and velocity until 0.2 seconds has passed since last visual update

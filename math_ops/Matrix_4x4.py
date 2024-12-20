@@ -104,21 +104,21 @@ class Matrix_4x4:
         ''' 获取绕x轴的角度（以度为单位），旋转顺序: RotZ*RotY*RotX=Rot '''
         if self.m[2, 1] == 0 and self.m[2, 2] == 0:
             return 180
-        return np.rad2deg(np.atan2(self.m[2, 1], self.m[2, 2]))
+        return np.rad2deg(np.arctan2(self.m[2, 1], self.m[2, 2]))
 
     def get_pitch_deg(self):
         ''' 获取绕y轴的角度（以度为单位），旋转顺序: RotZ*RotY*RotX=Rot '''
-        return np.rad2deg(np.atan2(-self.m[2, 0], np.sqrt(self.m[2, 1] * self.m[2, 1] + self.m[2, 2] * self.m[2, 2])))
+        return np.rad2deg(np.arctan2(-self.m[2, 0], np.sqrt(self.m[2, 1] * self.m[2, 1] + self.m[2, 2] * self.m[2, 2])))
 
     def get_yaw_deg(self):
         ''' 获取绕z轴的角度（以度为单位），旋转顺序: RotZ*RotY*RotX=Rot '''
         if self.m[1, 0] == 0 and self.m[0, 0] == 0:
-            return np.rad2deg(np.atan2(self.m[0, 1], self.m[1, 1]))
-        return np.rad2deg(np.atan2(self.m[1, 0], self.m[0, 0]))
+            return np.rad2deg(np.arctan2(self.m[0, 1], self.m[1, 1]))
+        return np.rad2deg(np.arctan2(self.m[1, 0], self.m[0, 0]))
 
     def get_inclination_deg(self):
         ''' 获取z轴相对于参考z轴的倾角 '''
-        return 90 - np.rad2deg(np.asin(np.clip(self.m[2, 2], -1, 1)))
+        return 90 - np.rad2deg(np.arcsin(np.clip(self.m[2, 2], -1, 1)))
 
     def rotate_deg(self, rotation_vec, rotation_deg, in_place=False):
         '''
@@ -214,8 +214,8 @@ class Matrix_4x4:
         if rotation_rad == 0:
             return self if in_place else Matrix_4x4(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [1, 0, 0, 0],
@@ -245,8 +245,8 @@ class Matrix_4x4:
         if rotation_rad == 0:
             return self if in_place else Matrix_4x4(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [c, 0, s, 0],
@@ -276,8 +276,8 @@ class Matrix_4x4:
         if rotation_rad == 0:
             return self if in_place else Matrix_4x4(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [c, -s, 0, 0],

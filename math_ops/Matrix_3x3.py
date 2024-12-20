@@ -49,21 +49,21 @@ class Matrix_3x3:
         ''' Get angle around the x-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
         if self.m[2, 1] == 0 and self.m[2, 2] == 0:
             return 180
-        return np.rad2deg(np.atan2(self.m[2, 1], self.m[2, 2]))
+        return np.rad2deg(np.arctan2(self.m[2, 1], self.m[2, 2]))
 
     def get_pitch_deg(self):
         ''' Get angle around the y-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
-        return np.rad2deg(np.atan2(-self.m[2, 0], np.sqrt(self.m[2, 1]*self.m[2, 1] + self.m[2, 2]*self.m[2, 2])))
+        return np.rad2deg(np.arctan2(-self.m[2, 0], np.sqrt(self.m[2, 1]*self.m[2, 1] + self.m[2, 2]*self.m[2, 2])))
 
     def get_yaw_deg(self):
         ''' Get angle around the z-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
         if self.m[1, 0] == 0 and self.m[0, 0] == 0:
-            return np.rad2deg(np.atan2(self.m[0, 1], self.m[1, 1]))
-        return np.rad2deg(np.atan2(self.m[1, 0], self.m[0, 0]))
+            return np.rad2deg(np.arctan2(self.m[0, 1], self.m[1, 1]))
+        return np.rad2deg(np.arctan2(self.m[1, 0], self.m[0, 0]))
 
     def get_inclination_deg(self):
         ''' Get inclination of z-axis in relation to reference z-axis '''
-        return 90 - np.rad2deg(np.asin(self.m[2, 2]))
+        return 90 - np.rad2deg(np.arcsin(self.m[2, 2]))
 
     def rotate_deg(self, rotation_vec, rotation_deg, in_place=False):
         '''
@@ -113,9 +113,9 @@ class Matrix_3x3:
         if shortcut:
             return shortcut(rotation_rad, in_place)
 
-        c = np.math.cos(rotation_rad)
+        c = np.cos(rotation_rad)
         c1 = 1 - c
-        s = np.math.sin(rotation_rad)
+        s = np.sin(rotation_rad)
         x = rotation_vec[0]
         y = rotation_vec[1]
         z = rotation_vec[2]
@@ -165,8 +165,8 @@ class Matrix_3x3:
         if rotation_rad == 0:
             return self if in_place else Matrix_3x3(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [1, 0, 0],
@@ -195,8 +195,8 @@ class Matrix_3x3:
         if rotation_rad == 0:
             return self if in_place else Matrix_3x3(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [c, 0, s],
@@ -225,8 +225,8 @@ class Matrix_3x3:
         if rotation_rad == 0:
             return self if in_place else Matrix_3x3(self)
 
-        c = np.math.cos(rotation_rad)
-        s = np.math.sin(rotation_rad)
+        c = np.cos(rotation_rad)
+        s = np.sin(rotation_rad)
 
         mat = np.array([
             [c, -s, 0],

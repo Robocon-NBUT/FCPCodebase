@@ -6,11 +6,11 @@ class Inverse_Kinematics():
 
     # leg y deviation, upper leg height, upper leg depth, lower leg length, knee extra angle, max ankle z
     NAO_SPECS_PER_ROBOT = (
-        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091),
-        (0.055,      0.13832,     0.005, 0.11832,     np.atan(0.005/0.13832),     -0.106),
-        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091),
-        (0.072954143,0.147868424, 0.005, 0.127868424, np.atan(0.005/0.147868424), -0.114),
-        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091))
+        (0.055,      0.12,        0.005, 0.1,         np.arctan(0.005/0.12),        -0.091),
+        (0.055,      0.13832,     0.005, 0.11832,     np.arctan(0.005/0.13832),     -0.106),
+        (0.055,      0.12,        0.005, 0.1,         np.arctan(0.005/0.12),        -0.091),
+        (0.072954143,0.147868424, 0.005, 0.127868424, np.arctan(0.005/0.147868424), -0.114),
+        (0.055,      0.12,        0.005, 0.1,         np.arctan(0.005/0.12),        -0.091))
 
     TORSO_HIP_Z = 0.115 # distance in the z-axis, between the torso and each hip (same for all robots)
     TORSO_HIP_X = 0.01  # distance in the x-axis, between the torso and each hip (same for all robots) (hip is 0.01m to the back)
@@ -205,9 +205,9 @@ class Inverse_Kinematics():
         # 膝盖和脚
         knee_angle = np.pi - knee
         foot_pitch = foot - \
-            np.atan(ankle_pos3d[0] / np.linalg.norm(ankle_pos3d[1:3]))
+            np.arctan(ankle_pos3d[0] / np.linalg.norm(ankle_pos3d[1:3]))
         # 避免脚滚动的不稳定性（在-0.05m以上时无关紧要）
-        foot_roll = np.atan(
+        foot_roll = np.arctan(
             ankle_pos3d[1] / min(-0.05, ankle_pos3d[2])) * -sign
 
         # 如果所有关节都直接移动的情况下的原始髋关节角度
@@ -220,9 +220,9 @@ class Inverse_Kinematics():
             raw_hip_roll).rotate_z_deg(raw_hip_yaw).rotate_x_deg(-45 * sign)
 
         # 考虑偏航关节方向的实际髋关节角度
-        hip_roll = (np.pi / 4) - (sign * np.asin(m.m[1, 2]))  # 由于45度旋转，增加pi/4
-        hip_pitch = -np.atan2(m.m[0, 2], m.m[2, 2])
-        hip_yaw = sign * np.atan2(m.m[1, 0], m.m[1, 1])
+        hip_roll = (np.pi / 4) - (sign * np.arcsin(m.m[1, 2]))  # 由于45度旋转，增加pi/4
+        hip_pitch = -np.arctan2(m.m[0, 2], m.m[2, 2])
+        hip_yaw = sign * np.arctan2(m.m[1, 0], m.m[1, 1])
 
         # 将弧度转换为角度
         values = np.array([hip_yaw, hip_roll, hip_pitch, -knee_angle,

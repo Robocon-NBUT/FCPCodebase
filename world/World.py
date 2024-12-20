@@ -501,7 +501,7 @@ class World:
 
         if lr_vec is not None:
             o.state_orientation = np.rad2deg(
-                np.atan2(lr_vec[1], lr_vec[0])) + 90
+                np.arctan2(lr_vec[1], lr_vec[0])) + 90
 
         # compute projection of player area on ground (circle)
         if o.state_horizontal_dist < 4:  # we don't need precision if the robot is farther than 4m
