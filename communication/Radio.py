@@ -213,7 +213,7 @@ class Radio:
             return False
 
         # 检查自身的位置是否最新
-        if is_self_included and r.loc_last_update < ago40ms:
+        if is_self_included and r.location.last_update < ago40ms:
             return False
 
         # 检查组成员的状态，统计最近缺失的成员数量
@@ -353,12 +353,12 @@ class Radio:
         for c, ot in zip(players_combs, group):
             # 如果是自身，特殊处理
             if ot.is_self:
-                if r.loc_last_update < ago110ms:
+                if r.location.last_update < ago110ms:
                     data = self.get_player_position(c, Radio.TP)
                     if isinstance(data, tuple):
                         x, y, is_down = data
-                        r.loc_head_position[:2] = x, y  # 保持z坐标不变
-                        r.loc_head_position_last_update = msg_time
+                        r.location.Head.position[:2] = x, y  # 保持z坐标不变
+                        r.location.Head.position_last_update = msg_time
                         r.radio_fallen_state = is_down
                         r.radio_last_update = msg_time
                 continue
@@ -389,5 +389,5 @@ class Radio:
                 ot.state_body_parts_abs_pos = {"head": p}
                 ot.state_abs_pos = p
                 ot.state_horizontal_dist = np.linalg.norm(
-                    p - r.loc_head_position[:2])
+                    p - r.location.Head.position[:2])
                 ot.state_ground_area = (p, 0.3 if is_down else 0.2)

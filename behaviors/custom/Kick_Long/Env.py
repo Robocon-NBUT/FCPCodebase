@@ -24,8 +24,8 @@ class Env:
             self.step_counter = 0
             self.act = np.zeros(16, np.float32)
         self.obs[0] = self.step_counter / 20
-        self.obs[1] = r.loc_head_z * 3
-        self.obs[2] = r.loc_head_z_vel / 2
+        self.obs[1] = r.location.Head.head_z * 3
+        self.obs[2] = r.location.Head.head_z_vel / 2
         self.obs[3] = r.imu_torso_roll / 15
         self.obs[4] = r.imu_torso_pitch / 15
         self.obs[5:8] = r.gyro / 100

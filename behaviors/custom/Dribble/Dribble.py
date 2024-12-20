@@ -29,7 +29,7 @@ class Dribble():
 
         w = self.world
         b = w.ball_abs_pos[:2]
-        me = w.robot.loc_head_position[:2]
+        me = w.robot.location.Head.position[:2]
 
         self.approach_orientation = None
 
@@ -103,7 +103,7 @@ class Dribble():
         '''
         w = self.world
         r = self.world.robot
-        me = r.loc_head_position[:2]
+        me = r.location.Head.position[:2]
         b = w.ball_abs_pos[:2]
         b_rel = w.ball_rel_torso_cart_pos[:2]
         b_dist = np.linalg.norm(b-me)

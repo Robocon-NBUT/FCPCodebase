@@ -52,7 +52,7 @@ class Walk():
 
         # convert to target relative to (head position + torso orientation)
         if is_target_absolute:
-            raw_target = target_2d - r.loc_head_position[:2]
+            raw_target = target_2d - r.location.Head.position[:2]
             self.env.walk_rel_target = rotate_2d_vec(
                 raw_target, -r.imu_torso_orientation)
         else:

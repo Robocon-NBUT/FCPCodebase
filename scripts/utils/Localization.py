@@ -46,7 +46,7 @@ class Localization():
             self.script.batch_receive(slice(1, None))
 
             if p.world.vision_is_up_to_date:
-                if p.world.robot.loc_is_up_to_date:     # localization will draw the world of the last agent to be executed
+                if p.world.robot.location.is_up_to_date:     # localization will draw the world of the last agent to be executed
                     # print data received by the localization module
                     localization.print_python_data()
                     localization.draw_visible_elements(
@@ -107,9 +107,9 @@ class Localization():
 
         # distance
         midpoint = (o.state_abs_pos[0:2] +
-                    p.world.robot.loc_head_position[0:2])/2
+                    p.world.robot.location.Head.position[0:2])/2
         d.line(
-            o.state_abs_pos[0:2], p.world.robot.loc_head_position[0:2], 1, gray, "world", False)
+            o.state_abs_pos[0:2], p.world.robot.location.Head.position[0:2], 1, gray, "world", False)
         d.annotation(
             midpoint, f'{o.state_horizontal_dist:.2f}m', white, "world", False)
 

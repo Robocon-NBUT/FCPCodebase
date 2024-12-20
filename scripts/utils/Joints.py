@@ -22,7 +22,7 @@ class Joints():
                    zstep, zstep, 0, 0, zstep, zstep, 4*zstep, 4*zstep, 5*zstep, 5*zstep, 0, 0]
         for index, joint in enumerate(player.world.robot.joints):
             rp = joint.transform.get_translation()
-            pos = player.world.robot.loc_head_to_field_transform(rp, False)
+            pos = player.world.robot.location.Head.to_field_transform(rp, False)
             j_id = f"{index}"
             j_name = f"{index}"
             color = Draw.Color.cyan
@@ -33,7 +33,7 @@ class Joints():
             # labels at 0.5m from body part
             label_rp /= np.linalg.norm(label_rp) / 0.5
             label_rp += (0, 0, label_z[index])
-            label = player.world.robot.loc_head_to_field_transform(
+            label = player.world.robot.location.Head.to_field_transform(
                 rp+label_rp, False)
             player.world.draw.line(
                 pos, label, 2, Draw.Color.green_light, j_id, False)

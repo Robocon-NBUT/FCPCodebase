@@ -206,7 +206,7 @@ class Pathfinding:
 
         while True:
             ball = w.ball_abs_pos[:2]
-            rpos = r.loc_head_position[:2]
+            rpos = r.location.Head.position[:2]
 
             self.move_obstacles(obst)
 

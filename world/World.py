@@ -1,6 +1,5 @@
 from collections import deque
 from enum import IntEnum
-from math import atan2, pi
 import numpy as np
 
 from cpp.ball_predictor import ball_predictor
@@ -244,7 +243,7 @@ class World:
             distance between current robot position and intersection point
         '''
 
-        params = np.array([*self.robot.loc_head_position[:2],
+        params = np.array([*self.robot.location.Head.position[:2],
                           player_speed*0.02, *self.ball_2d_pred_pos.flat], np.float32)
         pred_ret = ball_predictor.get_intersection(params)
         return pred_ret[:2], pred_ret[2]
@@ -253,8 +252,8 @@ class World:
         r = self.robot
 
         # reset variables
-        r.loc_is_up_to_date = False
-        r.loc_head_z_is_up_to_date = False
+        r.location.is_up_to_date = False
+        r.location.Head.head_z_is_up_to_date = False
 
         # update play mode groups
 
@@ -321,13 +320,13 @@ class World:
 
             # Update self in teammates list (only the most useful parameters, add as needed)
             me = self.teammates[r.unum-1]
-            me.state_last_update = r.loc_last_update
-            me.state_abs_pos = r.loc_head_position
+            me.state_last_update = r.location.last_update
+            me.state_abs_pos = r.location.Head.position
             # uses same criterion as for other teammates - not as reliable as player.behavior.is_ready("Get_Up")
-            me.state_fallen = r.loc_head_z < 0.3
-            me.state_orientation = r.loc_torso_orientation
+            me.state_fallen = r.location.Head.head_z < 0.3
+            me.state_orientation = r.location.Torso.orientation
             # relevant for localization demo
-            me.state_ground_area = (r.loc_head_position[:2], 0.2)
+            me.state_ground_area = (r.location.Head.position[:2], 0.2)
 
             # Save last ball position to history at every vision cycle (even if not up to date)
             self.ball_abs_pos_history.appendleft(
@@ -356,11 +355,11 @@ class World:
                     ball = np.array([14, 0, 0.042], float)
 
                 # Discard hard-coded ball position if robot is near that position (in favor of its own vision)
-                if ball is not None and np.linalg.norm(r.loc_head_position[:2] - ball[:2]) < 1:
+                if ball is not None and np.linalg.norm(r.location.Head.position[:2] - ball[:2]) < 1:
                     ball = None
 
-            if ball is None and self.ball_is_visible and r.loc_is_up_to_date:
-                ball = r.loc_head_to_field_transform(
+            if ball is None and self.ball_is_visible and r.location.is_up_to_date:
+                ball = r.location.Head.to_field_transform(
                     self.ball_rel_head_cart_pos)
                 ball[2] = max(ball[2], 0.042)  # lowest z = ball radius
                 # for compatibility with tests without active soccer rules
@@ -385,7 +384,7 @@ class World:
                 p.state_filtered_velocity *= p.vel_decay
 
             # Update teammates and opponents
-            if r.loc_is_up_to_date:
+            if r.location.is_up_to_date:
                 for p in self.teammates:
                     if not p.is_self:                     # if teammate is not self
                         if p.is_visible:                  # if teammate is visible, execute full update
@@ -393,7 +392,7 @@ class World:
                         # otherwise update its horizontal distance (assuming last known position)
                         elif p.state_abs_pos is not None:
                             p.state_horizontal_dist = np.linalg.norm(
-                                r.loc_head_position[:2] - p.state_abs_pos[:2])
+                                r.location.Head.position[:2] - p.state_abs_pos[:2])
 
                 for p in self.opponents:
                     if p.is_visible:                  # if opponent is visible, execute full update
@@ -401,7 +400,7 @@ class World:
                     # otherwise update its horizontal distance (assuming last known position)
                     elif p.state_abs_pos is not None:
                         p.state_horizontal_dist = np.linalg.norm(
-                            r.loc_head_position[:2] - p.state_abs_pos[:2])
+                            r.location.Head.position[:2] - p.state_abs_pos[:2])
 
         # Update prediction of ball position/velocity
         if self.play_mode_group != PlayMode.OTHER:  # not 'play on' nor 'game over', so ball must be stationary
@@ -442,7 +441,7 @@ class World:
         o.state_body_parts_abs_pos = o.body_parts_cart_rel_pos.copy()
         for bp, pos in o.body_parts_cart_rel_pos.items():
             # Using the IMU could be beneficial if we see other robots but can't self-locate
-            o.state_body_parts_abs_pos[bp] = r.loc_head_to_field_transform(
+            o.state_body_parts_abs_pos[bp] = r.location.Head.to_field_transform(
                 pos, False)
 
         # auxiliary variables
@@ -487,7 +486,7 @@ class World:
 
         # compute robot's horizontal distance (head distance, or avg. distance of visible body parts)
         o.state_horizontal_dist = np.linalg.norm(
-            r.loc_head_position[:2] - o.state_abs_pos[:2])
+            r.location.Head.position[:2] - o.state_abs_pos[:2])
 
         # compute orientation based on pair of lower arms or feet, or average of both
         lr_vec = None
@@ -501,7 +500,8 @@ class World:
                 lr_vec = (lr_vec + (bps_apos['rfoot'] - bps_apos['lfoot'])) / 2
 
         if lr_vec is not None:
-            o.state_orientation = atan2(lr_vec[1], lr_vec[0]) * 180 / pi + 90
+            o.state_orientation = np.rad2deg(
+                np.atan2(lr_vec[1], lr_vec[0])) + 90
 
         # compute projection of player area on ground (circle)
         if o.state_horizontal_dist < 4:  # we don't need precision if the robot is farther than 4m

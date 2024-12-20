@@ -35,7 +35,7 @@ class Get_Up:
             rnd = np.random.uniform(-6, 6, r.no_of_joints)
 
             # Fall
-            while r.loc_head_z > 0.3 and r.imu_torso_inclination < 50:
+            while r.location.Head.head_z > 0.3 and r.imu_torso_inclination < 50:
                 if i < 4:
                     # First, fall deterministically
                     behavior.execute(

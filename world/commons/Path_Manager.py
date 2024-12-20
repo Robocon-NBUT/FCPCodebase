@@ -191,10 +191,10 @@ class Path_Manager:
         (as opposed to a cold start, where the path starts at the player)
         '''
         if self.last_update > 0 and self.world.time_local_ms - self.last_update == 20 and self.last_start_dist == start_distance:
-            return self.world.robot.loc_head_position[:2] + vector_from_angle(self.last_direction_rad, is_rad=True) * start_distance
+            return self.world.robot.location.Head.position[:2] + vector_from_angle(self.last_direction_rad, is_rad=True) * start_distance
         else:
             # return cold start if start_distance was different or the position was not updated in the last step
-            return self.world.robot.loc_head_position[:2]
+            return self.world.robot.location.Head.position[:2]
 
     def _update_hot_start(self, next_dir_rad, start_distance):
         ''' Update hot start position for next run '''
@@ -283,14 +283,14 @@ class Path_Manager:
         dev_mult = 1
 
         # 如果机器人距离球超过 0.5 米且处于 PlayOn 模式，则使用球预测
-        if np.linalg.norm(w.ball_abs_pos[:2] - r.loc_head_position[:2]) > 0.5 and w.play_mode_group == PlayMode.OTHER:
+        if np.linalg.norm(w.ball_abs_pos[:2] - r.location.Head.position[:2]) > 0.5 and w.play_mode_group == PlayMode.OTHER:
             # 交点，假设移动速度为 0.4 m/s
             ball_2d = w.get_intersection_point_with_ball(0.4)[0]
         else:
             ball_2d = w.ball_abs_pos[:2]
 
         # 自定义参考系方向
-        vec_me_ball = ball_2d - r.loc_head_position[:2]
+        vec_me_ball = ball_2d - r.location.Head.position[:2]
         if x_ori is None:
             x_ori = vector_angle(vec_me_ball)
 
@@ -315,7 +315,7 @@ class Path_Manager:
 
         rel_target = front_unit_vec * dev[0] + left_unit_vec * dev[1]
         target = ball_2d + rel_target * dev_mult
-        target_vec = target - r.loc_head_position[:2]
+        target_vec = target - r.location.Head.position[:2]
         target_dist = np.linalg.norm(target_vec)
 
         if self._draw_path:
@@ -349,7 +349,7 @@ class Path_Manager:
 
         # 根据目标距离决定起始位置
         start_pos = self._get_hot_start(
-            Path_Manager.HOT_START_DIST_WALK) if target_dist > 0.4 else w.robot.loc_head_position[:2]
+            Path_Manager.HOT_START_DIST_WALK) if target_dist > 0.4 else w.robot.location.Head.position[:2]
 
         path, path_len, path_status, path_cost = self.get_path(
             start_pos, True, obstacles, target, timeout)
@@ -367,7 +367,7 @@ class Path_Manager:
 
         avoid_touching_ball = (w.play_mode_group != PlayMode.OTHER)
         distance_to_final_target = np.linalg.norm(
-            path_end - r.loc_head_position[:2])
+            path_end - r.location.Head.position[:2])
         distance_to_ball = max(
             0.07 if avoid_touching_ball else 0.14, raw_ball_dist - 0.13)
         caution_dist = min(distance_to_ball, distance_to_final_target)
@@ -405,7 +405,7 @@ class Path_Manager:
         # 热启动位置是下一个位置（距离 < Path_Manager.HOT_START_DIST_WALK）
         # 否则，热启动距离是常数（距离 = Path_Manager.HOT_START_DIST_WALK）
         if path_len != 0:
-            next_pos_vec = next_pos - w.robot.loc_head_position[:2]
+            next_pos_vec = next_pos - w.robot.location.Head.position[:2]
             next_pos_dist = np.linalg.norm(next_pos_vec)
             self._update_hot_start(vector_angle(next_pos_vec, is_rad=True), min(
                 Path_Manager.HOT_START_DIST_WALK, next_pos_dist))
@@ -440,7 +440,7 @@ class Path_Manager:
 
         # ------------------------------------------- 获取目标
 
-        target_vec = target - w.robot.loc_head_position[:2]  # 计算目标向量
+        target_vec = target - w.robot.location.Head.position[:2]  # 计算目标向量
         target_dist = np.linalg.norm(target_vec)  # 计算目标距离
 
         # ------------------------------------------- 获取障碍物
@@ -454,7 +454,7 @@ class Path_Manager:
 
         # 根据目标距离决定起始位置
         start_pos = self._get_hot_start(
-            Path_Manager.HOT_START_DIST_WALK) if target_dist > 0.4 else w.robot.loc_head_position[:2]
+            Path_Manager.HOT_START_DIST_WALK) if target_dist > 0.4 else w.robot.location.Head.position[:2]
 
         # 通过 `get_path` 函数获取从起始位置到目标的路径
         path, path_len, path_status, path_cost = self.get_path(
@@ -485,14 +485,14 @@ class Path_Manager:
         # 热启动位置是下一个位置（距离 < Path_Manager.HOT_START_DIST_WALK）
         # 否则，热启动距离是常数（距离 = Path_Manager.HOT_START_DIST_WALK）
         if path_len != 0:
-            next_pos_vec = next_pos - w.robot.loc_head_position[:2]
+            next_pos_vec = next_pos - w.robot.location.Head.position[:2]
             next_pos_dist = np.linalg.norm(next_pos_vec)
             self._update_hot_start(vector_angle(next_pos_vec, is_rad=True), min(
                 Path_Manager.HOT_START_DIST_WALK, next_pos_dist))
 
         # 计算到最终目标的距离
         distance_to_final_target = np.linalg.norm(
-            path_end - w.robot.loc_head_position[:2])
+            path_end - w.robot.location.Head.position[:2])
 
         return next_pos, next_ori, distance_to_final_target
 

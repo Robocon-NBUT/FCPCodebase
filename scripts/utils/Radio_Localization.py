@@ -10,7 +10,7 @@ class Radio_Localization():
 
     def draw_objects(self, p: Agent, pos, is_down, was_seen, last_update, is_self=False):
         w = p.world
-        me = w.robot.loc_head_position
+        me = w.robot.location.Head.position
 
         # get draw object from same player to always overwrite previous drawing
         # could also use team channel but with this approach we could draw for both teams
@@ -41,7 +41,7 @@ class Radio_Localization():
                 # I heard I've fallen (but I missed the last 2 visual steps)
                 d.annotation(me, "Fallen (radio)",
                              d.Color.yellow, "objects", False)
-            elif w.robot.loc_head_z < 0.3:
+            elif w.robot.location.Head.head_z < 0.3:
                 d.annotation(me, "Fallen (internal)", d.Color.white,
                              "objects", False)  # I have detected I've fallen
             d.sphere(me, 0.06, c, "objects", False)
@@ -70,9 +70,9 @@ class Radio_Localization():
 
         # ----------------------------------------------------------- draw self
 
-        is_pos_from_vision = w.robot.loc_head_position_last_update == w.robot.loc_last_update
+        is_pos_from_vision = w.robot.location.Head.position_last_update == w.robot.location.last_update
         self.draw_objects(p, None, None, is_pos_from_vision,
-                          w.robot.loc_head_position_last_update, True)
+                          w.robot.location.Head.position_last_update, True)
 
         # ----------------------------------------------------------- draw ball and flush drawings
 

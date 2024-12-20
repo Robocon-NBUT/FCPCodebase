@@ -20,36 +20,36 @@ class Fwd_Kinematics():
 
             p: Agent
             for p in self.script.players:
-                if p.world.vision_is_up_to_date and not p.world.robot.loc_is_up_to_date:
+                if p.world.vision_is_up_to_date and not p.world.robot.location.is_up_to_date:
                     p.world.draw.annotation(
                         p.world.robot.cheat_abs_pos, "Not enough visual data! Using IMU", Draw.Color.red, "localization")
 
                 for key, val in p.world.robot.body_parts.items():
                     rp = val.transform.get_translation()
-                    pos = p.world.robot.loc_head_to_field_transform(rp, False)
+                    pos = p.world.robot.location.Head.to_field_transform(rp, False)
                     label_rp = np.array([rp[0]-0.0001, rp[1]*0.5, 0])
                     # labels at 0.4m from body part
                     label_rp /= np.linalg.norm(label_rp) / 0.4
-                    label = p.world.robot.loc_head_to_field_transform(
+                    label = p.world.robot.location.Head.to_field_transform(
                         rp+label_rp, False)
                     p.world.draw.line(
                         pos, label, 2, Draw.Color.green_light, key, False)
                     p.world.draw.annotation(label, key, Draw.Color.red, key)
 
                 rp = p.world.robot.body_parts['lfoot'].transform((0.08, 0, 0))
-                ap = p.world.robot.loc_head_to_field_transform(rp, False)
+                ap = p.world.robot.location.Head.to_field_transform(rp, False)
                 p.world.draw.line(ap, ap+(0, 0, 0.1), 1,
                                   Draw.Color.red, "soup", False)
                 rp = p.world.robot.body_parts['lfoot'].transform((-0.08, 0, 0))
-                ap = p.world.robot.loc_head_to_field_transform(rp, False)
+                ap = p.world.robot.location.Head.to_field_transform(rp, False)
                 p.world.draw.line(ap, ap+(0, 0, 0.1), 1,
                                   Draw.Color.red, "soup", False)
                 rp = p.world.robot.body_parts['lfoot'].transform((0, 0.04, 0))
-                ap = p.world.robot.loc_head_to_field_transform(rp, False)
+                ap = p.world.robot.location.Head.to_field_transform(rp, False)
                 p.world.draw.line(ap, ap+(0, 0, 0.1), 1,
                                   Draw.Color.red, "soup", False)
                 rp = p.world.robot.body_parts['lfoot'].transform((0, -0.04, 0))
-                ap = p.world.robot.loc_head_to_field_transform(rp, False)
+                ap = p.world.robot.location.Head.to_field_transform(rp, False)
                 p.world.draw.line(ap, ap+(0, 0, 0.1), 1,
                                   Draw.Color.red, "soup", True)
 
@@ -62,7 +62,7 @@ class Fwd_Kinematics():
             self.script.batch_receive()
 
             for p in self.script.players:
-                if p.world.vision_is_up_to_date and not p.world.robot.loc_is_up_to_date:
+                if p.world.vision_is_up_to_date and not p.world.robot.location.is_up_to_date:
                     p.world.draw.annotation(
                         p.world.robot.cheat_abs_pos, "Not enough visual data! Using IMU", Draw.Color.red, "localization")
 
@@ -71,13 +71,13 @@ class Fwd_Kinematics():
                            zstep, 0, 0, zstep, zstep, 2*zstep, 2*zstep, 3*zstep, 3*zstep, 0, 0]
                 for index, joint in enumerate(p.world.robot.joints):
                     rp = joint.transform.get_translation()
-                    pos = p.world.robot.loc_head_to_field_transform(rp, False)
+                    pos = p.world.robot.location.Head.to_field_transform(rp, False)
                     j_name = str(index)
                     label_rp = np.array([rp[0]-0.0001, rp[1]*0.5, 0])
                     # labels at 0.4m from body part
                     label_rp /= np.linalg.norm(label_rp) / 0.4
                     label_rp += (0, 0, label_z[index])
-                    label = p.world.robot.loc_head_to_field_transform(
+                    label = p.world.robot.location.Head.to_field_transform(
                         rp+label_rp, False)
                     p.world.draw.line(
                         pos, label, 2, Draw.Color.green_light, j_name, False)
@@ -94,7 +94,7 @@ class Fwd_Kinematics():
 
             p: Agent
             for p in self.script.players:
-                if p.world.vision_is_up_to_date and not p.world.robot.loc_is_up_to_date:
+                if p.world.vision_is_up_to_date and not p.world.robot.location.is_up_to_date:
                     p.world.draw.annotation(
                         p.world.robot.cheat_abs_pos, "Not enough visual data! Using IMU", Draw.Color.red, "localization")
 

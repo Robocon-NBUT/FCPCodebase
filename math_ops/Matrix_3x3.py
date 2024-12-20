@@ -1,4 +1,3 @@
-from math import asin, atan2, pi, sqrt
 import numpy as np
 
 
@@ -50,21 +49,21 @@ class Matrix_3x3:
         ''' Get angle around the x-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
         if self.m[2, 1] == 0 and self.m[2, 2] == 0:
             return 180
-        return atan2(self.m[2, 1], self.m[2, 2]) * 180 / pi
+        return np.rad2deg(np.atan2(self.m[2, 1], self.m[2, 2]))
 
     def get_pitch_deg(self):
         ''' Get angle around the y-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
-        return atan2(-self.m[2, 0], sqrt(self.m[2, 1]*self.m[2, 1] + self.m[2, 2]*self.m[2, 2])) * 180 / pi
+        return np.rad2deg(np.atan2(-self.m[2, 0], np.sqrt(self.m[2, 1]*self.m[2, 1] + self.m[2, 2]*self.m[2, 2])))
 
     def get_yaw_deg(self):
         ''' Get angle around the z-axis in degrees, Rotation order: RotZ*RotY*RotX=Rot '''
         if self.m[1, 0] == 0 and self.m[0, 0] == 0:
-            return atan2(self.m[0, 1], self.m[1, 1]) * 180 / pi
-        return atan2(self.m[1, 0], self.m[0, 0]) * 180 / pi
+            return np.rad2deg(np.atan2(self.m[0, 1], self.m[1, 1]))
+        return np.rad2deg(np.atan2(self.m[1, 0], self.m[0, 0]))
 
     def get_inclination_deg(self):
         ''' Get inclination of z-axis in relation to reference z-axis '''
-        return 90 - (asin(self.m[2, 2]) * 180 / pi)
+        return 90 - np.rad2deg(np.asin(self.m[2, 2]))
 
     def rotate_deg(self, rotation_vec, rotation_deg, in_place=False):
         '''
@@ -85,7 +84,7 @@ class Matrix_3x3:
         result : Matrix_3x3 
             self is returned if in_place is True
         '''
-        return self.rotate_rad(rotation_vec, rotation_deg * (pi/180), in_place)
+        return self.rotate_rad(rotation_vec, np.deg2rad(rotation_deg), in_place)
 
     def rotate_rad(self, rotation_vec, rotation_rad, in_place=False):
         '''
@@ -253,7 +252,7 @@ class Matrix_3x3:
         result : Matrix_3x3 
             self is returned if in_place is True
         '''
-        return self.rotate_x_rad(rotation_deg * (pi/180), in_place)
+        return self.rotate_x_rad(np.deg2rad(rotation_deg), in_place)
 
     def rotate_y_deg(self, rotation_deg, in_place=False):
         '''
@@ -272,7 +271,7 @@ class Matrix_3x3:
         result : Matrix_3x3 
             self is returned if in_place is True
         '''
-        return self.rotate_y_rad(rotation_deg * (pi/180), in_place)
+        return self.rotate_y_rad(np.deg2rad(rotation_deg), in_place)
 
     def rotate_z_deg(self, rotation_deg, in_place=False):
         '''
@@ -291,7 +290,7 @@ class Matrix_3x3:
         result : Matrix_3x3 
             self is returned if in_place is True
         '''
-        return self.rotate_z_rad(rotation_deg * (pi/180), in_place)
+        return self.rotate_z_rad(np.deg2rad(rotation_deg), in_place)
 
     def invert(self, in_place=False):
         '''

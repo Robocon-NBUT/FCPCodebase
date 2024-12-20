@@ -44,7 +44,7 @@ class Fall():
             harmonize=False
         )
 
-        return self.world.robot.loc_head_z < 0.15  # finished when head height < 0.15 m
+        return self.world.robot.location.Head.head_z < 0.15  # finished when head height < 0.15 m
 
     def is_ready(self) -> any:
         ''' Returns True if this behavior is ready to start/continue under current game/robot conditions '''

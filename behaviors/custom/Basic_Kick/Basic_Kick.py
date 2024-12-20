@@ -47,7 +47,7 @@ class Basic_Kick():
             # add bias to rectify direction
             biased_dir = normalize_deg(direction + self.bias_dir)
             # the reset was learned with loc, not IMU
-            ang_diff = abs(normalize_deg(biased_dir - r.loc_torso_orientation))
+            ang_diff = abs(normalize_deg(biased_dir - r.location.Torso.orientation))
 
             next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
                 x_ori=biased_dir, x_dev=-self.ball_x_center, y_dev=-self.ball_y_center, torso_ori=biased_dir)

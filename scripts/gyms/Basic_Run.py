@@ -77,8 +77,8 @@ class Basic_Run(gym.Env):
 
         # index       observation              naive normalization
         self.obs[0] = self.step_counter / 100  # simple counter: 0,1,2,3...
-        self.obs[1] = r.loc_head_z * 3    # z coordinate (torso)
-        self.obs[2] = r.loc_head_z_vel / 2    # z velocity (torso)
+        self.obs[1] = r.location.Head.head_z * 3    # z coordinate (torso)
+        self.obs[2] = r.location.Head.head_z_vel / 2    # z velocity (torso)
         self.obs[3] = r.imu_torso_orientation / \
             50   # absolute orientation in deg
         self.obs[4] = r.imu_torso_roll / 15   # absolute torso roll  in deg

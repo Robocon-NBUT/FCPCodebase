@@ -38,7 +38,7 @@ class Agent(Base_Agent):
         if avoid_center_circle and np.linalg.norm(self.init_pos) < 2.5:
             pos[0] = -2.3
 
-        if np.linalg.norm(pos - r.loc_head_position[:2]) > 0.1 or self.behavior.is_ready("Get_Up"):
+        if np.linalg.norm(pos - r.location.Head.position[:2]) > 0.1 or self.behavior.is_ready("Get_Up"):
             # beam to initial position, face coordinate (0,0)
             self.server.commit_beam(pos, vector_angle((-pos[0], -pos[1])))
         else:
@@ -83,7 +83,7 @@ class Agent(Base_Agent):
                 target_2d, priority_unums=priority_unums, is_aggressive=is_aggressive, timeout=timeout)
         else:
             distance_to_final_target = np.linalg.norm(
-                target_2d - r.loc_head_position[:2])
+                target_2d - r.location.Head.position[:2])
 
         # Args: target, is_target_abs, ori, is_ori_abs, distance
         self.behavior.execute("Walk", target_2d, True, orientation,
@@ -179,7 +179,7 @@ class Agent(Base_Agent):
     def think_and_send(self):
         w = self.world
         r = self.world.robot
-        my_head_pos_2d = r.loc_head_position[:2]
+        my_head_pos_2d = r.location.Head.position[:2]
         my_ori = r.imu_torso_orientation
         ball_2d = w.ball_abs_pos[:2]  # 球的二维坐标
         ball_vec = ball_2d - my_head_pos_2d  # 球相对于机器人头部的位置向量
@@ -312,7 +312,7 @@ class Agent(Base_Agent):
         w = self.world
         r = self.world.robot
         ball_2d = w.ball_abs_pos[:2]
-        my_head_pos_2d = r.loc_head_position[:2]
+        my_head_pos_2d = r.location.Head.position[:2]
 
         if np.linalg.norm(ball_2d - my_head_pos_2d) < 0.25:
             # fat proxy kick arguments: power [0,10]; relative horizontal angle [-180,180]; vertical angle [0,70]
@@ -328,9 +328,9 @@ class Agent(Base_Agent):
     def fat_proxy_move(self, target_2d, orientation, is_orientation_absolute):
         r = self.world.robot
 
-        target_dist = np.linalg.norm(target_2d - r.loc_head_position[:2])
+        target_dist = np.linalg.norm(target_2d - r.location.Head.position[:2])
         target_dir = target_rel_angle(
-            r.loc_head_position[:2], r.imu_torso_orientation, target_2d)
+            r.location.Head.position[:2], r.imu_torso_orientation, target_2d)
 
         if target_dist > 0.1 and abs(target_dir) < 8:
             self.fat_proxy_cmd += (f"(proxy dash {100} {0} {0})")

@@ -1,4 +1,3 @@
-from math import asin, atan, atan2, pi, sqrt
 import numpy as np
 from math_ops.Matrix_3x3 import Matrix_3x3
 from math_ops.math_ext import acos
@@ -6,11 +5,12 @@ from math_ops.math_ext import acos
 class Inverse_Kinematics():
 
     # leg y deviation, upper leg height, upper leg depth, lower leg length, knee extra angle, max ankle z
-    NAO_SPECS_PER_ROBOT = ((0.055,      0.12,        0.005, 0.1,         atan(0.005/0.12),        -0.091),
-                           (0.055,      0.13832,     0.005, 0.11832,     atan(0.005/0.13832),     -0.106),
-                           (0.055,      0.12,        0.005, 0.1,         atan(0.005/0.12),        -0.091),
-                           (0.072954143,0.147868424, 0.005, 0.127868424, atan(0.005/0.147868424), -0.114),
-                           (0.055,      0.12,        0.005, 0.1,         atan(0.005/0.12),        -0.091))
+    NAO_SPECS_PER_ROBOT = (
+        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091),
+        (0.055,      0.13832,     0.005, 0.11832,     np.atan(0.005/0.13832),     -0.106),
+        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091),
+        (0.072954143,0.147868424, 0.005, 0.127868424, np.atan(0.005/0.147868424), -0.114),
+        (0.055,      0.12,        0.005, 0.1,         np.atan(0.005/0.12),        -0.091))
 
     TORSO_HIP_Z = 0.115 # distance in the z-axis, between the torso and each hip (same for all robots)
     TORSO_HIP_X = 0.01  # distance in the x-axis, between the torso and each hip (same for all robots) (hip is 0.01m to the back)
@@ -21,7 +21,8 @@ class Inverse_Kinematics():
 
     def torso_to_hip_transform(self, coords, is_batch=False):
         '''
-        Convert cartesian coordinates that are relative to torso to coordinates that are relative the center of both hip joints
+        Convert cartesian coordinates that are relative to torso to coordinates
+        that are relative the center of both hip joints
         
         Parameters
         ----------
@@ -43,7 +44,8 @@ class Inverse_Kinematics():
 
     def head_to_hip_transform(self, coords, is_batch=False):
         '''
-        Convert cartesian coordinates that are relative to head to coordinates that are relative the center of both hip joints
+        Convert cartesian coordinates that are relative to head to coordinates
+        that are relative the center of both hip joints
         
         Parameters
         ----------
@@ -190,7 +192,7 @@ class Inverse_Kinematics():
         sq_upper_leg_h = upper_leg_height * upper_leg_height
         sq_lower_leg_l = lower_leg_len * lower_leg_len
         sq_upper_leg_l = upper_leg_depth * upper_leg_depth + sq_upper_leg_h
-        upper_leg_len = sqrt(sq_upper_leg_l)
+        upper_leg_len = np.sqrt(sq_upper_leg_l)
         knee = acos((sq_upper_leg_l + sq_lower_leg_l - sq_dist) /
                     (2 * upper_leg_len * lower_leg_len)) + knee_extra_angle  # 余弦定理
         foot = acos((sq_lower_leg_l + sq_dist - sq_upper_leg_l) /
@@ -201,10 +203,12 @@ class Inverse_Kinematics():
             error_codes.append(-1)
 
         # 膝盖和脚
-        knee_angle = pi - knee
-        foot_pitch = foot - atan(ankle_pos3d[0] / np.linalg.norm(ankle_pos3d[1:3]))
+        knee_angle = np.pi - knee
+        foot_pitch = foot - \
+            np.atan(ankle_pos3d[0] / np.linalg.norm(ankle_pos3d[1:3]))
         # 避免脚滚动的不稳定性（在-0.05m以上时无关紧要）
-        foot_roll = atan(ankle_pos3d[1] / min(-0.05, ankle_pos3d[2])) * -sign
+        foot_roll = np.atan(
+            ankle_pos3d[1] / min(-0.05, ankle_pos3d[2])) * -sign
 
         # 如果所有关节都直接移动的情况下的原始髋关节角度
         raw_hip_yaw = foot_ori3d[2]
@@ -216,9 +220,9 @@ class Inverse_Kinematics():
             raw_hip_roll).rotate_z_deg(raw_hip_yaw).rotate_x_deg(-45 * sign)
 
         # 考虑偏航关节方向的实际髋关节角度
-        hip_roll = (pi / 4) - (sign * asin(m.m[1, 2]))  # 由于45度旋转，增加pi/4
-        hip_pitch = -atan2(m.m[0, 2], m.m[2, 2])
-        hip_yaw = sign * atan2(m.m[1, 0], m.m[1, 1])
+        hip_roll = (np.pi / 4) - (sign * np.asin(m.m[1, 2]))  # 由于45度旋转，增加pi/4
+        hip_pitch = -np.atan2(m.m[0, 2], m.m[2, 2])
+        hip_yaw = sign * np.atan2(m.m[1, 0], m.m[1, 1])
 
         # 将弧度转换为角度
         values = np.array([hip_yaw, hip_roll, hip_pitch, -knee_angle,

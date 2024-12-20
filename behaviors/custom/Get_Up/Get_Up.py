@@ -68,4 +68,4 @@ class Get_Up():
         ''' Returns True if the Get Up behavior is ready (= robot is down) '''
         r = self.world.robot
         # check if z < 5 and acc magnitude > 8 and any visual indicator says we fell
-        return r.acc[2] < 5 and np.dot(r.acc, r.acc) > 64 and (r.loc_head_z < self.MIN_HEIGHT or r.imu_torso_inclination > self.MAX_INCLIN)
+        return r.acc[2] < 5 and np.dot(r.acc, r.acc) > 64 and (r.location.Head.head_z < self.MIN_HEIGHT or r.imu_torso_inclination > self.MAX_INCLIN)

@@ -48,8 +48,8 @@ class Env():
         # index       observation              naive normalization
         # simple counter: 0,1,2,3...
         self.obs[0] = min(self.step_counter, 12*8) / 100
-        self.obs[1] = r.loc_head_z * 3    # z coordinate (torso)
-        self.obs[2] = r.loc_head_z_vel / 2    # z velocity (torso)
+        self.obs[1] = r.location.Head.head_z * 3    # z coordinate (torso)
+        self.obs[2] = r.location.Head.head_z_vel / 2    # z velocity (torso)
         self.obs[3] = r.imu_torso_roll / 15   # absolute torso roll  in deg
         self.obs[4] = r.imu_torso_pitch / 15   # absolute torso pitch in deg
         self.obs[5:8] = r.gyro / 100  # gyroscope
