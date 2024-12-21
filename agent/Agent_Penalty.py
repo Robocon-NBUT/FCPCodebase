@@ -28,7 +28,7 @@ class Agent(Base_Agent):
         w = self.world
         r = self.world.robot
         my_head_pos_2d = r.location.Head.position[:2]
-        ball_2d = w.ball_abs_pos[:2]
+        ball_2d = w.Ball.AbsolutePos[:2]
 
         # --------------------------------------- 1. 决策行为
 

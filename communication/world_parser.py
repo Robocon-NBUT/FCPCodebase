@@ -127,7 +127,7 @@ class WorldParser:
         self.world.flags_posts = {}
         self.world.flags_corners = {}
         self.world.vision_is_up_to_date = False
-        self.world.ball_is_visible = False
+        self.world.Ball.IsVisible = False
         self.world.robot.feet_toes_are_touching = dict.fromkeys(
             self.world.robot.feet_toes_are_touching, False)
         self.world.time_local_ms += World.STEPTIME_MS
@@ -343,16 +343,16 @@ class WorldParser:
                     elif tag == b'B':
                         _, end, _ = self.get_next_tag(end)
 
-                        self.world.ball_rel_head_sph_pos[0], end = self.read_float(
+                        self.world.Ball.RelativeHeadSphPos[0], end = self.read_float(
                             end+1)
-                        self.world.ball_rel_head_sph_pos[1], end = self.read_float(
+                        self.world.Ball.RelativeHeadSphPos[1], end = self.read_float(
                             end+1)
-                        self.world.ball_rel_head_sph_pos[2], end = self.read_float(
+                        self.world.Ball.RelativeHeadSphPos[2], end = self.read_float(
                             end+1)
-                        self.world.ball_rel_head_cart_pos = deg_sph2cart(
-                            self.world.ball_rel_head_sph_pos)
-                        self.world.ball_is_visible = True
-                        self.world.ball_last_seen = self.world.time_local_ms
+                        self.world.Ball.RelativeHeadCartPos = deg_sph2cart(
+                            self.world.Ball.RelativeHeadSphPos)
+                        self.world.Ball.IsVisible = True
+                        self.world.Ball.LastSeen = self.world.time_local_ms
 
                     elif tag == b'mypos':
 
@@ -374,16 +374,16 @@ class WorldParser:
                         c2, end = self.read_float(end+1)
                         c3, end = self.read_float(end+1)
 
-                        self.world.ball_cheat_abs_vel[0] = (
-                            c1 - self.world.ball_cheat_abs_pos[0]) / World.VISUALSTEP
-                        self.world.ball_cheat_abs_vel[1] = (
-                            c2 - self.world.ball_cheat_abs_pos[1]) / World.VISUALSTEP
-                        self.world.ball_cheat_abs_vel[2] = (
-                            c3 - self.world.ball_cheat_abs_pos[2]) / World.VISUALSTEP
+                        self.world.Ball.CheatAbsVel[0] = (
+                            c1 - self.world.Ball.CheatAbsPos[0]) / World.VISUALSTEP
+                        self.world.Ball.CheatAbsVel[1] = (
+                            c2 - self.world.Ball.CheatAbsPos[1]) / World.VISUALSTEP
+                        self.world.Ball.CheatAbsVel[2] = (
+                            c3 - self.world.Ball.CheatAbsPos[2]) / World.VISUALSTEP
 
-                        self.world.ball_cheat_abs_pos[0] = c1
-                        self.world.ball_cheat_abs_pos[1] = c2
-                        self.world.ball_cheat_abs_pos[2] = c3
+                        self.world.Ball.CheatAbsPos[0] = c1
+                        self.world.Ball.CheatAbsPos[1] = c2
+                        self.world.Ball.CheatAbsPos[2] = c3
 
                     elif tag == b'P':
 

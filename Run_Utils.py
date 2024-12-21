@@ -28,8 +28,9 @@ def main():
                   if f.is_file() and f.name not in exclusions])
 
     while True:
-        _, col_idx, col = UI.print_table([utils, gyms], ["Demos & Tests & Utils", "Gyms"], cols_per_title=[
-                                         2, 1], numbering=[True]*2, prompt='选择要执行的内容 (ctrl+c to exit): ')
+        _, col_idx, col = UI.print_table(
+            [utils, gyms], ["Demos & Tests & Utils", "Gyms"], cols_per_title=[2, 1],
+            numbering=[True]*2, prompt='选择要执行的内容 (ctrl+c to exit): ')
 
         is_gym = False
         if col == 0:

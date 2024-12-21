@@ -181,7 +181,7 @@ class Agent(Base_Agent):
         r = self.world.robot
         my_head_pos_2d = r.location.Head.position[:2]
         my_ori = r.imu_torso_orientation
-        ball_2d = w.ball_abs_pos[:2]  # 球的二维坐标
+        ball_2d = w.Ball.AbsolutePos[:2]  # 球的二维坐标
         ball_vec = ball_2d - my_head_pos_2d  # 球相对于机器人头部的位置向量
         ball_dir = vector_angle(ball_vec)  # 球相对于机器人头部的角度
         ball_dist = np.linalg.norm(ball_vec)  # 球相对于机器人头部的距离
@@ -323,7 +323,7 @@ class Agent(Base_Agent):
                 # 当球速<=0.5 m/s时预测的未来2D球位置
                 d.point(slow_ball_pos, 3, d.Color.pink, "status", False)
                 # 最后一次球的预测位置
-                d.point(w.ball_2d_pred_pos[-1], 5,
+                d.point(w.Ball.Predicted2DPos[-1], 5,
                         d.Color.pink, "status", False)
                 d.annotation((*my_head_pos_2d, 0.6), "I've got it!",
                              d.Color.yellow, "status")
@@ -335,7 +335,7 @@ class Agent(Base_Agent):
     def fat_proxy_kick(self):
         w = self.world
         r = self.world.robot
-        ball_2d = w.ball_abs_pos[:2]
+        ball_2d = w.Ball.AbsolutePos[:2]
         my_head_pos_2d = r.location.Head.position[:2]
 
         if np.linalg.norm(ball_2d - my_head_pos_2d) < 0.25:

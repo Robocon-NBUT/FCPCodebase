@@ -28,7 +28,7 @@ class Dribble():
     def define_approach_orientation(self):
 
         w = self.world
-        b = w.ball_abs_pos[:2]
+        b = w.Ball.AbsolutePos[:2]
         me = w.robot.location.Head.position[:2]
 
         self.approach_orientation = None
@@ -104,12 +104,12 @@ class Dribble():
         w = self.world
         r = self.world.robot
         me = r.location.Head.position[:2]
-        b = w.ball_abs_pos[:2]
-        b_rel = w.ball_rel_torso_cart_pos[:2]
+        b = w.Ball.AbsolutePos[:2]
+        b_rel = w.Ball.RelativeTorsoCartPos[:2]
         b_dist = np.linalg.norm(b-me)
         behavior = self.behavior
         reset_dribble = False
-        lost_ball = (w.ball_last_seen <= w.time_local_ms -
+        lost_ball = (w.Ball.LastSeen <= w.time_local_ms -
                      w.VISUALSTEP_MS) or np.linalg.norm(b_rel) > 0.4
 
         if reset:
@@ -132,7 +132,7 @@ class Dribble():
                     x_ori=self.approach_orientation, x_dev=-0.24, torso_ori=self.approach_orientation, safety_margin=0.4)
 
                 # ready to start dribble
-                if b_rel[0] < 0.26 and b_rel[0] > 0.18 and abs(b_rel[1]) < 0.04 and w.ball_is_visible:
+                if b_rel[0] < 0.26 and b_rel[0] > 0.18 and abs(b_rel[1]) < 0.04 and w.Ball.IsVisible:
                     self.phase += 1
                     reset_dribble = True
                 else:
@@ -142,7 +142,7 @@ class Dribble():
                         "Walk", reset_walk, next_pos, True, next_ori, True, dist)
 
             #  2B. A better approach orientation is not needed but the robot cannot see the ball
-            elif w.time_local_ms - w.ball_last_seen > 200:  # walk to absolute target if ball was not seen
+            elif w.time_local_ms - w.Ball.LastSeen > 200:  # walk to absolute target if ball was not seen
                 abs_ori = vector_angle(b - me)
                 # target, is_target_abs, ori, is_ori_abs, distance
                 behavior.execute_sub_behavior(
@@ -151,7 +151,7 @@ class Dribble():
             #  2C. A better approach orientation is not needed and the robot can see the ball
             else:  # walk to relative target
                 # ready to start dribble
-                if 0.18 < b_rel[0] < 0.25 and abs(b_rel[1]) < 0.05 and w.ball_is_visible:
+                if 0.18 < b_rel[0] < 0.25 and abs(b_rel[1]) < 0.05 and w.Ball.IsVisible:
                     self.phase += 1
                     reset_dribble = True
                 else:

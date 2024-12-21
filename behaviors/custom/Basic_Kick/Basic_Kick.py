@@ -34,7 +34,7 @@ class Basic_Kick():
 
         w = self.world
         r = self.world.robot
-        b = w.ball_rel_torso_cart_pos
+        b = w.Ball.RelativeTorsoCartPos
         t = w.time_local_ms
         gait: Step_Generator = self.behavior.get_custom_behavior_object(
             "Walk").env.step_generator
@@ -52,13 +52,13 @@ class Basic_Kick():
             next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
                 x_ori=biased_dir, x_dev=-self.ball_x_center, y_dev=-self.ball_y_center, torso_ori=biased_dir)
 
-            if (w.ball_last_seen > t - w.VISUALSTEP_MS and ang_diff < 5 and       # ball is visible & aligned
+            if (w.Ball.LastSeen > t - w.VISUALSTEP_MS and ang_diff < 5 and       # ball is visible & aligned
                 # ball is in kick area (x)
                 self.ball_x_limits[0] < b[0] < self.ball_x_limits[1] and
                 # ball is in kick area (y)
                 self.ball_y_limits[0] < b[1] < self.ball_y_limits[1] and
                 # ball absolute location is recent
-                t - w.ball_abs_pos_last_update < 100 and
+                t - w.Ball.AbsolutePosLastUpdate < 100 and
                 # if absolute ball position is updated
                 dist_to_final_target < 0.03 and
                 # walk gait phase is adequate

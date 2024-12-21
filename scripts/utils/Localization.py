@@ -53,7 +53,7 @@ class Localization():
                         not p.world.team_side_is_left)  # draw visible elements
                     localization.print_report()         # print report with stats
                     print("\nPress ctrl+c to return.")
-                    d.circle(p.world.ball_abs_pos, 0.1, 6,
+                    d.circle(p.world.Ball.AbsolutePos, 0.1, 6,
                              Draw.Color.purple_magenta, "world", False)
                 else:
                     d.annotation(p.world.robot.cheat_abs_pos,

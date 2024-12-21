@@ -92,7 +92,7 @@ class Path_Manager:
         '''
         w = self.world
 
-        ball_2d = w.ball_abs_pos[:2]
+        ball_2d = w.Ball.AbsolutePos[:2]
         obstacles = []
 
         # 'comparator' 是 lambda 的局部变量，它捕获了 (w.time_local_ms - max_age) 的当前值
@@ -283,11 +283,11 @@ class Path_Manager:
         dev_mult = 1
 
         # 如果机器人距离球超过 0.5 米且处于 PlayOn 模式，则使用球预测
-        if np.linalg.norm(w.ball_abs_pos[:2] - r.location.Head.position[:2]) > 0.5 and w.play_mode_group == PlayMode.OTHER:
+        if np.linalg.norm(w.Ball.AbsolutePos[:2] - r.location.Head.position[:2]) > 0.5 and w.play_mode_group == PlayMode.OTHER:
             # 交点，假设移动速度为 0.4 m/s
             ball_2d = w.get_intersection_point_with_ball(0.4)[0]
         else:
-            ball_2d = w.ball_abs_pos[:2]
+            ball_2d = w.Ball.AbsolutePos[:2]
 
         # 自定义参考系方向
         vec_me_ball = ball_2d - r.location.Head.position[:2]
@@ -357,19 +357,18 @@ class Path_Manager:
 
         # ------------------------------------------- 获取相关距离
 
-        if w.ball_last_seen > w.time_local_ms - w.VISUALSTEP_MS:  # 球在视野中
+        if w.Ball.LastSeen > w.time_local_ms - w.VISUALSTEP_MS:  # 球在视野中
             # - 机器人中心与球中心之间的距离
-            raw_ball_dist = np.linalg.norm(w.ball_rel_torso_cart_pos[:2])
+            raw_ball_dist = np.linalg.norm(w.Ball.RelativeTorsoCartPos[:2])
         # 否则使用绝对坐标计算距离
         else:
             # - 头部中心与球中心之间的距离
             raw_ball_dist = np.linalg.norm(vec_me_ball)
 
-        avoid_touching_ball = (w.play_mode_group != PlayMode.OTHER)
         distance_to_final_target = np.linalg.norm(
             path_end - r.location.Head.position[:2])
         distance_to_ball = max(
-            0.07 if avoid_touching_ball else 0.14, raw_ball_dist - 0.13)
+            0.07 if w.play_mode_group != PlayMode.OTHER else 0.14, raw_ball_dist - 0.13)
         caution_dist = min(distance_to_ball, distance_to_final_target)
 
         # ------------------------------------------- 获取下一个目标位置
@@ -520,7 +519,7 @@ class Path_Manager:
         '''
 
         r = self.world.robot
-        ball_2d = self.world.ball_abs_pos[:2]
+        ball_2d = self.world.Ball.AbsolutePos[:2]
 
         # ------------------------------------------- get obstacles
 
@@ -582,7 +581,7 @@ class Path_Manager:
         '''
 
         # 获取球的当前绝对位置（2D 坐标）
-        ball_2d = self.world.ball_abs_pos[:2]
+        ball_2d = self.world.Ball.AbsolutePos[:2]
 
         # ------------------------------------------- 获取障碍物
 

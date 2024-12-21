@@ -47,7 +47,7 @@ class Kick_Long:
             ang_diff = abs(normalize_deg(
                 orientation - r.location.Torso.orientation))
             dist_factor = 0
-            if dist_to_final_target < 0.018 and ang_diff < 6 and (step_gen.state_is_left_active or step_gen.state_current_ts) == 2 and w.time_local_ms - w.ball_abs_pos_last_update < 100 and (wait or w.time_local_ms - self.reset_time) > 500:
+            if dist_to_final_target < 0.018 and ang_diff < 6 and (step_gen.state_is_left_active or step_gen.state_current_ts) == 2 and w.time_local_ms - w.Ball.AbsolutePosLastUpdate < 100 and (wait or w.time_local_ms - self.reset_time) > 500:
                 self.phase += 1
                 reset_kick = True
             else:

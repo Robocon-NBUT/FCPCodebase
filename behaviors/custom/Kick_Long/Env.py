@@ -37,11 +37,11 @@ class Env:
         self.obs[23:39] = np.array([joint.position for joint in r.joints[2:18]]) / 100
         self.obs[39:55] = np.array([joint.speed for joint in r.joints[2:18]]) / 6.1395
         ball_rel_hip_center = self.agent.inv_kinematics.torso_to_hip_transform(
-            w.ball_rel_torso_cart_pos)
+            w.Ball.RelativeTorsoCartPos)
         if init:
             self.obs[55:58] = (0, 0, 0)
         else:
-            if w.ball_is_visible:
+            if w.Ball.IsVisible:
                 self.obs[55:58] = (
                     ball_rel_hip_center - self.obs[58:61]) * 10
             self.obs[58:61] = ball_rel_hip_center

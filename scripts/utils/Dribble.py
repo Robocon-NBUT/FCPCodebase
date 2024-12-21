@@ -46,7 +46,7 @@ class Dribble:
             # execute dribbler
             if behavior.is_ready("Get_Up") or w.play_mode_group in [PlayMode.ACTIVE_BEAM, PlayMode.PASSIVE_BEAM]:
                 p.server.unofficial_beam(
-                    (*(w.ball_abs_pos[:2]-(1, 0)), r.beam_height), 0)
+                    (*(w.Ball.AbsolutePos[:2]-(1, 0)), r.beam_height), 0)
                 behavior.execute("Zero_Bent_Knees")
             else:
                 behavior.execute("Dribble", None, None)

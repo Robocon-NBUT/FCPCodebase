@@ -35,12 +35,12 @@ class Kick():
 
         while True:
             player.server.unofficial_set_game_time(0)
-            b = w.ball_abs_pos[:2]
+            b = w.Ball.AbsolutePos[:2]
 
             # speed of zero is likely to indicate prolongued inability to see the ball
             if 0 < np.linalg.norm(w.get_ball_abs_vel(6)) < 0.02:
                 # update kick if ball is further than 0.5 m
-                if np.linalg.norm(w.ball_rel_head_cart_pos[:2]) > 0.5:
+                if np.linalg.norm(w.Ball.RelativeHeadCartPos[:2]) > 0.5:
                     if max(abs(b)) < 0.5:
                         vec = np.array([6, 0])
                     else:

@@ -115,7 +115,7 @@ class UI:
         prompt = "Choose a person:"
         '''
 
-        # --------------------------------------------- parameters
+        #  parameters
         cols_no = len(data)
 
         if alignment is None:
@@ -177,7 +177,7 @@ class UI:
 
         table_width = sum(cols_width)+cols_no-1
 
-        # --------------------------------------------- col titles
+        #  col titles
         print(f'{"="*table_width}')
         if titles is not None:
             for i in range(cols_no):
@@ -189,7 +189,7 @@ class UI:
                       end='+' if i < cols_no - 1 else '')
             print()
 
-        # --------------------------------------------- merge subcolumns
+        #  merge subcolumns
         if cols_per_title is not None:
             for i, col in enumerate(data):
                 if cols_per_title[i] < 2:
@@ -199,7 +199,7 @@ class UI:
                                                    for subcol_idx, item in enumerate(range(k, len(col), subcol[i][0])))
                 del col[subcol[i][0]:]  # delete repeated items
 
-        # --------------------------------------------- col items
+        #  col items
         for line in zip_longest(*data):
             for i, item in enumerate(line):
                 # adjust margins when there are numbered options
@@ -211,7 +211,7 @@ class UI:
             print(end="\n")
         print(f'{"="*table_width}')
 
-        # --------------------------------------------- prompt
+        #  prompt
         if prompt is None:
             return None
 
@@ -261,7 +261,7 @@ class UI:
         items = []
         items_len = []
 
-        # --------------------------------------------- Add numbers, margins and divider
+        #  Add numbers, margins and divider
         for i in range(data_size):
             number = f"{i}-" if numbering else ""
             items.append(f"{divider}{number}{data[i]}")
@@ -271,7 +271,7 @@ class UI:
         max_cols = np.clip((WIDTH+len(divider)) // min(items_len),
                            1, np.ceil(data_size/max(min_per_col, 1)))
 
-        # --------------------------------------------- Check maximum number of columns, considering content width (min:1)
+        #  Check maximum number of columns, considering content width (min:1)
         for i in range(max_cols, 0, -1):
             cols_width = []
             cols_items = []
@@ -288,7 +288,7 @@ class UI:
                 break
         table_width -= len(divider)
 
-        # --------------------------------------------- Print columns
+        #  Print columns
         print("="*table_width)
         for row in range(np.ceil(data_size / i)):
             for col in range(i):
@@ -304,7 +304,7 @@ class UI:
             print()
         print("="*table_width)
 
-        # --------------------------------------------- Prompt
+        #  Prompt
         if prompt is None:
             return None
 

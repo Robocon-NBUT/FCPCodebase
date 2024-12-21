@@ -64,6 +64,26 @@ class World:
     FLAGS_POSTS_POS = ((-15, -1.05, 0.8), (-15, +1.05, 0.8),
                        (+15, -1.05, 0.8), (+15, +1.05, 0.8))
 
+    class Ball:
+        """足球相关信息"""
+        RelativeHeadSphPos = np.zeros(3)  # 相对头部的球的位置（球坐标系）
+        RelativeHeadCartPos = np.zeros(3) # 相对头部的球的位置（直角坐标系）
+        RelativeTorsoCartPos = np.zeros(3) # 相对躯干的球的位置（直角坐标系）
+        RelativeTorsoCartPosHistory = deque(maxlen=20) # 相对躯干的球的位置历史
+        AbsolutePos = np.zeros(3) # 绝对位置
+        AbsolutePosHistory = deque(maxlen=20) # 绝对位置历史
+        AbsolutePosLastUpdate = 0 # 上次更新绝对位置的时间
+        AbsoluteVel = np.zeros(3) # 速度
+        AbsoluteSpeed = 0 # 速度大小
+        IsVisible = False # 是否可见
+        IsFromVision = False
+        LastSeen = 0 # 上次看到球的时间
+        CheatAbsPos = np.zeros(3)
+        CheatAbsVel = np.zeros(3)
+        Predicted2DPos = np.zeros((1, 2))
+        Predicted2DVel = np.zeros((1, 2))
+        Predicted2DSpeed = np.zeros(1)
+
     def __init__(self, robot_type: int, team_name: str, unum: int, apply_play_mode_correction: bool,
                  enable_draw: bool, logger: Logger, host: str) -> None:
 
@@ -93,40 +113,7 @@ class World:
         self.flags_corners: dict = None
         # goal   posts, key=(x,y,z), always assume we play on the left side
         self.flags_posts: dict = None
-        # Ball position relative to head  (spherical coordinates) (m, deg, deg)
-        self.ball_rel_head_sph_pos = np.zeros(3)
-        # Ball position relative to head  (cartesian coordinates) (m)
-        self.ball_rel_head_cart_pos = np.zeros(3)
-        # Ball position relative to torso (cartesian coordinates) (m)
-        self.ball_rel_torso_cart_pos = np.zeros(3)
-        # Ball position relative to torso history (queue with up to 20 old positions at intervals of 0.04s, where index 0 is the previous position)
-        self.ball_rel_torso_cart_pos_history = deque(maxlen=20)
-        # Ball absolute position (up to date if self.ball_is_visible and self.robot.loc_is_up_to_date) (m)
-        self.ball_abs_pos = np.zeros(3)
-        # Ball absolute position history (queue with up to 20 old positions at intervals of 0.04s, where index 0 is the previous position)
-        self.ball_abs_pos_history = deque(maxlen=20)
-        # World.time_local_ms when self.ball_abs_pos was last updated by vision or radio
-        self.ball_abs_pos_last_update = 0
-        # Ball velocity vector based on the last 2 known values of self.ball_abs_pos (m/s) (Warning: noisy if ball is distant, use instead get_ball_abs_vel)
-        self.ball_abs_vel = np.zeros(3)
-        # Ball scalar speed based on the last 2 known values of self.ball_abs_pos (m/s)    (Warning: noisy if ball is distant, use instead ||get_ball_abs_vel||)
-        self.ball_abs_speed = 0
-        # True if the last server message contained vision information related to the ball
-        self.ball_is_visible = False
-        # True if ball_abs_pos originated from vision, False if it originated from radio
-        self.is_ball_abs_pos_from_vision = False
-        # World.time_local_ms when ball was last seen (note: may be different from self.ball_abs_pos_last_update)
-        self.ball_last_seen = 0
-        # Absolute ball position provided by the server as cheat (m)
-        self.ball_cheat_abs_pos = np.zeros(3)
-        # Absolute velocity vector based on the last 2 values of self.ball_cheat_abs_pos (m/s)
-        self.ball_cheat_abs_vel = np.zeros(3)
-        # prediction of current and future 2D ball positions*
-        self.ball_2d_pred_pos = np.zeros((1, 2))
-        # prediction of current and future 2D ball velocities*
-        self.ball_2d_pred_vel = np.zeros((1, 2))
-        # prediction of current and future 2D ball linear speeds*
-        self.ball_2d_pred_spd = np.zeros(1)
+
         # *at intervals of 0.02 s until ball comes to a stop or gets out of bounds (according to prediction)
         # Position of visible lines, relative to head, start_pos+end_pos (spherical coordinates) (m, deg, deg, m, deg, deg)
         self.lines = np.zeros((30, 6))
@@ -178,13 +165,13 @@ class World:
         '''
         assert 1 <= history_steps <= 20, "Argument 'history_steps' must be in range [1,20]"
 
-        if len(self.ball_rel_torso_cart_pos_history) == 0:
+        if len(self.Ball.RelativeTorsoCartPosHistory) == 0:
             return np.zeros(3)
 
-        h_step = min(history_steps, len(self.ball_rel_torso_cart_pos_history))
+        h_step = min(history_steps, len(self.Ball.RelativeTorsoCartPosHistory))
         t = h_step * World.VISUALSTEP
 
-        return (self.ball_rel_torso_cart_pos - self.ball_rel_torso_cart_pos_history[h_step-1]) / t
+        return (self.Ball.RelativeTorsoCartPos - self.Ball.RelativeTorsoCartPosHistory[h_step-1]) / t
 
     def get_ball_abs_vel(self, history_steps: int):
         '''
@@ -203,13 +190,13 @@ class World:
         '''
         assert 1 <= history_steps <= 20, "Argument 'history_steps' must be in range [1,20]"
 
-        if len(self.ball_abs_pos_history) == 0:
+        if len(self.Ball.AbsolutePosHistory) == 0:
             return np.zeros(3)
 
-        h_step = min(history_steps, len(self.ball_abs_pos_history))
+        h_step = min(history_steps, len(self.Ball.AbsolutePosHistory))
         t = h_step * World.VISUALSTEP
 
-        return (self.ball_abs_pos - self.ball_abs_pos_history[h_step-1]) / t
+        return (self.Ball.AbsolutePos - self.Ball.AbsolutePosHistory[h_step-1]) / t
 
     def get_predicted_ball_pos(self, max_speed):
         '''
@@ -221,10 +208,10 @@ class World:
         max_speed : float
             maximum speed at which the ball will be moving at returned future position
         '''
-        b_sp = self.ball_2d_pred_spd
+        b_sp = self.Ball.Predicted2DSpeed
         index = len(b_sp) - \
             max(1, np.searchsorted(b_sp[::-1], max_speed, side='right'))
-        return self.ball_2d_pred_pos[index]
+        return self.Ball.Predicted2DPos[index]
 
     def get_intersection_point_with_ball(self, player_speed):
         '''
@@ -244,7 +231,7 @@ class World:
         '''
 
         params = np.array([*self.robot.location.Head.position[:2],
-                          player_speed*0.02, *self.ball_2d_pred_pos.flat], np.float32)
+                          player_speed*0.02, *self.Ball.Predicted2DPos.flat], np.float32)
         pred_ret = ball_predictor.get_intersection(params)
         return pred_ret[:2], pred_ret[2]
 
@@ -275,10 +262,10 @@ class World:
 
         r.update_pose()  # update forward kinematics
 
-        if self.ball_is_visible:
+        if self.Ball.IsVisible:
             # Compute ball position, relative to torso
-            self.ball_rel_torso_cart_pos = r.head_to_body_part_transform(
-                "torso", self.ball_rel_head_cart_pos)
+            self.Ball.RelativeTorsoCartPos = r.head_to_body_part_transform(
+                "torso", self.Ball.RelativeHeadCartPos)
 
         if self.vision_is_up_to_date:  # update vision based localization
 
@@ -296,7 +283,7 @@ class World:
                     rf_contact[0:3], True).get_translation()
 
             ball_pos = np.concatenate(
-                (self.ball_rel_head_cart_pos, self.ball_cheat_abs_pos))
+                (self.Ball.RelativeHeadCartPos, self.Ball.RelativeHeadCartPos))
 
             corners_list = [[key in self.flags_corners, 1.0, *key, *
                              self.flags_corners.get(key, (0, 0, 0))] for key in World.FLAGS_CORNERS_POS]
@@ -310,7 +297,7 @@ class World:
                 r.feet_toes_are_touching['lf'],
                 r.feet_toes_are_touching['rf'],
                 feet_contact,
-                self.ball_is_visible,
+                self.Ball.IsVisible,
                 ball_pos,
                 r.cheat_abs_pos,
                 all_landmarks,
@@ -329,10 +316,10 @@ class World:
             me.state_ground_area = (r.location.Head.position[:2], 0.2)
 
             # Save last ball position to history at every vision cycle (even if not up to date)
-            self.ball_abs_pos_history.appendleft(
-                self.ball_abs_pos)  # from vision or radio
-            self.ball_rel_torso_cart_pos_history.appendleft(
-                self.ball_rel_torso_cart_pos)
+            self.Ball.AbsolutePosHistory.appendleft(
+                self.Ball.AbsolutePos)  # from vision or radio
+            self.Ball.RelativeTorsoCartPosHistory.appendleft(
+                self.Ball.RelativeTorsoCartPos)
 
             # Get ball position based on vision or play mode
             # Sources:
@@ -342,10 +329,10 @@ class World:
             if self.apply_play_mode_correction:
                 if self.play_mode == OurMode.CORNER_KICK:
                     ball = np.array(
-                        [15, 5.483 if self.ball_abs_pos[1] > 0 else -5.483, 0.042], float)
+                        [15, 5.483 if self.Ball.AbsolutePos[1] > 0 else -5.483, 0.042], float)
                 elif self.play_mode == TheirMode.CORNER_KICK:
                     ball = np.array(
-                        [-15, 5.483 if self.ball_abs_pos[1] > 0 else -5.483, 0.042], float)
+                        [-15, 5.483 if self.Ball.AbsolutePos[1] > 0 else -5.483, 0.042], float)
                 elif self.play_mode in [
                         OurMode.KICK_OFF, TheirMode.KICKOFF, OurMode.GOAL, TheirMode.GOAL]:
                     ball = np.array([0, 0, 0.042], float)
@@ -358,9 +345,9 @@ class World:
                 if ball is not None and np.linalg.norm(r.location.Head.position[:2] - ball[:2]) < 1:
                     ball = None
 
-            if ball is None and self.ball_is_visible and r.location.is_up_to_date:
+            if ball is None and self.Ball.IsVisible and r.location.is_up_to_date:
                 ball = r.location.Head.to_field_transform(
-                    self.ball_rel_head_cart_pos)
+                    self.Ball.RelativeHeadCartPos)
                 ball[2] = max(ball[2], 0.042)  # lowest z = ball radius
                 # for compatibility with tests without active soccer rules
                 if self.play_mode != NeuMode.BEFORE_KICKOFF:
@@ -370,12 +357,12 @@ class World:
             # Update internal ball position (also updated by Radio)
             if ball is not None:
                 time_diff = (self.time_local_ms -
-                             self.ball_abs_pos_last_update) / 1000
-                self.ball_abs_vel = (ball - self.ball_abs_pos) / time_diff
-                self.ball_abs_speed = np.linalg.norm(self.ball_abs_vel)
-                self.ball_abs_pos_last_update = self.time_local_ms
-                self.ball_abs_pos = ball
-                self.is_ball_abs_pos_from_vision = True
+                             self.Ball.AbsolutePosLastUpdate) / 1000
+                self.Ball.AbsoluteVel = (ball - self.Ball.AbsolutePos) / time_diff
+                self.Ball.AbsoluteSpeed = np.linalg.norm(self.Ball.AbsoluteVel)
+                self.Ball.AbsolutePosLastUpdate = self.time_local_ms
+                self.Ball.AbsolutePos = ball
+                self.Ball.IsFromVision = True
 
             # Velocity decay for teammates and opponents (it is later neutralized if the velocity is updated)
             for p in self.teammates:
@@ -404,27 +391,27 @@ class World:
 
         # Update prediction of ball position/velocity
         if self.play_mode_group != PlayMode.OTHER:  # not 'play on' nor 'game over', so ball must be stationary
-            self.ball_2d_pred_pos = self.ball_abs_pos[:2].copy().reshape(1, 2)
-            self.ball_2d_pred_vel = np.zeros((1, 2))
-            self.ball_2d_pred_spd = np.zeros(1)
+            self.Ball.Predicted2DPos = self.Ball.AbsolutePos[:2].copy().reshape(1, 2)
+            self.Ball.Predicted2DVel = np.zeros((1, 2))
+            self.Ball.Predicted2DSpeed = np.zeros(1)
 
         # make new prediction for new ball position (from vision or radio)
-        elif self.ball_abs_pos_last_update == self.time_local_ms:
+        elif self.Ball.AbsolutePosLastUpdate == self.time_local_ms:
 
             params = np.array(
-                [*self.ball_abs_pos[:2], *np.copy(self.get_ball_abs_vel(6)[:2])], np.float32)
+                [*self.Ball.AbsolutePos[:2], *np.copy(self.get_ball_abs_vel(6)[:2])], np.float32)
             pred_ret = ball_predictor.predict_rolling_ball(params)
             sample_no = len(pred_ret) // 5 * 2
-            self.ball_2d_pred_pos = pred_ret[:sample_no].reshape(-1, 2)
-            self.ball_2d_pred_vel = pred_ret[sample_no:sample_no *
+            self.Ball.Predicted2DPos = pred_ret[:sample_no].reshape(-1, 2)
+            self.Ball.Predicted2DVel = pred_ret[sample_no:sample_no *
                                              2].reshape(-1, 2)
-            self.ball_2d_pred_spd = pred_ret[sample_no*2:]
+            self.Ball.Predicted2DSpeed = pred_ret[sample_no*2:]
 
         # otherwise, advance to next predicted step, if available
-        elif len(self.ball_2d_pred_pos) > 1:
-            self.ball_2d_pred_pos = self.ball_2d_pred_pos[1:]
-            self.ball_2d_pred_vel = self.ball_2d_pred_vel[1:]
-            self.ball_2d_pred_spd = self.ball_2d_pred_spd[1:]
+        elif len(self.Ball.Predicted2DPos) > 1:
+            self.Ball.Predicted2DPos = self.Ball.Predicted2DPos[1:]
+            self.Ball.Predicted2DVel = self.Ball.Predicted2DVel[1:]
+            self.Ball.Predicted2DSpeed = self.Ball.Predicted2DSpeed[1:]
 
         # update imu (must be executed after localization)
         r.update_imu(self.time_local_ms)

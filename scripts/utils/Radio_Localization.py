@@ -76,8 +76,8 @@ class Radio_Localization():
 
         # ----------------------------------------------------------- draw ball and flush drawings
 
-        self.draw_objects(p, w.ball_abs_pos, False,
-                          w.is_ball_abs_pos_from_vision, w.ball_abs_pos_last_update)
+        self.draw_objects(p, w.Ball.AbsolutePos, False,
+                          w.Ball.IsFromVision, w.Ball.AbsolutePosLastUpdate)
         self.script.players[0].world.draw.flush("objects")
 
     def execute(self):

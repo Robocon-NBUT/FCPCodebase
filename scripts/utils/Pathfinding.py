@@ -205,7 +205,7 @@ class Pathfinding:
         self.draw_grid()
 
         while True:
-            ball = w.ball_abs_pos[:2]
+            ball = w.Ball.AbsolutePos[:2]
             rpos = r.location.Head.position[:2]
 
             self.move_obstacles(obst)

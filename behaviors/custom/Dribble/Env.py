@@ -93,12 +93,12 @@ class Env():
 
         # Ball
         ball_rel_hip_center = self.ik.torso_to_hip_transform(
-            w.ball_rel_torso_cart_pos)
+            w.Ball.RelativeTorsoCartPos)
         ball_dist_hip_center = np.linalg.norm(ball_rel_hip_center)
 
         if init:
             self.obs[67:70] = (0, 0, 0)  # Initial velocity is 0
-        elif w.ball_is_visible:
+        elif w.Ball.IsVisible:
             # Ball velocity, relative to ankle's midpoint
             self.obs[67:70] = (ball_rel_hip_center - self.obs[70:73]) * 10
 

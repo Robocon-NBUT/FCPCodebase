@@ -28,7 +28,7 @@ class Head():
 
         # --------------------------------------- A. Ball is in FOV and robot can self-locate
 
-        if w.ball_last_seen > w.time_local_ms - w.VISUALSTEP_MS:  # ball is in FOV
+        if w.Ball.LastSeen > w.time_local_ms - w.VISUALSTEP_MS:  # ball is in FOV
             if can_self_locate:
                 best_dir = self.compute_best_direction(
                     can_self_locate, use_ball_from_vision=True)
@@ -46,8 +46,8 @@ class Head():
         if self.state == TIMEOUT:  # Random search
 
             # Ball is in FOV (search 45 deg to both sides of the ball)
-            if w.ball_last_seen > w.time_local_ms - w.VISUALSTEP_MS:
-                ball_dir = vector_angle(w.ball_rel_torso_cart_pos[:2])
+            if w.Ball.LastSeen > w.time_local_ms - w.VISUALSTEP_MS:
+                ball_dir = vector_angle(w.Ball.RelativeTorsoCartPos[:2])
                 targ = np.clip(
                     ball_dir + (45 if self.look_left else -45), -119, 119)
             else:  # Ball is not in FOV (search 119 deg to both sides)
@@ -69,17 +69,17 @@ class Head():
         r = w.robot
 
         if use_ball_from_vision:
-            ball_2d_dist = np.linalg.norm(w.ball_rel_torso_cart_pos[:2])
+            ball_2d_dist = np.linalg.norm(w.Ball.RelativeTorsoCartPos[:2])
         else:
             ball_2d_dist = np.linalg.norm(
-                w.ball_abs_pos[:2]-r.location.Head.position[:2])
+                w.Ball.AbsolutePos[:2]-r.location.Head.position[:2])
 
         if ball_2d_dist > 0.12:
             if use_ball_from_vision:
-                ball_dir = vector_angle(w.ball_rel_torso_cart_pos[:2])
+                ball_dir = vector_angle(w.Ball.RelativeTorsoCartPos[:2])
             else:
                 ball_dir = target_rel_angle(
-                    r.location.Head.position, r.imu_torso_orientation, w.ball_abs_pos)
+                    r.location.Head.position, r.imu_torso_orientation, w.Ball.AbsolutePos)
         else:  # ball is very close to robot
             ball_dir = 0
 

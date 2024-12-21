@@ -209,7 +209,7 @@ class Radio:
         group, has_ball, is_self_included = self.groups[group_idx]
 
         # 检查球的位置是否最新
-        if has_ball and w.ball_abs_pos_last_update < ago40ms:
+        if has_ball and w.Ball.AbsolutePosLastUpdate < ago40ms:
             return False
 
         # 检查自身的位置是否最新
@@ -268,7 +268,7 @@ class Radio:
         # 添加球的位置组合索引
         if has_ball:
             c, n = self.get_ball_combination(
-                w.ball_abs_pos[0], w.ball_abs_pos[1]
+                w.Ball.AbsolutePos[0], w.Ball.AbsolutePos[1]
             )
             combination += c * no_of_combinations
             no_of_combinations *= n
@@ -340,14 +340,14 @@ class Radio:
             combination //= info[7] + 2
 
         # 更新球的位置
-        if has_ball and w.ball_abs_pos_last_update < ago40ms:
-            time_diff = (msg_time - w.ball_abs_pos_last_update) / 1000
+        if has_ball and w.Ball.AbsolutePosLastUpdate < ago40ms:
+            time_diff = (msg_time - w.Ball.AbsolutePosLastUpdate) / 1000
             ball = self.get_ball_position(ball_comb)
-            w.ball_abs_vel = (ball - w.ball_abs_pos) / time_diff
-            w.ball_abs_speed = np.linalg.norm(w.ball_abs_vel)
-            w.ball_abs_pos_last_update = msg_time  # 误差：0-40 ms
-            w.ball_abs_pos = ball
-            w.is_ball_abs_pos_from_vision = False
+            w.Ball.AbsoluteVel = (ball - w.Ball.AbsolutePos) / time_diff
+            w.Ball.AbsoluteSpeed = np.linalg.norm(w.Ball.AbsoluteVel)
+            w.Ball.AbsolutePosLastUpdate = msg_time  # 误差：0-40 ms
+            w.Ball.AbsolutePos = ball
+            w.Ball.IsFromVision = False
 
         # 更新组成员的位置
         for c, ot in zip(players_combs, group):
