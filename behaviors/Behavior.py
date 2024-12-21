@@ -171,7 +171,8 @@ class Behavior():
                 break  # Exit here if last command is part of the behavior
 
         # reset to avoid polluting the next command
-        r.joints_target_speed = np.zeros_like(r.joints_target_speed)
+        for i in range(len(r.joints)):
+            r.joints[i].target_speed = 0
 
     def is_ready(self, name, *args) -> bool:
         ''' Checks if behavior is ready to start under current game/robot conditions '''

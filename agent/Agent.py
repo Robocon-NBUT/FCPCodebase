@@ -266,6 +266,9 @@ class Agent(Base_Agent):
                     if ball_2d[0] < 0:
                         self.move((ball_2d[0]+15, ball_2d[1]*15/(15-ball_2d[0])), orientation=ball_dir, priority_unums=[
                             active_player_unum])
+                    elif ball_2d[0] == 15:
+                        self.move((13, (13-ball_2d[0])*ball_2d[1]/(15.5-ball_2d[0])), orientation=ball_dir, priority_unums=[
+                            active_player_unum])
                     else:
                         self.move((13, (13-ball_2d[0])*ball_2d[1]/(15-ball_2d[0])), orientation=ball_dir, priority_unums=[
                             active_player_unum])

@@ -144,9 +144,9 @@ class UI:
                         [len(str(item))+numbering_width for item in data[i]]) + margins[i]*2
                 else:
                     # subcolumn maximum length
-                    subcol[i][0] = np.ceil(len(data[i])/cols_per_title[i])
+                    subcol[i][0] = int(np.ceil(len(data[i])/cols_per_title[i]))
                     # reduce number of columns as needed
-                    cols_per_title[i] = np.ceil(len(data[i])/subcol[i][0])
+                    cols_per_title[i] = int(np.ceil(len(data[i])/subcol[i][0]))
                     # remove one if numbering, same as when printing
                     cols_width[i] = margins[i] * \
                         (1+cols_per_title[i]) - (1 if numbering[i] else 0)

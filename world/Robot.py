@@ -510,8 +510,10 @@ class Robot:
         np.nan_to_num(values, copy=False)
 
         if isinstance(indices, slice):
-            print(indices.start, indices.stop, indices.step)
-            indices = list(range(indices.start, indices.stop, indices.step))
+            if indices.step:
+                indices = list(range(indices.start, indices.stop, indices.step))
+            else:
+                indices = list(range(indices.start, indices.stop))
 
         predicted_diff = []
         joints_positions = []

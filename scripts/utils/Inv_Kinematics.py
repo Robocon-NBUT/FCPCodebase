@@ -96,7 +96,7 @@ class Inv_Kinematics():
             player.world.draw.annotation(
                 pos+label_rel_pos+[0, 0, -0.4], "(forward kinematics data)", Draw.Color.red, body_part, True)
 
-        note = f"Torso roll: {r.imu_torso_roll:.2f}   Torso pitch: {r.imu_torso_pitch:.2f}"
+        note = f"Torso roll: {r.IMU.TorsoRoll:.2f}   Torso pitch: {r.IMU.TorsoPitch:.2f}"
         player.world.draw.annotation(
             robot_pos+[0, 0, 0.10], note, Draw.Color.red, "Torso")
 
