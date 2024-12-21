@@ -297,7 +297,7 @@ class Path_Manager:
         distance_boost = 0  # 返回距离目标的增量
         if torso_ori is not None and dev_len > 0:
             approach_ori_diff = abs(normalize_deg(
-                r.imu_torso_orientation - torso_ori))
+                r.IMU.TorsoOrientation - torso_ori))
             if approach_ori_diff > 15:
                 # 如果机器人远离接近方向，增加目标距离
                 distance_boost = 0.15
@@ -386,14 +386,14 @@ class Path_Manager:
                 mid_ori = normalize_deg(vector_angle(
                     vec_me_ball) - vector_angle(-dev) - x_ori + torso_ori)
                 mid_ori_diff = abs(normalize_deg(
-                    mid_ori - r.imu_torso_orientation))
+                    mid_ori - r.IMU.TorsoOrientation))
                 final_ori_diff = abs(normalize_deg(
-                    torso_ori - r.imu_torso_orientation))
+                    torso_ori - r.IMU.TorsoOrientation))
                 next_ori = mid_ori if mid_ori_diff + 10 < final_ori_diff else torso_ori
         elif target_dist > 0.1:
             next_ori = vector_angle(target_vec)
         else:
-            next_ori = r.imu_torso_orientation
+            next_ori = r.IMU.TorsoOrientation
 
         # ------------------------------------------ 更新下一次运行的热启动
 
@@ -473,7 +473,7 @@ class Path_Manager:
         elif target_dist > 0.1:
             next_ori = vector_angle(target_vec)
         else:
-            next_ori = w.robot.imu_torso_orientation
+            next_ori = w.robot.IMU.TorsoOrientation
 
         # ------------------------------------------ 更新下一次运行的热启动
 
@@ -542,13 +542,13 @@ class Path_Manager:
 
         next_pos = self._extract_target_from_path(path, path_len, ret_segments)
         next_rel_ori = normalize_deg(vector_angle(
-            next_pos - ball_2d) - r.imu_torso_orientation)
+            next_pos - ball_2d) - r.IMU.TorsoOrientation)
 
         # ------------------------------------------ update hot start for next run
 
         if path_len != 0:
             self._update_hot_start(np.deg2rad(
-                r.imu_torso_orientation), Path_Manager.HOT_START_DIST_DRIBBLE)
+                r.IMU.TorsoOrientation), Path_Manager.HOT_START_DIST_DRIBBLE)
 
         # ------------------------------------------ draw
         if self._draw_path and path_status != Path_Manager.STATUS_DIRECT:

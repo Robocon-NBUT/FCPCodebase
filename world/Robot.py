@@ -91,6 +91,31 @@ class Robot:
     # Recommended height for unofficial beam (near ground)
     BEAM_HEIGHTS = [0.4, 0.43, 0.4, 0.46, 0.4]
 
+    class IMU:
+        """IMU"""
+        TorsoRoll = 0  # 躯干的横滚角度（单位：度）
+        TorsoPitch = 0  # 躯干的俯仰角度（单位：度）
+        TorsoOrientation = 0  # 躯干的方向（单位：度）
+        TorsoInclination = 0  # 躯干的倾斜角度（单位：度）
+        TorsoToFieldRotation = Matrix_3x3()  # 从躯干到场地的旋转矩阵
+        LastVisualUpdate = 0  # 最后一次使用视觉信息更新IMU数据的时间（单位：World.time_local_ms）
+
+        class Weak:
+            """
+            注意：这些变量不可靠，因为定位方向中的小误差
+            会导致错误的加速度->错误的速度->错误的位置
+            """
+            TorsoToFieldTransform = Matrix_4x4()  # 从躯干到场地的变换矩阵
+            HeadToFieldTransform = Matrix_4x4()  # 从头部到场地的变换矩阵
+            FieldToHeadTransform = Matrix_4x4()  # 从场地到头部的变换矩阵
+            TorsoPosition = np.zeros(3)  # 躯干的绝对位置（单位：米）
+            TorsoVelocity = np.zeros(3)  # 躯干的绝对速度（单位：米/秒）
+            TorsoAcceleration = np.zeros(3)  # 躯干的绝对加速度（单位：米/秒²）
+            TorsoNextPosition = np.zeros(3)  # 预测下一步的绝对位置（单位：米）
+            TorsoNextVelocity = np.zeros(3)  # 预测下一步的绝对速度（单位：米/秒）
+            CoMPosition = np.zeros(3)  # 质心的绝对位置（单位：米）
+            CoMVelocity = np.zeros(3)  # 质心的绝对速度（单位：米/秒）
+
     def __init__(self, unum: int, robot_type: int) -> None:
         # 加载机器人XML文件，通常文件名为"naoX.xml"，其中X表示机器人类型
         robot_xml = "nao" + str(robot_type) + ".xml"
@@ -123,35 +148,6 @@ class Robot:
         # 其他定位变量
         self.cheat_abs_pos = np.zeros(3)  # 服务器提供的头部绝对位置（作弊，单位：米）
         self.cheat_ori = 0.0  # 服务器提供的头部绝对方向（作弊，单位：度）
-
-        # 定位 + 陀螺仪
-        # 这些变量是可靠的。当等待下一个视觉周期时，陀螺仪用于更新旋转
-        self.imu_torso_roll = 0  # 躯干的横滚角度（单位：度）（来源：定位+陀螺仪）
-        self.imu_torso_pitch = 0  # 躯干的俯仰角度（单位：度）（来源：定位+陀螺仪）
-        self.imu_torso_orientation = 0  # 躯干的方向（单位：度）（来源：定位+陀螺仪）
-        self.imu_torso_inclination = 0  # 躯干的倾斜角度（单位：度）（来源：定位+陀螺仪）
-        self.imu_torso_to_field_rotation = Matrix_3x3()  # 从躯干到场地的旋转矩阵（来源：定位+陀螺仪）
-        self.imu_last_visual_update = 0  # 最后一次使用视觉信息更新IMU数据的时间（单位：World.time_local_ms）
-
-        # 定位 + 陀螺仪 + 加速度计
-        # 注意：这些变量不可靠，因为定位方向中的小误差会导致错误的加速度->错误的速度->错误的位置
-        self.imu_weak_torso_to_field_transform = Matrix_4x4()  # 从躯干到场地的变换矩阵（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_head_to_field_transform = Matrix_4x4()  # 从头部到场地的变换矩阵（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_field_to_head_transform = Matrix_4x4()  # 从场地到头部的变换矩阵（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_position = np.zeros(
-            3)  # 躯干的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_velocity = np.zeros(
-            3)  # 躯干的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_acceleration = np.zeros(
-            3)  # 躯干的绝对加速度（单位：米/秒²）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_next_position = np.zeros(
-            3)  # 预测下一步的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_torso_next_velocity = np.zeros(
-            3)  # 预测下一步的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_CoM_position = np.zeros(
-            3)  # 质心的绝对位置（单位：米）（来源：定位+陀螺仪+加速度计）
-        self.imu_weak_CoM_velocity = np.zeros(
-            3)  # 质心的绝对速度（单位：米/秒）（来源：定位+陀螺仪+加速度计）
 
         # 使用显式变量以启用IDE建议
         self.J_HEAD_YAW = 0
@@ -404,76 +400,76 @@ class Robot:
 
         # update IMU
         if self.location.is_up_to_date:
-            self.imu_torso_roll = self.location.Torso.Roll
-            self.imu_torso_pitch = self.location.Torso.Pitch
-            self.imu_torso_orientation = self.location.Torso.Orientation
-            self.imu_torso_inclination = self.location.Torso.Inclination
-            self.imu_torso_to_field_rotation.m[:
-                                               ] = self.location.Torso.ToFieldRotation.m
-            self.imu_weak_torso_to_field_transform.m[:
-                                                     ] = self.location.Torso.ToFieldTransform.m
-            self.imu_weak_head_to_field_transform.m[:
-                                                    ] = self.location.Head.ToFieldTransform.m
-            self.imu_weak_field_to_head_transform.m[:
-                                                    ] = self.location.Head.FromFieldTransform.m
-            self.imu_weak_torso_position[:] = self.location.Torso.Position
-            self.imu_weak_torso_velocity[:] = self.location.Torso.Velocity
-            self.imu_weak_torso_acceleration[:
-                                             ] = self.location.Torso.Acceleration
-            self.imu_weak_torso_next_position = self.location.Torso.Position + self.location.Torso.Velocity * \
+            self.IMU.TorsoRoll = self.location.Torso.Roll
+            self.IMU.TorsoPitch = self.location.Torso.Pitch
+            self.IMU.TorsoOrientation = self.location.Torso.Orientation
+            self.IMU.TorsoInclination = self.location.Torso.Inclination
+            self.IMU.TorsoToFieldRotation.m[:
+                                            ] = self.location.Torso.ToFieldRotation.m
+            self.IMU.Weak.TorsoToFieldTransform.m[:
+                                                  ] = self.location.Torso.ToFieldTransform.m
+            self.IMU.Weak.HeadToFieldTransform.m[:
+                                                 ] = self.location.Head.ToFieldTransform.m
+            self.IMU.Weak.FieldToHeadTransform.m[:
+                                                 ] = self.location.Head.FromFieldTransform.m
+            self.IMU.Weak.TorsoPosition[:] = self.location.Torso.Position
+            self.IMU.Weak.TorsoVelocity[:] = self.location.Torso.Velocity
+            self.IMU.Weak.TorsoAcceleration[:
+                                            ] = self.location.Torso.Acceleration
+            self.IMU.Weak.TorsoNextPosition = self.location.Torso.Position + self.location.Torso.Velocity * \
                 Robot.STEPTIME + self.location.Torso.Acceleration * \
                 (0.5 * Robot.SQ_STEPTIME)
-            self.imu_weak_torso_next_velocity = self.location.Torso.Velocity + \
+            self.IMU.Weak.TorsoNextVelocity = self.location.Torso.Velocity + \
                 self.location.Torso.Acceleration * Robot.STEPTIME
-            self.imu_weak_CoM_position[:] = self.location.com_position
-            self.imu_weak_CoM_velocity[:] = self.location.com_velocity
-            self.imu_last_visual_update = time_local_ms
+            self.IMU.Weak.CoMPosition[:] = self.location.com_position
+            self.IMU.Weak.CoMVelocity[:] = self.location.com_velocity
+            self.IMU.LastVisualUpdate = time_local_ms
         else:
             g = self.gyro / 50  # convert degrees per second to degrees per step
 
-            self.imu_torso_to_field_rotation.multiply(
+            self.IMU.TorsoToFieldRotation.multiply(
                 Matrix_3x3.from_rotation_deg(g), in_place=True, reverse_order=True)
 
-            self.imu_torso_orientation = self.imu_torso_to_field_rotation.get_yaw_deg()
-            self.imu_torso_pitch = self.imu_torso_to_field_rotation.get_pitch_deg()
-            self.imu_torso_roll = self.imu_torso_to_field_rotation.get_roll_deg()
+            self.IMU.TorsoOrientation = self.IMU.TorsoToFieldRotation.get_yaw_deg()
+            self.IMU.TorsoPitch = self.IMU.TorsoToFieldRotation.get_pitch_deg()
+            self.IMU.TorsoRoll = self.IMU.TorsoToFieldRotation.get_roll_deg()
 
-            self.imu_torso_inclination = np.arctan(np.sqrt(
-                np.tan(self.imu_torso_roll/180*np.pi)**2+np.tan(self.imu_torso_pitch/180*np.pi)**2))*180/np.pi
+            self.IMU.TorsoInclination = np.arctan(np.sqrt(
+                np.tan(self.IMU.TorsoRoll/180*np.pi)**2+np.tan(self.IMU.TorsoPitch/180*np.pi)**2))*180/np.pi
 
             # Update position and velocity until 0.2 seconds has passed since last visual update
-            if time_local_ms < self.imu_last_visual_update + 200:
-                self.imu_weak_torso_position[:] = self.imu_weak_torso_next_position
-                if self.imu_weak_torso_position[2] < 0:
+            if time_local_ms < self.IMU.LastVisualUpdate + 200:
+                self.IMU.Weak.TorsoPosition[:] = self.IMU.Weak.TorsoNextPosition
+                if self.IMU.Weak.TorsoPosition[2] < 0:
                     # limit z coordinate to positive values
-                    self.imu_weak_torso_position[2] = 0
+                    self.IMU.Weak.TorsoPosition[2] = 0
                 # stability tradeoff
-                self.imu_weak_torso_velocity[:] = self.imu_weak_torso_next_velocity * \
+                self.IMU.Weak.TorsoVelocity[:] = self.IMU.Weak.TorsoNextVelocity * \
                     Robot.IMU_DECAY
             else:
                 # without visual updates for 0.2s, the position is locked, and the velocity decays to zero
-                self.imu_weak_torso_velocity *= 0.97
+                self.IMU.Weak.TorsoVelocity *= 0.97
 
             # convert proper acceleration to coordinate acceleration and fix rounding bias
-            self.imu_weak_torso_acceleration = self.imu_torso_to_field_rotation.multiply(
+            self.IMU.Weak.TorsoAcceleration = self.IMU.TorsoToFieldRotation.multiply(
                 self.acc) + Robot.GRAVITY
-            self.imu_weak_torso_to_field_transform = Matrix_4x4.from_3x3_and_translation(
-                self.imu_torso_to_field_rotation, self.imu_weak_torso_position)
-            self.imu_weak_head_to_field_transform = self.imu_weak_torso_to_field_transform.multiply(
+            self.IMU.Weak.TorsoToFieldTransform = Matrix_4x4.from_3x3_and_translation(
+                self.IMU.TorsoToFieldRotation, self.IMU.Weak.TorsoPosition)
+            self.IMU.Weak.HeadToFieldTransform = self.IMU.Weak.TorsoToFieldTransform.multiply(
                 self.body_parts["torso"].transform.invert())
-            self.imu_weak_field_to_head_transform = self.imu_weak_head_to_field_transform.invert()
-            p = self.imu_weak_head_to_field_transform(
+            self.IMU.Weak.FieldToHeadTransform = self.IMU.Weak.HeadToFieldTransform.invert()
+            p = self.IMU.Weak.HeadToFieldTransform(
                 self.rel_cart_CoM_position)
-            self.imu_weak_CoM_velocity = (
-                p-self.imu_weak_CoM_position)/Robot.STEPTIME
-            self.imu_weak_CoM_position = p
+            self.IMU.Weak.CoMVelocity = (
+                p-self.IMU.Weak.CoMPosition)/Robot.STEPTIME
+            self.IMU.Weak.CoMPosition = p
 
             # Next Position = x0 + v0*t + 0.5*a*t^2,   Next velocity = v0 + a*t
-            self.imu_weak_torso_next_position = self.imu_weak_torso_position + self.imu_weak_torso_velocity * \
-                Robot.STEPTIME + self.imu_weak_torso_acceleration * \
+            self.IMU.Weak.TorsoNextPosition = self.IMU.Weak.TorsoPosition + self.IMU.Weak.TorsoVelocity * \
+                Robot.STEPTIME + self.IMU.Weak.TorsoAcceleration * \
                 (0.5 * Robot.SQ_STEPTIME)
-            self.imu_weak_torso_next_velocity = self.imu_weak_torso_velocity + \
-                self.imu_weak_torso_acceleration * Robot.STEPTIME
+            self.IMU.Weak.TorsoNextVelocity = self.IMU.Weak.TorsoVelocity + \
+                self.IMU.Weak.TorsoAcceleration * Robot.STEPTIME
 
     def set_joints_target_position_direct(
             self,

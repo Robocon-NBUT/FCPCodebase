@@ -26,8 +26,8 @@ class Env:
         self.obs[0] = self.step_counter / 20
         self.obs[1] = r.location.Head.Head_Z * 3
         self.obs[2] = r.location.Head.head_z_vel / 2
-        self.obs[3] = r.imu_torso_roll / 15
-        self.obs[4] = r.imu_torso_pitch / 15
+        self.obs[3] = r.IMU.TorsoRoll / 15
+        self.obs[4] = r.IMU.TorsoPitch / 15
         self.obs[5:8] = r.gyro / 100
         self.obs[8:11] = r.acc / 10
         self.obs[11:17] = r.frp.get("lf", np.zeros(6)) * (10, 10, 10, 0.01, 0.01,
@@ -49,7 +49,7 @@ class Env:
             self.obs[58:61] = ball_rel_hip_center
             self.obs[61] = np.linalg.norm(ball_rel_hip_center) * 2
             self.obs[62] = normalize_deg(
-                self.kick_ori - r.imu_torso_orientation) / 30
+                self.kick_ori - r.IMU.TorsoOrientation) / 30
         return self.obs
 
     def execute(self, action, allow_aerial=True):

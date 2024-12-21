@@ -79,7 +79,7 @@ class Head():
                 ball_dir = vector_angle(w.Ball.RelativeTorsoCartPos[:2])
             else:
                 ball_dir = target_rel_angle(
-                    r.location.Head.Position, r.imu_torso_orientation, w.Ball.AbsolutePos)
+                    r.location.Head.Position, r.IMU.TorsoOrientation, w.Ball.AbsolutePos)
         else:  # ball is very close to robot
             ball_dir = 0
 
@@ -88,7 +88,7 @@ class Head():
         # iterate flags
         for f in Head.FIELD_FLAGS:
             flag_dir = target_rel_angle(
-                r.location.Head.Position, r.imu_torso_orientation, f)
+                r.location.Head.Position, r.IMU.TorsoOrientation, f)
             diff = normalize_deg(flag_dir - ball_dir)
             if abs(diff) < HALF_RANGE and can_self_locate:
                 return ball_dir  # return ball direction if robot can self-locate

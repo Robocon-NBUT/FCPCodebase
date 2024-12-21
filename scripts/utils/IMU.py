@@ -143,20 +143,20 @@ class IMU():
     def update_local_IMU(self, i):
         r = self.player.world.robot
         self.imu_torso_to_field_rotation[i].m[:
-                                              ] = r.imu_torso_to_field_rotation.m
+                                              ] = r.IMU.TorsoToFieldRotation.m
         self.imu_torso_to_field_transform[i].m[:
-                                               ] = r.imu_weak_torso_to_field_transform.m
+                                               ] = r.IMU.Weak.TorsoToFieldTransform.m
         self.imu_head_to_field_transform[i].m[:
-                                              ] = r.imu_weak_head_to_field_transform.m
-        self.imu_torso_position[i][:] = r.imu_weak_torso_position
-        self.imu_torso_velocity[i][:] = r.imu_weak_torso_velocity
-        self.imu_torso_acceleration[i][:] = r.imu_weak_torso_acceleration
+                                              ] = r.IMU.Weak.HeadToFieldTransform.m
+        self.imu_torso_position[i][:] = r.IMU.Weak.TorsoPosition
+        self.imu_torso_velocity[i][:] = r.IMU.Weak.TorsoVelocity
+        self.imu_torso_acceleration[i][:] = r.IMU.Weak.TorsoAcceleration
         self.imu_torso_next_position[i] = self.imu_torso_position[i] + \
             self.imu_torso_velocity[i] * 0.02 + \
             self.imu_torso_acceleration[i] * 0.0002
         self.imu_torso_next_velocity[i] = self.imu_torso_velocity[i] + \
             self.imu_torso_acceleration[i] * 0.02
-        self.imu_CoM_position[i][:] = r.imu_weak_CoM_position
+        self.imu_CoM_position[i][:] = r.IMU.Weak.CoMPosition
 
     def execute(self):
 

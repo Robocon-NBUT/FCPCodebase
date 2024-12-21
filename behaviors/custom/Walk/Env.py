@@ -58,8 +58,8 @@ class Env():
         self.obs[0] = min(self.step_counter, 15*8) / 100
         self.obs[1] = r.location.Head.Head_Z * 3   # z coordinate (torso)
         self.obs[2] = r.location.Head.head_z_vel / 2   # z velocity (torso)
-        self.obs[3] = r.imu_torso_roll / 15   # absolute torso roll  in deg
-        self.obs[4] = r.imu_torso_pitch / 15   # absolute torso pitch in deg
+        self.obs[3] = r.IMU.TorsoRoll / 15   # absolute torso roll  in deg
+        self.obs[4] = r.IMU.TorsoPitch / 15   # absolute torso pitch in deg
         self.obs[5:8] = r.gyro / 100  # gyroscope
         self.obs[8:11] = r.acc / 10   # accelerometer
 

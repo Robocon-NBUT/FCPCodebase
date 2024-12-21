@@ -54,7 +54,7 @@ class Walk():
         if is_target_absolute:
             raw_target = target_2d - r.location.Head.Position[:2]
             self.env.walk_rel_target = rotate_2d_vec(
-                raw_target, -r.imu_torso_orientation)
+                raw_target, -r.IMU.TorsoOrientation)
         else:
             self.env.walk_rel_target = target_2d
 
@@ -69,7 +69,7 @@ class Walk():
                 self.env.walk_rel_target) * 0.3
         elif is_orientation_absolute:
             self.env.walk_rel_orientation = normalize_deg(
-                orientation - r.imu_torso_orientation)
+                orientation - r.IMU.TorsoOrientation)
         else:
             self.env.walk_rel_orientation = orientation * 0.3
 

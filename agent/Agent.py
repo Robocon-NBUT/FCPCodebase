@@ -180,7 +180,7 @@ class Agent(Base_Agent):
         w = self.world
         r = self.world.robot
         my_head_pos_2d = r.location.Head.Position[:2]
-        my_ori = r.imu_torso_orientation
+        my_ori = r.IMU.TorsoOrientation
         ball_2d = w.Ball.AbsolutePos[:2]  # 球的二维坐标
         ball_vec = ball_2d - my_head_pos_2d  # 球相对于机器人头部的位置向量
         ball_dir = vector_angle(ball_vec)  # 球相对于机器人头部的角度
@@ -341,7 +341,7 @@ class Agent(Base_Agent):
         if np.linalg.norm(ball_2d - my_head_pos_2d) < 0.25:
             # fat proxy kick arguments: power [0,10]; relative horizontal angle [-180,180]; vertical angle [0,70]
             self.fat_proxy_cmd += f"(proxy kick 10 {normalize_deg(
-                self.kick_direction - r.imu_torso_orientation):.2f} 20)"
+                self.kick_direction - r.IMU.TorsoOrientation):.2f} 20)"
             self.fat_proxy_walk = np.zeros(3)  # reset fat proxy walk
             return True
         else:
@@ -354,7 +354,7 @@ class Agent(Base_Agent):
 
         target_dist = np.linalg.norm(target_2d - r.location.Head.Position[:2])
         target_dir = target_rel_angle(
-            r.location.Head.Position[:2], r.imu_torso_orientation, target_2d)
+            r.location.Head.Position[:2], r.IMU.TorsoOrientation, target_2d)
 
         if target_dist > 0.1 and abs(target_dir) < 8:
             self.fat_proxy_cmd += (f"(proxy dash {100} {0} {0})")
@@ -363,7 +363,7 @@ class Agent(Base_Agent):
         if target_dist < 0.1:
             if is_orientation_absolute:
                 orientation = normalize_deg(
-                    orientation - r.imu_torso_orientation)
+                    orientation - r.IMU.TorsoOrientation)
             target_dir = np.clip(orientation, -60, 60)
             self.fat_proxy_cmd += (f"(proxy dash {0} {0} {target_dir:.1f})")
         else:

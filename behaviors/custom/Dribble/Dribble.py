@@ -188,7 +188,7 @@ class Dribble():
                     optional_2d_target=dribble_target)[1]
             elif is_orientation_absolute:
                 self.env.dribble_rel_orientation = normalize_deg(
-                    orientation - r.imu_torso_orientation)
+                    orientation - r.IMU.TorsoOrientation)
             else:
                 self.env.dribble_rel_orientation = float(
                     orientation)  # copy if numpy float
