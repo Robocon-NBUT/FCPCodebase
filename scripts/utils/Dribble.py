@@ -50,7 +50,7 @@ class Dribble:
                 behavior.execute("Zero_Bent_Knees")
             else:
                 behavior.execute("Dribble", None, None)
-            d.annotation(r.location.Head.position+(0, 0, 0.2), f"{np.linalg.norm(
+            d.annotation(r.location.Head.Position+(0, 0, 0.2), f"{np.linalg.norm(
                 r.get_head_abs_vel(40)[:2]):.2f}", d.Color.white, "vel_annotation")
             p.server.commit_and_send(r.get_command())
 

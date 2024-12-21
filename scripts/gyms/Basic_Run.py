@@ -77,7 +77,7 @@ class Basic_Run(gym.Env):
 
         # index       observation              naive normalization
         self.obs[0] = self.step_counter / 100  # simple counter: 0,1,2,3...
-        self.obs[1] = r.location.Head.head_z * 3    # z coordinate (torso)
+        self.obs[1] = r.location.Head.Head_Z * 3    # z coordinate (torso)
         self.obs[2] = r.location.Head.head_z_vel / 2    # z velocity (torso)
         self.obs[3] = r.imu_torso_orientation / \
             50   # absolute orientation in deg
@@ -93,9 +93,11 @@ class Basic_Run(gym.Env):
         self.obs[15:18] /= 100  # naive normalization of force vector
         self.obs[21:24] /= 100  # naive normalization of force vector
         # position of all joints except head & toes (for robot type 4)
-        self.obs[24:44] = np.array([joint.position for joint in r.joints[2:22]]) / 100
+        self.obs[24:44] = np.array(
+            [joint.position for joint in r.joints[2:22]]) / 100
         # speed of    all joints except head & toes (for robot type 4)
-        self.obs[44:64] = np.array([joint.speed for joint in r.joints[2:22]]) / 6.1395
+        self.obs[44:64] = np.array(
+            [joint.speed for joint in r.joints[2:22]]) / 6.1395
         # *if foot is not touching the ground, then (px=0,py=0,pz=0,fx=0,fy=0,fz=0)
 
         # the walking parameters refer to the last parameters in effect (after a reset, they are pointless)

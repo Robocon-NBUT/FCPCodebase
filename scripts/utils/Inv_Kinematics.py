@@ -65,7 +65,7 @@ class Inv_Kinematics():
 
     def _draw_labels(self, player: Agent):
         r = player.world.robot
-        robot_pos = r.location.Head.position
+        robot_pos = r.location.Head.Position
         for i, body_part in enumerate(['lankle', 'rankle']):
             pos = r.get_body_part_abs_position(body_part)
             label_rel_pos = np.array([-0.2, (0.5-i), 0])

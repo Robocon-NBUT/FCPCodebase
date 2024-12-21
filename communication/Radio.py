@@ -357,8 +357,8 @@ class Radio:
                     data = self.get_player_position(c, Radio.TP)
                     if isinstance(data, tuple):
                         x, y, is_down = data
-                        r.location.Head.position[:2] = x, y  # 保持z坐标不变
-                        r.location.Head.position_last_update = msg_time
+                        r.location.Head.Position[:2] = x, y  # 保持z坐标不变
+                        r.location.Head.PositionLastUpdate = msg_time
                         r.radio_fallen_state = is_down
                         r.radio_last_update = msg_time
                 continue
@@ -389,5 +389,5 @@ class Radio:
                 ot.state_body_parts_abs_pos = {"head": p}
                 ot.state_abs_pos = p
                 ot.state_horizontal_dist = np.linalg.norm(
-                    p - r.location.Head.position[:2])
+                    p - r.location.Head.Position[:2])
                 ot.state_ground_area = (p, 0.3 if is_down else 0.2)

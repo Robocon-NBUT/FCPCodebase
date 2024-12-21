@@ -55,5 +55,5 @@ class Kick():
 
             if behavior.is_ready("Get_Up"):
                 player.server.unofficial_beam(
-                    (*r.location.Head.position[0:2], r.beam_height), 0)
+                    (*r.location.Head.Position[0:2], r.beam_height), 0)
                 behavior.execute_to_completion("Zero_Bent_Knees")

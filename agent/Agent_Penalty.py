@@ -27,7 +27,7 @@ class Agent(Base_Agent):
         # 获取当前世界和机器人状态
         w = self.world
         r = self.world.robot
-        my_head_pos_2d = r.location.Head.position[:2]
+        my_head_pos_2d = r.location.Head.Position[:2]
         ball_2d = w.Ball.AbsolutePos[:2]
 
         # --------------------------------------- 1. 决策行为

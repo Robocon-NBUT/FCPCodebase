@@ -56,7 +56,7 @@ class Env():
         # index       observation              naive normalization
         # simple counter: 0,1,2,3...
         self.obs[0] = min(self.step_counter, 15*8) / 100
-        self.obs[1] = r.location.Head.head_z * 3   # z coordinate (torso)
+        self.obs[1] = r.location.Head.Head_Z * 3   # z coordinate (torso)
         self.obs[2] = r.location.Head.head_z_vel / 2   # z velocity (torso)
         self.obs[3] = r.imu_torso_roll / 15   # absolute torso roll  in deg
         self.obs[4] = r.imu_torso_pitch / 15   # absolute torso pitch in deg
@@ -92,11 +92,13 @@ class Env():
         self.obs[26:29] = rel_rankle * (8, 8, 5)
         self.obs[29:32] = lf_rot_rel_torso / 20
         self.obs[32:35] = rf_rot_rel_torso / 20
-        self.obs[35:39] = np.array([joint.position for joint in r.joints[14:18]]) / 100
+        self.obs[35:39] = np.array(
+            [joint.position for joint in r.joints[14:18]]) / 100
 
         # velocity
         # predictions == last action
-        self.obs[39:55] = np.array([joint.target_last_speed for joint in r.joints[2:18]])
+        self.obs[39:55] = np.array(
+            [joint.target_last_speed for joint in r.joints[2:18]])
 
         '''
         Expected observations for walking state:

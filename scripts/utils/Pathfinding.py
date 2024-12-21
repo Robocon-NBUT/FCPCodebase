@@ -206,7 +206,7 @@ class Pathfinding:
 
         while True:
             ball = w.Ball.AbsolutePos[:2]
-            rpos = r.location.Head.position[:2]
+            rpos = r.location.Head.Position[:2]
 
             self.move_obstacles(obst)
 

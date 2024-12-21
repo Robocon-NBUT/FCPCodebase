@@ -67,17 +67,17 @@ class World:
     class Ball:
         """足球相关信息"""
         RelativeHeadSphPos = np.zeros(3)  # 相对头部的球的位置（球坐标系）
-        RelativeHeadCartPos = np.zeros(3) # 相对头部的球的位置（直角坐标系）
-        RelativeTorsoCartPos = np.zeros(3) # 相对躯干的球的位置（直角坐标系）
-        RelativeTorsoCartPosHistory = deque(maxlen=20) # 相对躯干的球的位置历史
-        AbsolutePos = np.zeros(3) # 绝对位置
-        AbsolutePosHistory = deque(maxlen=20) # 绝对位置历史
-        AbsolutePosLastUpdate = 0 # 上次更新绝对位置的时间
-        AbsoluteVel = np.zeros(3) # 速度
-        AbsoluteSpeed = 0 # 速度大小
-        IsVisible = False # 是否可见
+        RelativeHeadCartPos = np.zeros(3)  # 相对头部的球的位置（直角坐标系）
+        RelativeTorsoCartPos = np.zeros(3)  # 相对躯干的球的位置（直角坐标系）
+        RelativeTorsoCartPosHistory = deque(maxlen=20)  # 相对躯干的球的位置历史
+        AbsolutePos = np.zeros(3)  # 绝对位置
+        AbsolutePosHistory = deque(maxlen=20)  # 绝对位置历史
+        AbsolutePosLastUpdate = 0  # 上次更新绝对位置的时间
+        AbsoluteVel = np.zeros(3)  # 速度
+        AbsoluteSpeed = 0  # 速度大小
+        IsVisible = False  # 是否可见
         IsFromVision = False
-        LastSeen = 0 # 上次看到球的时间
+        LastSeen = 0  # 上次看到球的时间
         CheatAbsPos = np.zeros(3)
         CheatAbsVel = np.zeros(3)
         Predicted2DPos = np.zeros((1, 2))
@@ -230,7 +230,7 @@ class World:
             distance between current robot position and intersection point
         '''
 
-        params = np.array([*self.robot.location.Head.position[:2],
+        params = np.array([*self.robot.location.Head.Position[:2],
                           player_speed*0.02, *self.Ball.Predicted2DPos.flat], np.float32)
         pred_ret = ball_predictor.get_intersection(params)
         return pred_ret[:2], pred_ret[2]
@@ -308,12 +308,12 @@ class World:
             # Update self in teammates list (only the most useful parameters, add as needed)
             me = self.teammates[r.unum-1]
             me.state_last_update = r.location.last_update
-            me.state_abs_pos = r.location.Head.position
+            me.state_abs_pos = r.location.Head.Position
             # uses same criterion as for other teammates - not as reliable as player.behavior.is_ready("Get_Up")
-            me.state_fallen = r.location.Head.head_z < 0.3
-            me.state_orientation = r.location.Torso.orientation
+            me.state_fallen = r.location.Head.Head_Z < 0.3
+            me.state_orientation = r.location.Torso.Orientation
             # relevant for localization demo
-            me.state_ground_area = (r.location.Head.position[:2], 0.2)
+            me.state_ground_area = (r.location.Head.Position[:2], 0.2)
 
             # Save last ball position to history at every vision cycle (even if not up to date)
             self.Ball.AbsolutePosHistory.appendleft(
@@ -342,11 +342,11 @@ class World:
                     ball = np.array([14, 0, 0.042], float)
 
                 # Discard hard-coded ball position if robot is near that position (in favor of its own vision)
-                if ball is not None and np.linalg.norm(r.location.Head.position[:2] - ball[:2]) < 1:
+                if ball is not None and np.linalg.norm(r.location.Head.Position[:2] - ball[:2]) < 1:
                     ball = None
 
             if ball is None and self.Ball.IsVisible and r.location.is_up_to_date:
-                ball = r.location.Head.to_field_transform(
+                ball = r.location.Head.ToFieldTransform(
                     self.Ball.RelativeHeadCartPos)
                 ball[2] = max(ball[2], 0.042)  # lowest z = ball radius
                 # for compatibility with tests without active soccer rules
@@ -358,7 +358,8 @@ class World:
             if ball is not None:
                 time_diff = (self.time_local_ms -
                              self.Ball.AbsolutePosLastUpdate) / 1000
-                self.Ball.AbsoluteVel = (ball - self.Ball.AbsolutePos) / time_diff
+                self.Ball.AbsoluteVel = (
+                    ball - self.Ball.AbsolutePos) / time_diff
                 self.Ball.AbsoluteSpeed = np.linalg.norm(self.Ball.AbsoluteVel)
                 self.Ball.AbsolutePosLastUpdate = self.time_local_ms
                 self.Ball.AbsolutePos = ball
@@ -379,7 +380,7 @@ class World:
                         # otherwise update its horizontal distance (assuming last known position)
                         elif p.state_abs_pos is not None:
                             p.state_horizontal_dist = np.linalg.norm(
-                                r.location.Head.position[:2] - p.state_abs_pos[:2])
+                                r.location.Head.Position[:2] - p.state_abs_pos[:2])
 
                 for p in self.opponents:
                     if p.is_visible:                  # if opponent is visible, execute full update
@@ -387,11 +388,12 @@ class World:
                     # otherwise update its horizontal distance (assuming last known position)
                     elif p.state_abs_pos is not None:
                         p.state_horizontal_dist = np.linalg.norm(
-                            r.location.Head.position[:2] - p.state_abs_pos[:2])
+                            r.location.Head.Position[:2] - p.state_abs_pos[:2])
 
         # Update prediction of ball position/velocity
         if self.play_mode_group != PlayMode.OTHER:  # not 'play on' nor 'game over', so ball must be stationary
-            self.Ball.Predicted2DPos = self.Ball.AbsolutePos[:2].copy().reshape(1, 2)
+            self.Ball.Predicted2DPos = self.Ball.AbsolutePos[:2].copy().reshape(
+                1, 2)
             self.Ball.Predicted2DVel = np.zeros((1, 2))
             self.Ball.Predicted2DSpeed = np.zeros(1)
 
@@ -404,7 +406,7 @@ class World:
             sample_no = len(pred_ret) // 5 * 2
             self.Ball.Predicted2DPos = pred_ret[:sample_no].reshape(-1, 2)
             self.Ball.Predicted2DVel = pred_ret[sample_no:sample_no *
-                                             2].reshape(-1, 2)
+                                                2].reshape(-1, 2)
             self.Ball.Predicted2DSpeed = pred_ret[sample_no*2:]
 
         # otherwise, advance to next predicted step, if available
@@ -428,7 +430,7 @@ class World:
         o.state_body_parts_abs_pos = o.body_parts_cart_rel_pos.copy()
         for bp, pos in o.body_parts_cart_rel_pos.items():
             # Using the IMU could be beneficial if we see other robots but can't self-locate
-            o.state_body_parts_abs_pos[bp] = r.location.Head.to_field_transform(
+            o.state_body_parts_abs_pos[bp] = r.location.Head.ToFieldTransform(
                 pos, False)
 
         # auxiliary variables
@@ -473,7 +475,7 @@ class World:
 
         # compute robot's horizontal distance (head distance, or avg. distance of visible body parts)
         o.state_horizontal_dist = np.linalg.norm(
-            r.location.Head.position[:2] - o.state_abs_pos[:2])
+            r.location.Head.Position[:2] - o.state_abs_pos[:2])
 
         # compute orientation based on pair of lower arms or feet, or average of both
         lr_vec = None

@@ -24,18 +24,20 @@ class Env:
             self.step_counter = 0
             self.act = np.zeros(16, np.float32)
         self.obs[0] = self.step_counter / 20
-        self.obs[1] = r.location.Head.head_z * 3
+        self.obs[1] = r.location.Head.Head_Z * 3
         self.obs[2] = r.location.Head.head_z_vel / 2
         self.obs[3] = r.imu_torso_roll / 15
         self.obs[4] = r.imu_torso_pitch / 15
         self.obs[5:8] = r.gyro / 100
         self.obs[8:11] = r.acc / 10
         self.obs[11:17] = r.frp.get("lf", np.zeros(6)) * (10, 10, 10, 0.01, 0.01,
-                                                            0.01)
+                                                          0.01)
         self.obs[17:23] = r.frp.get("rf", np.zeros(6)) * (10, 10, 10, 0.01, 0.01,
-                                                            0.01)
-        self.obs[23:39] = np.array([joint.position for joint in r.joints[2:18]]) / 100
-        self.obs[39:55] = np.array([joint.speed for joint in r.joints[2:18]]) / 6.1395
+                                                          0.01)
+        self.obs[23:39] = np.array(
+            [joint.position for joint in r.joints[2:18]]) / 100
+        self.obs[39:55] = np.array(
+            [joint.speed for joint in r.joints[2:18]]) / 6.1395
         ball_rel_hip_center = self.agent.inv_kinematics.torso_to_hip_transform(
             w.Ball.RelativeTorsoCartPos)
         if init:
@@ -70,7 +72,7 @@ class Env:
             r.joints[7].target_speed += 3
             r.joints[9].target_speed += 3
             r.joints[11].target_speed -= 1
-    
+
             if not allow_aerial:
                 r.joints[7].target_speed = np.clip(
                     r.joints[7].target_speed, -10, 5)

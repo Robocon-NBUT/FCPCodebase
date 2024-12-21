@@ -48,7 +48,7 @@ class Env():
         # index       observation              naive normalization
         # simple counter: 0,1,2,3...
         self.obs[0] = min(self.step_counter, 12*8) / 100
-        self.obs[1] = r.location.Head.head_z * 3    # z coordinate (torso)
+        self.obs[1] = r.location.Head.Head_Z * 3    # z coordinate (torso)
         self.obs[2] = r.location.Head.head_z_vel / 2    # z velocity (torso)
         self.obs[3] = r.imu_torso_roll / 15   # absolute torso roll  in deg
         self.obs[4] = r.imu_torso_pitch / 15   # absolute torso pitch in deg
@@ -64,9 +64,11 @@ class Env():
         # *if foot is not touching the ground, then (px=0,py=0,pz=0,fx=0,fy=0,fz=0)
 
         # position of all joints except head & toes (for robot type 4)
-        self.obs[23:43] = np.array([joint.position for joint in r.joints[2:22]]) / 100
+        self.obs[23:43] = np.array(
+            [joint.position for joint in r.joints[2:22]]) / 100
         # speed of    all joints except head & toes (for robot type 4)
-        self.obs[43:63] = np.array([joint.speed for joint in r.joints[2:22]]) / 6.1395
+        self.obs[43:63] = np.array(
+            [joint.speed for joint in r.joints[2:22]]) / 6.1395
 
         '''
         Expected observations for walking state:

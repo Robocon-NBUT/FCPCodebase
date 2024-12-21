@@ -31,22 +31,23 @@ class Location:
     last_update = 0  # 定位的最后更新时间（单位：World.time_local_ms）
     com_position = np.zeros(3)  # 质心的绝对位置（单位：米）
     com_velocity = np.zeros(3)  # 质心的绝对速度（单位：米/秒）
+
     class Head:
         """
         相对于头部的定位变量
         """
-        to_field_transform = Matrix_4x4()  # 从头部到场地的变换矩阵
-        from_field_transform = Matrix_4x4()  # 从场地到头部的变换矩阵
-        rotation_to_field = Matrix_3x3()  # 从头部到场地的旋转矩阵
-        rotation_from_field = Matrix_3x3()  # 从场地到头部的旋转矩阵
-        position = np.zeros(3)  # 头部的绝对位置（单位：米）
+        ToFieldTransform = Matrix_4x4()  # 从头部到场地的变换矩阵
+        FromFieldTransform = Matrix_4x4()  # 从场地到头部的变换矩阵
+        RotationToField = Matrix_3x3()  # 从头部到场地的旋转矩阵
+        RotationFromField = Matrix_3x3()  # 从场地到头部的旋转矩阵
+        Position = np.zeros(3)  # 头部的绝对位置（单位：米）
         # 头部的绝对位置历史（最多保存40个旧位置，时间间隔为0.04秒，索引0为上一个位置）
-        position_history = deque(maxlen=40)
-        velocity = np.zeros(3)  # 头部的绝对速度（单位：米/秒，注意：可能有噪声）
-        orientation = 0  # 头部的方向（单位：度）
-        position_last_update = 0
+        PositionHistory = deque(maxlen=40)
+        Velocity = np.zeros(3)  # 头部的绝对速度（单位：米/秒，注意：可能有噪声）
+        Orientation = 0  # 头部的方向（单位：度）
+        PositionLastUpdate = 0
 
-        head_z = 0  # 头部的绝对z坐标（单位：米），见上面的解释
+        Head_Z = 0  # 头部的绝对z坐标（单位：米），见上面的解释
         head_z_is_up_to_date = False  # 如果这不是视觉步，或可见的元素不足，则为False
         head_z_last_update = 0  # 最后计算head_z的时间（单位：World.time_local_ms）
         head_z_vel = 0  # 头部的绝对z速度（单位：米/秒）
@@ -55,15 +56,15 @@ class Location:
         """
         相对于躯干的定位变量
         """
-        to_field_rotation = Matrix_3x3()  # 从躯干到场地的旋转矩阵
-        to_field_transform = Matrix_4x4()  # 从躯干到场地的变换矩阵
-        roll = 0  # 躯干的横滚角度（单位：度）
-        pitch = 0  # 躯干的俯仰角度（单位：度）
-        orientation = 0  # 躯干的方向（单位：度）
-        inclination = 0  # 躯干的倾斜角度（单位：度）（躯干z轴相对于场地z轴的倾斜角度）
-        position = np.zeros(3)  # 躯干的绝对位置（单位：米）
-        velocity = np.zeros(3)  # 躯干的绝对速度（单位：米/秒）
-        acceleration = np.zeros(3)  # 躯干的绝对加速度（单位：米/秒²）
+        ToFieldRotation = Matrix_3x3()  # 从躯干到场地的旋转矩阵
+        ToFieldTransform = Matrix_4x4()  # 从躯干到场地的变换矩阵
+        Roll = 0  # 躯干的横滚角度（单位：度）
+        Pitch = 0  # 躯干的俯仰角度（单位：度）
+        Orientation = 0  # 躯干的方向（单位：度）
+        Inclination = 0  # 躯干的倾斜角度（单位：度）（躯干z轴相对于场地z轴的倾斜角度）
+        Position = np.zeros(3)  # 躯干的绝对位置（单位：米）
+        Velocity = np.zeros(3)  # 躯干的绝对速度（单位：米/秒）
+        Acceleration = np.zeros(3)  # 躯干的绝对加速度（单位：米/秒²）
 
 
 class Robot:
@@ -223,13 +224,13 @@ class Robot:
         '''
         assert 1 <= history_steps <= 40, "Argument 'history_steps' must be in range [1,40]"
 
-        if len(self.location.Head.position_history) == 0:
+        if len(self.location.Head.PositionHistory) == 0:
             return np.zeros(3)
 
-        h_step = min(history_steps, len(self.location.Head.position_history))
+        h_step = min(history_steps, len(self.location.Head.PositionHistory))
         t = h_step * Robot.VISUALSTEP
 
-        return (self.location.Head.position - self.location.Head.position_history[h_step-1]) / t
+        return (self.location.Head.Position - self.location.Head.PositionHistory[h_step-1]) / t
 
     def _initialize_kinematics(self):
 
@@ -268,51 +269,56 @@ class Robot:
         self.location.Head.head_z_is_up_to_date = bool(loc[34])
 
         if self.location.Head.head_z_is_up_to_date:
-            time_diff = (time_local_ms - self.location.Head.head_z_last_update) / 1000
-            self.location.Head.head_z_vel = (loc[33] - self.location.Head.head_z) / time_diff
-            self.location.Head.head_z = loc[33]
+            time_diff = (time_local_ms -
+                         self.location.Head.head_z_last_update) / 1000
+            self.location.Head.head_z_vel = (
+                loc[33] - self.location.Head.Head_Z) / time_diff
+            self.location.Head.Head_Z = loc[33]
             self.location.Head.head_z_last_update = time_local_ms
 
         # Save last position to history at every vision cycle (even if not up to date) (update_localization is only called at vision cycles)
-        self.location.Head.position_history.appendleft(
-            np.copy(self.location.Head.position))
+        self.location.Head.PositionHistory.appendleft(
+            np.copy(self.location.Head.Position))
 
         if self.location.is_up_to_date:
             time_diff = (time_local_ms - self.location.last_update) / 1000
             self.location.last_update = time_local_ms
-            self.location.Head.to_field_transform.m[:] = loc[0:16].reshape(
+            self.location.Head.ToFieldTransform.m[:] = loc[0:16].reshape(
                 (4, 4))
-            self.location.Head.from_field_transform.m[:] = loc[16:32].reshape(
+            self.location.Head.FromFieldTransform.m[:] = loc[16:32].reshape(
                 (4, 4))
 
             # extract data (related to the robot's head)
-            self.location.Head.rotation_to_field = self.location.Head.to_field_transform.get_rotation()
-            self.location.Head.rotation_from_field = self.location.Head.from_field_transform.get_rotation()
-            p = self.location.Head.to_field_transform.get_translation()
-            self.location.Head.velocity = (p - self.location.Head.position) / time_diff
-            self.location.Head.position = p
-            self.location.Head.position_last_update = time_local_ms
-            self.location.Head.orientation = self.location.Head.to_field_transform.get_yaw_deg()
+            self.location.Head.RotationToField = self.location.Head.ToFieldTransform.get_rotation()
+            self.location.Head.RotationFromField = self.location.Head.FromFieldTransform.get_rotation()
+            p = self.location.Head.ToFieldTransform.get_translation()
+            self.location.Head.Velocity = (
+                p - self.location.Head.Position) / time_diff
+            self.location.Head.Position = p
+            self.location.Head.PositionLastUpdate = time_local_ms
+            self.location.Head.Orientation = self.location.Head.ToFieldTransform.get_yaw_deg()
             self.radio_fallen_state = False
 
             # extract data (related to the center of mass)
-            p = self.location.Head.to_field_transform(
+            p = self.location.Head.ToFieldTransform(
                 self.rel_cart_CoM_position)
-            self.location.com_velocity = (p - self.location.com_position) / time_diff
+            self.location.com_velocity = (
+                p - self.location.com_position) / time_diff
             self.location.com_position = p
 
             # extract data (related to the robot's torso)
             t = self.get_body_part_to_field_transform('torso')
-            self.location.Torso.to_field_transform = t
-            self.location.Torso.to_field_rotation = t.get_rotation()
-            self.location.Torso.orientation = t.get_yaw_deg()
-            self.location.Torso.pitch = t.get_pitch_deg()
-            self.location.Torso.roll = t.get_roll_deg()
-            self.location.Torso.inclination = t.get_inclination_deg()
+            self.location.Torso.ToFieldTransform = t
+            self.location.Torso.ToFieldRotation = t.get_rotation()
+            self.location.Torso.Orientation = t.get_yaw_deg()
+            self.location.Torso.Pitch = t.get_pitch_deg()
+            self.location.Torso.Roll = t.get_roll_deg()
+            self.location.Torso.Inclination = t.get_inclination_deg()
             p = t.get_translation()
-            self.location.Torso.velocity = (p - self.location.Torso.position) / time_diff
-            self.location.Torso.position = p
-            self.location.Torso.acceleration = self.location.Torso.to_field_rotation.multiply(
+            self.location.Torso.Velocity = (
+                p - self.location.Torso.Position) / time_diff
+            self.location.Torso.Position = p
+            self.location.Torso.Acceleration = self.location.Torso.ToFieldRotation.multiply(
                 self.acc) + Robot.GRAVITY
 
     def head_to_body_part_transform(self, body_part_name, coords, is_batch=False):
@@ -351,7 +357,7 @@ class Robot:
         For best results, use this method when self.loc_is_up_to_date is True. Otherwise, the forward kinematics
         will not be synced with the localization data and strange results may occur.
         '''
-        return self.location.Head.to_field_transform.multiply(self.body_parts[body_part_name].transform)
+        return self.location.Head.ToFieldTransform.multiply(self.body_parts[body_part_name].transform)
 
     def get_body_part_abs_position(self, body_part_name) -> np.ndarray:
         '''
@@ -367,7 +373,7 @@ class Robot:
         For best results, use this method when self.loc_is_up_to_date is True. Otherwise, the forward kinematics
         will not be synced with the localization data and strange results may occur.
         '''
-        return self.location.Head.to_field_transform.multiply(self.joints[joint_index].transform)
+        return self.location.Head.ToFieldTransform.multiply(self.joints[joint_index].transform)
 
     def get_joint_abs_position(self, joint_index) -> np.ndarray:
         '''
@@ -398,26 +404,27 @@ class Robot:
 
         # update IMU
         if self.location.is_up_to_date:
-            self.imu_torso_roll = self.location.Torso.roll
-            self.imu_torso_pitch = self.location.Torso.pitch
-            self.imu_torso_orientation = self.location.Torso.orientation
-            self.imu_torso_inclination = self.location.Torso.inclination
+            self.imu_torso_roll = self.location.Torso.Roll
+            self.imu_torso_pitch = self.location.Torso.Pitch
+            self.imu_torso_orientation = self.location.Torso.Orientation
+            self.imu_torso_inclination = self.location.Torso.Inclination
             self.imu_torso_to_field_rotation.m[:
-                                               ] = self.location.Torso.to_field_rotation.m
+                                               ] = self.location.Torso.ToFieldRotation.m
             self.imu_weak_torso_to_field_transform.m[:
-                                                     ] = self.location.Torso.to_field_transform.m
+                                                     ] = self.location.Torso.ToFieldTransform.m
             self.imu_weak_head_to_field_transform.m[:
-                                                    ] = self.location.Head.to_field_transform.m
+                                                    ] = self.location.Head.ToFieldTransform.m
             self.imu_weak_field_to_head_transform.m[:
-                                                    ] = self.location.Head.from_field_transform.m
-            self.imu_weak_torso_position[:] = self.location.Torso.position
-            self.imu_weak_torso_velocity[:] = self.location.Torso.velocity
-            self.imu_weak_torso_acceleration[:] = self.location.Torso.acceleration
-            self.imu_weak_torso_next_position = self.location.Torso.position + self.location.Torso.velocity * \
-                Robot.STEPTIME + self.location.Torso.acceleration * \
+                                                    ] = self.location.Head.FromFieldTransform.m
+            self.imu_weak_torso_position[:] = self.location.Torso.Position
+            self.imu_weak_torso_velocity[:] = self.location.Torso.Velocity
+            self.imu_weak_torso_acceleration[:
+                                             ] = self.location.Torso.Acceleration
+            self.imu_weak_torso_next_position = self.location.Torso.Position + self.location.Torso.Velocity * \
+                Robot.STEPTIME + self.location.Torso.Acceleration * \
                 (0.5 * Robot.SQ_STEPTIME)
-            self.imu_weak_torso_next_velocity = self.location.Torso.velocity + \
-                self.location.Torso.acceleration * Robot.STEPTIME
+            self.imu_weak_torso_next_velocity = self.location.Torso.Velocity + \
+                self.location.Torso.Acceleration * Robot.STEPTIME
             self.imu_weak_CoM_position[:] = self.location.com_position
             self.imu_weak_CoM_velocity[:] = self.location.com_velocity
             self.imu_last_visual_update = time_local_ms

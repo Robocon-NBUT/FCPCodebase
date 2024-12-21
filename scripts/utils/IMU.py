@@ -132,7 +132,7 @@ class IMU():
         g = r.gyro / 50  # convert degrees per second to degrees per step
         self.imu_torso_to_field_rotation[1].multiply(
             Matrix_3x3.from_rotation_deg(g), in_place=True, reverse_order=True)
-        self.imu_torso_position[1][:] = r.location.Torso.position
+        self.imu_torso_position[1][:] = r.location.Torso.Position
         self.imu_torso_to_field_transform[1] = Matrix_4x4.from_3x3_and_translation(
             self.imu_torso_to_field_rotation[1], self.imu_torso_position[1])
         self.imu_head_to_field_transform[1] = self.imu_torso_to_field_transform[1].multiply(
