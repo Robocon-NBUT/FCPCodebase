@@ -11,9 +11,10 @@ from behaviors.behavior_core import BehaviorCore
 class Behavior:
     "行为类"
 
-    def __init__(self, world: World, server: Server) -> None:
-        self.world = world
-        self.server = server
+    def __init__(self, base_agent) -> None:
+        self.base_agent = base_agent
+        self.world = base_agent.world
+        self.server = base_agent.server
         self.state_behavior_name = None
         self.state_behavior_init_ms = 0
         self.previous_behavior = None
@@ -23,16 +24,16 @@ class Behavior:
         self.head = Head(self.world)
         self.slot_engine = Slot_Engine(self.world)
 
-        self.behaviors = self.create_behaviors()
+        self.behaviors = {}
         self.objects = {}
 
     def create_behaviors(self) -> dict[str, BehaviorCore]:
         "创建行为"
-        behaviors = {}
-        behaviors.update(self.poses.get_behaviors_callbacks())
-        behaviors.update(self.slot_engine.get_behaviors_callbacks())
-        behaviors.update(self.get_custom_callbacks())
-        return behaviors
+        self.behaviors = {}
+        self.behaviors.update(self.poses.get_behaviors_callbacks())
+        self.behaviors.update(self.slot_engine.get_behaviors_callbacks())
+        self.behaviors.update(self.get_custom_callbacks())
+        return self.behaviors
 
     def get_custom_callbacks(self) -> dict[str, BehaviorCore]:
         "获取自定义行为"
@@ -47,7 +48,7 @@ class Behavior:
         from behaviors.custom.Kick_Long.Kick_Long import Kick_Long
         classes = [Basic_Kick, Dribble, Fall, Get_Up, Step, Walk, Kick_Long]
 
-        self.objects = {cls.__name__: cls(self.world) for cls in classes}
+        self.objects = {cls.__name__: cls(self.base_agent) for cls in classes}
 
         return {
             name:

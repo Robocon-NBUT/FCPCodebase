@@ -27,8 +27,9 @@ class Base_Agent:
         self.server = Server(host, agent_port, monitor_port, unum, robot_type, team_name,
                              self.world_parser, self.world, Base_Agent.all_agents, wait_for_server)
         self.inv_kinematics = Inverse_Kinematics(self.world.robot)
-        self.behavior = Behavior(self.world, self.server)
+        self.behavior = Behavior(self)
         self.path_manager = Path_Manager(self.world)
+        self.behavior.create_behaviors()
         self.radio = Radio(self.world, self.server.commit_announcement)
         Base_Agent.all_agents.append(self)
 
