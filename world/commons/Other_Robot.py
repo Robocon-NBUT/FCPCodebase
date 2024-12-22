@@ -5,8 +5,8 @@ import numpy as np
 #      we see 1 body part  at 1 seconds -> body_parts_cart_rel_pos contains 1 element
 
 
-class Other_Robot():
-    def __init__(self, unum, is_teammate) -> None:
+class Other_Robot:
+    def __init__(self, unum: int, is_teammate: bool) -> None:
         # convenient variable to indicate uniform number (same as other robot's index + 1)
         self.unum = unum
         self.is_self = False            # convenient flag to indicate if this robot is self

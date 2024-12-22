@@ -22,26 +22,30 @@ class Script:
         - In other modules, these arguments can be accessed by their 1-letter ID
         '''
         # list of arguments: 1-letter ID, Description, Hardcoded default
-        self.options = {'i': ('Server Hostname/IP', 'localhost'),
-                        'p': ('Agent Port',         '3100'),
-                        'm': ('Monitor Port',       '3200'),
-                        't': ('Team Name',          'FCPortugal'),
-                        'u': ('Uniform Number',     '1'),
-                        'r': ('Robot Type',         '1'),
-                        'P': ('Penalty Shootout',   '0'),
-                        'F': ('magmaFatProxy',      '0'),
-                        'D': ('Debug Mode',         '1')}
+        self.options = {
+            'i': ('Server Hostname/IP', 'localhost'),
+            'p': ('Agent Port',         '3100'),
+            'm': ('Monitor Port',       '3200'),
+            't': ('Team Name',          'FCPortugal'),
+            'u': ('Uniform Number',     '1'),
+            'r': ('Robot Type',         '1'),
+            'P': ('Penalty Shootout',   '0'),
+            'F': ('magmaFatProxy',      '0'),
+            'D': ('Debug Mode',         '1')
+        }
 
         # list of arguments: 1-letter ID, data type, choices
-        self.op_types = {'i': (str, None),
-                         'p': (int, None),
-                         'm': (int, None),
-                         't': (str, None),
-                         'u': (int, range(1, 12)),
-                         'r': (int, [0, 1, 2, 3, 4]),
-                         'P': (int, [0, 1]),
-                         'F': (int, [0, 1]),
-                         'D': (int, [0, 1])}
+        self.op_types = {
+            'i': (str, None),
+            'p': (int, None),
+            'm': (int, None),
+            't': (str, None),
+            'u': (int, range(1, 12)),
+            'r': (int, [0, 1, 2, 3, 4]),
+            'P': (int, [0, 1]),
+            'F': (int, [0, 1]),
+            'D': (int, [0, 1])
+        }
 
         '''
         End of arguments specification
@@ -82,8 +86,9 @@ class Script:
                 columns[1].append(o[key][1])
                 columns[2].append(value)
 
-            UI.print_table(columns, [
-                           "Argument", "Default at /config.json", "Active"], alignment=["<", "^", "^"])
+            UI.print_table(
+                columns,
+                ["Argument", "Default at /config.json", "Active"], alignment=["<", "^", "^"])
 
     def read_or_create_config(self) -> None:
 
@@ -138,7 +143,7 @@ class Script:
             try:
                 process = subprocess.Popen(
                     special_environment_prefix+[python_cmd, "-m", "pybind11", "--includes"], stdout=subprocess.PIPE)
-                (includes, err) = process.communicate()
+                (includes, _) = process.communicate()
                 process.wait()
             except:
                 print(f"Error while executing child program: '{python_cmd} -m pybind11 --includes'")

@@ -1,10 +1,9 @@
-
+from time import sleep
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Script import Script
-from time import sleep
 
 
-class Beam():
+class Beam:
     def __init__(self, script: Script) -> None:
         self.script = script
 

@@ -1,10 +1,10 @@
+import numpy as np
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Script import Script
 from world.commons.Draw import Draw
-import numpy as np
 
 
-class Fwd_Kinematics():
+class Fwd_Kinematics:
 
     def __init__(self, script: Script) -> None:
         self.script = script
@@ -22,7 +22,8 @@ class Fwd_Kinematics():
             for p in self.script.players:
                 if p.world.vision_is_up_to_date and not p.world.robot.location.is_up_to_date:
                     p.world.draw.annotation(
-                        p.world.robot.cheat_abs_pos, "Not enough visual data! Using IMU", Draw.Color.red, "localization")
+                        p.world.robot.cheat_abs_pos,
+                        "Not enough visual data! Using IMU", Draw.Color.red, "localization")
 
                 for key, val in p.world.robot.body_parts.items():
                     rp = val.transform.get_translation()
@@ -65,7 +66,8 @@ class Fwd_Kinematics():
             for p in self.script.players:
                 if p.world.vision_is_up_to_date and not p.world.robot.location.is_up_to_date:
                     p.world.draw.annotation(
-                        p.world.robot.cheat_abs_pos, "Not enough visual data! Using IMU", Draw.Color.red, "localization")
+                        p.world.robot.cheat_abs_pos,
+                        "Not enough visual data! Using IMU", Draw.Color.red, "localization")
 
                 zstep = 0.05
                 label_z = [0, 0, 0, 0, zstep, zstep, 2*zstep, 2*zstep, 0, 0, 0, 0, zstep,
@@ -123,7 +125,8 @@ class Fwd_Kinematics():
 
         a = self.script.args
 
-        # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw
+        # Args: Server IP, Agent Port, Monitor Port, Uniform No.,
+        # Robot Type, Team Name, Enable Log, Enable Draw
         self.script.batch_create(
             Agent, ((a.i, a.p, a.m, u, u-1, a.t, True, True) for u in range(1, 6)))
 

@@ -1,10 +1,10 @@
-from agent.Agent import Agent
 from itertools import count
+from agent.Agent import Agent
 from scripts.commons.Script import Script
 from world.commons.Draw import Draw
 
 
-class Radio_Localization():
+class Radio_Localization:
     def __init__(self, script: Script) -> None:
         self.script = script
 
@@ -19,7 +19,8 @@ class Radio_Localization():
         # VISUALSTEP_MS is the time it takes to get a visual update
         is_current = last_update > w.time_local_ms - w.VISUALSTEP_MS
 
-        # 0.12s is the time it takes to do a full broadcast with all positions if every group is completely visible
+        # 0.12s is the time it takes to do a full broadcast with all positions
+        # if every group is completely visible
         # here we use >= instead of > because the radio message comes with a delay of 20ms
         is_recent = last_update >= w.time_local_ms - 120
 
@@ -28,10 +29,12 @@ class Radio_Localization():
         elif is_recent and was_seen:
             c = d.Color.green        # I've seen this object in the last 0.12s
         elif is_current:
-            # I've heard about this object in the current or previous time step (and it was not seen in the same period)
+            # I've heard about this object in the current or previous time step
+            # (and it was not seen in the same period)
             c = d.Color.yellow
         elif is_recent:
-            # I've heard about this object in the last 0.12s (the last available info was not obtained from vision)
+            # I've heard about this object in the last 0.12s
+            # (the last available info was not obtained from vision)
             c = d.Color.yellow_light
         else:
             c = d.Color.red          # I haven't seen or heard about this object in the last 0.12s
@@ -55,7 +58,7 @@ class Radio_Localization():
         w = p.world
         others = w.teammates + w.opponents
 
-        # ----------------------------------------------------------- draw other players
+        #  draw other players
 
         for o in others:
             if o.is_self or o.state_last_update == 0:  # do not draw self or never before seen players
@@ -68,13 +71,13 @@ class Radio_Localization():
 
             self.draw_objects(p, pos, is_down, is_3D, o.state_last_update)
 
-        # ----------------------------------------------------------- draw self
+        #  draw self
 
         is_pos_from_vision = w.robot.location.Head.PositionLastUpdate == w.robot.location.last_update
         self.draw_objects(p, None, None, is_pos_from_vision,
                           w.robot.location.Head.PositionLastUpdate, True)
 
-        # ----------------------------------------------------------- draw ball and flush drawings
+        #  draw ball and flush drawings
 
         self.draw_objects(p, w.Ball.AbsolutePos, False,
                           w.Ball.IsFromVision, w.Ball.AbsolutePosLastUpdate)

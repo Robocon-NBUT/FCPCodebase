@@ -3,7 +3,7 @@ import numpy as np
 from math_ops.math_ext import to_3d
 
 
-class Draw():
+class Draw:
     _socket = None
 
     def __init__(self, is_enabled: bool, unum: int, host: str, port: int) -> None:

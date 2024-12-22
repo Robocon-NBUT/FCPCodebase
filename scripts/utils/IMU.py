@@ -2,12 +2,18 @@
 Objective:
 ----------
 Demonstrate the accuracy of the IMU
-Robot.imu_(...) variables are based on the visual localizer algorithm and the IMU when no visual data is available.
-If visual data is not available for longer than 0.2 seconds, the robot's position is frozen and the velocity decays to zero.
-The rotation computed by the IMU is so accurate that it is never frozen, no matter how long the robot goes without visual data.
+Robot.imu_(...) variables are based on the visual localizer algorithm
+and the IMU when no visual data is available.
+If visual data is not available for longer than 0.2 seconds,
+the robot's position is frozen and the velocity decays to zero.
+The rotation computed by the IMU is so accurate that it is never frozen,
+no matter how long the robot goes without visual data.
 It is almost always safe to use IMU data for rotation.
-Known issues: the accelerometer is not reliable in the presence of "instant" acceleration peaks, due to its low sample rate (50Hz)
-              this limitation impacts the translation estimation during crashes (e.g. falling, crashing against other players)
+Known issues: 
+the accelerometer is not reliable in the presence of "instant" acceleration peaks,
+due to its low sample rate (50Hz) 
+this limitation impacts the translation estimation during crashes
+(e.g. falling, crashing against other players)
 '''
 import numpy as np
 
@@ -19,7 +25,7 @@ from world.commons.Draw import Draw
 from world.Robot import Robot
 
 
-class IMU():
+class IMU:
 
     def __init__(self, script: Script) -> None:
         self.script = script
@@ -83,19 +89,19 @@ class IMU():
         yvec = self.imu_torso_to_field_rotation[i].multiply((0, 1, 0)) + pos
         zvec = self.imu_torso_to_field_rotation[i].multiply((0, 0, 1)) + pos
         self.player.world.draw.arrow(
-            pos, xvec, 0.2, 2, self.colors[i], "IMU"+str(i), False)
+            pos, xvec, 0.2, 2, self.colors[i], f"IMU{i}", False)
         self.player.world.draw.arrow(
-            pos, yvec, 0.2, 2, self.colors[i], "IMU"+str(i), False)
+            pos, yvec, 0.2, 2, self.colors[i], f"IMU{i}", False)
         self.player.world.draw.arrow(
-            pos, zvec, 0.2, 2, self.colors[i], "IMU"+str(i), False)
+            pos, zvec, 0.2, 2, self.colors[i], f"IMU{i}", False)
         self.player.world.draw.annotation(
-            xvec, "x", Draw.Color.white, "IMU"+str(i), False)
+            xvec, "x", Draw.Color.white, f"IMU{i}", False)
         self.player.world.draw.annotation(
-            yvec, "y", Draw.Color.white, "IMU"+str(i), False)
+            yvec, "y", Draw.Color.white, f"IMU{i}", False)
         self.player.world.draw.annotation(
-            zvec, "z", Draw.Color.white, "IMU"+str(i), False)
+            zvec, "z", Draw.Color.white, f"IMU{i}", False)
         self.player.world.draw.sphere(
-            self.imu_CoM_position[i], 0.04, self.colors[i], "IMU"+str(i), True)
+            self.imu_CoM_position[i], 0.04, self.colors[i], f"IMU{i}", True)
 
     def compute_local_IMU(self):
         r = self.player.world.robot

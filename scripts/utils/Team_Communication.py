@@ -26,7 +26,7 @@ from scripts.commons.Script import Script
 from agent.Base_Agent import Base_Agent as Agent
 
 
-class Team_Communication():
+class Team_Communication:
 
     def __init__(self, script: Script) -> None:
         self.script = script

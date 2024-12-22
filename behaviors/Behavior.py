@@ -1,44 +1,41 @@
-import numpy as np
+"Behavior"
+from world.World import World
+from communication.server import Server
+
+from behaviors.Poses import Poses
+from behaviors.Head import Head
+from behaviors.Slot_Engine import Slot_Engine
+from behaviors.behavior_core import BehaviorCore
 
 
-class Behavior():
+class Behavior:
+    "行为类"
 
-    def __init__(self, base_agent) -> None:
-        from agent.Base_Agent import Base_Agent  # for type hinting
-        self.base_agent: Base_Agent = base_agent
-        self.world = self.base_agent.world
+    def __init__(self, world: World, server: Server) -> None:
+        self.world = world
+        self.server = server
         self.state_behavior_name = None
         self.state_behavior_init_ms = 0
         self.previous_behavior = None
-        self.previous_behavior_duration = None
-
-        # Initialize standard behaviors
-        from behaviors.Poses import Poses
-        from behaviors.Slot_Engine import Slot_Engine
-        from behaviors.Head import Head
+        self.previous_behavior_duration = 0
 
         self.poses = Poses(self.world)
-        self.slot_engine = Slot_Engine(self.world)
         self.head = Head(self.world)
+        self.slot_engine = Slot_Engine(self.world)
 
-    def create_behaviors(self):
-        '''
-        Behaviors dictionary:
-            creation:   key: ( description, auto_head, lambda reset[,a,b,c,..]: self.execute(...), lambda: self.is_ready(...) )
-            usage:      key: ( description, auto_head, execute_func(reset, *args), is_ready_func )
-        '''
-        self.behaviors = self.poses.get_behaviors_callbacks()
-        self.behaviors.update(self.slot_engine.get_behaviors_callbacks())
-        self.behaviors.update(self.get_custom_callbacks())
+        self.behaviors = self.create_behaviors()
+        self.objects = {}
 
-    def get_custom_callbacks(self):
-        '''
-        可实现自动搜索自定义行为
-        然而，对于代码分发(code distribution)，动态导入代码的做法并不理想（除非我们导入字节码或是选择其他导入方案）
-        目前：添加自定义行为是一个手动的加载过程：
-            1. 在下方添加 import 语句
-            2. 将自定义的动作类(class) 添加到 `classes` 列表中
-        '''
+    def create_behaviors(self) -> dict[str, BehaviorCore]:
+        "创建行为"
+        behaviors = {}
+        behaviors.update(self.poses.get_behaviors_callbacks())
+        behaviors.update(self.slot_engine.get_behaviors_callbacks())
+        behaviors.update(self.get_custom_callbacks())
+        return behaviors
+
+    def get_custom_callbacks(self) -> dict[str, BehaviorCore]:
+        "获取自定义行为"
 
         # Declaration of behaviors
         from behaviors.custom.Basic_Kick.Basic_Kick import Basic_Kick
@@ -50,40 +47,42 @@ class Behavior():
         from behaviors.custom.Kick_Long.Kick_Long import Kick_Long
         classes = [Basic_Kick, Dribble, Fall, Get_Up, Step, Walk, Kick_Long]
 
-        '''---- End of manual declarations ----'''
+        self.objects = {cls.__name__: cls(self.world) for cls in classes}
 
-        # Prepare callbacks
-        self.objects = {cls.__name__: cls(self.base_agent) for cls in classes}
+        return {
+            name:
+            BehaviorCore(
+                name, obj.description, obj.auto_head,
+                lambda reset, *args, obj=obj: obj.execute(reset, *args),
+                lambda *args, obj=obj: obj.is_ready(*args))
+            for name, obj in self.objects.items()
+        }
 
-        return {name: (o.description, o.auto_head,
-                       lambda reset, *args, o=o: o.execute(reset, *args),
-                       lambda *args, o=o: o.is_ready(*args)) for name, o in self.objects.items()}
-
-    def get_custom_behavior_object(self, name):
-        ''' Get unique object from class "name" ("name" must represent a custom behavior) '''
-        assert name in self.objects, f"There is no custom behavior called {
-            name}"
+    def get_custom_behavior_object(self, name: str):
+        "获取自定义行为对象"
         return self.objects[name]
 
-    def get_all_behaviors(self):
-        ''' Get name and description of all behaviors '''
-        return [key for key in self.behaviors], [val[0] for val in self.behaviors.values()]
+    def get_all_behaviors(self) -> list[list[str], list[str]]:
+        "获取所有行为名称和描述"
+        return [
+            list(self.behaviors.keys()),
+            [behavior.Description for behavior in self.behaviors.values()]]
 
-    def get_current(self):
-        ''' Get name and duration (in seconds) of current behavior '''
+    def get_current(self) -> str:
+        "Get name and duration (in seconds) of current behavior"
         duration = (self.world.time_local_ms -
                     self.state_behavior_init_ms) / 1000.0
         return self.state_behavior_name, duration
 
-    def get_previous(self):
-        ''' Get name and duration (in seconds) of previous behavior '''
+    def get_previous(self) -> str:
+        "Get name and duration (in seconds) of previous behavior"
         return self.previous_behavior, self.previous_behavior_duration
 
-    def force_reset(self):
-        ''' Force reset next executed behavior '''
+    def force_reset(self) -> None:
+        "强制重置"
         self.state_behavior_name = None
 
-    def execute(self, name, *args) -> bool:
+    def execute(self, name: str, *args) -> bool:
         ''' 
         Execute one step of behavior `name` with arguments `*args`
         - Automatically resets behavior on first call
@@ -94,14 +93,11 @@ class Behavior():
         finished : bool
             True if behavior has finished
         '''
+        assert name in self.behaviors, f"行为 {name} 不存在！"
 
-        assert name in self.behaviors, f"Behavior {name} does not exist!"
-
-        # Check if transitioning from other behavior
-        reset = bool(self.state_behavior_name != name)
+        reset = self.state_behavior_name != name
         if reset:
             if self.state_behavior_name is not None:
-                # Previous behavior was interrupted (did not finish)
                 self.previous_behavior = self.state_behavior_name
             self.previous_behavior_duration = (
                 self.world.time_local_ms - self.state_behavior_init_ms) / 1000.0
@@ -109,19 +105,17 @@ class Behavior():
             self.state_behavior_init_ms = self.world.time_local_ms
 
         # Control head orientation if behavior allows it
-        if self.behaviors[name][1]:
+        if self.behaviors[name].AutoHead:
             self.head.execute()
 
-        # Execute behavior
-        if not self.behaviors[name][2](reset, *args):
+        if not self.behaviors[name].Execute(reset, *args):
             return False
 
-        # The behavior has finished
-        self.previous_behavior = self.state_behavior_name  # Store current behavior name
+        self.previous_behavior = self.state_behavior_name
         self.state_behavior_name = None
         return True
 
-    def execute_sub_behavior(self, name, reset, *args):
+    def execute_sub_behavior(self, name: str, reset: bool, *args) -> bool:
         '''
         Execute one step of behavior `name` with arguments `*args`
         对于想要调用其他行为的自定义行为很有用
@@ -134,17 +128,14 @@ class Behavior():
         finished : bool
             行为完成将返回 True
         '''
+        assert name in self.behaviors, f"行为 {name} 不存在！"
 
-        assert name in self.behaviors, f"行为 {name} 不存在!"
-
-        # Control head orientation if behavior allows it
-        if self.behaviors[name][1]:
+        if self.behaviors[name].AutoHead:
             self.head.execute()
 
-        # Execute behavior
-        return self.behaviors[name][2](reset, *args)
+        return self.behaviors[name].Execute(reset, *args)
 
-    def execute_to_completion(self, name, *args):
+    def execute_to_completion(self, name: str, *args) -> None:
         '''
         执行指定的 steps 直到完成，并在此期间与 server 保持通讯
         - Slot behaviors 表明在发送最后一个 command 时已经完成（该指令会被及时发送）
@@ -157,25 +148,24 @@ class Behavior():
         - 对于在首次调用即完成的 Poses 或自定义行为，将不会提交或发送任何内容
         - 警告：如果行为永远不会结束，此函数可能会陷入无限循环中
         '''
-
-        r = self.world.robot
+        robot = self.world.robot
         skip_last = name not in self.slot_engine.behaviors
 
         while True:
             done = self.execute(name, *args)
             if done and skip_last:
-                break  # Exit here if last command is irrelevant
-            self.base_agent.server.commit_and_send(r.get_command())
-            self.base_agent.server.receive()
+                break
+            self.server.commit_and_send(robot.get_command())
+            self.server.receive()
             if done:
-                break  # Exit here if last command is part of the behavior
+                break
 
         # reset to avoid polluting the next command
-        for i in range(len(r.joints)):
-            r.joints[i].target_speed = 0
+        for i in range(len(robot.joints)):
+            robot.joints[i].target_speed = 0
 
-    def is_ready(self, name, *args) -> bool:
-        ''' Checks if behavior is ready to start under current game/robot conditions '''
+    def is_ready(self, name: str, *args) -> bool:
+        "Checks if behavior is ready to start under current game/robot conditions"
 
-        assert name in self.behaviors, f"Behavior {name} does not exist!"
-        return self.behaviors[name][3](*args)
+        assert name in self.behaviors, f"行为 {name} 不存在！"
+        return self.behaviors[name].IsReady(*args)

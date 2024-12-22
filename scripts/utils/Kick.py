@@ -9,7 +9,7 @@ from math_ops.math_ext import normalize_vec, vector_angle
 from scripts.commons.Script import Script
 
 
-class Kick():
+class Kick:
     def __init__(self, script: Script) -> None:
         self.script = script
 

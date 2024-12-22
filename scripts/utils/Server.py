@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-class Server():
+class Server:
 
     def __init__(self, script) -> None:
 
@@ -15,14 +15,21 @@ class Server():
             raise FileNotFoundError(
                 "The server configuration files were not found!")
 
-        # To add options: insert into options & explations with same index, read respective value from file or from other values, add edit entry
+        # To add options: insert into options & explations with same index,
+        # read respective value from file or from other values, add edit entry
 
-        self.options = ["Official Config", "Penalty Shootout", "Soccer Rules",
-                        "Sync Mode", "Real Time", "Cheats", "Full Vision", "Add Noise", "25Hz Monitor"]
-        self.descriptions = ["Configuration used in official matches", "Server's Penalty Shootout mode", "Play modes, automatic referee, etc.",
-                             "Synchronous communication between agents and server", "Real Time (or maximum server speed)",
-                             "Agent position & orientation, ball position", "See 360 deg instead of 120 deg (vertically & horizontally)",
-                             "Noise added to the position of visible objects", "25Hz Monitor (or 50Hz but RoboViz will show 2x the actual speed)"]
+        self.options = [
+            "Official Config", "Penalty Shootout", "Soccer Rules",
+            "Sync Mode", "Real Time", "Cheats", "Full Vision", "Add Noise", "25Hz Monitor"]
+        self.descriptions = [
+            "Configuration used in official matches",
+            "Server's Penalty Shootout mode", "Play modes, automatic referee, etc.",
+            "Synchronous communication between agents and server",
+            "Real Time (or maximum server speed)",
+            "Agent position & orientation, ball position",
+            "See 360 deg instead of 120 deg (vertically & horizontally)",
+            "Noise added to the position of visible objects",
+            "25Hz Monitor (or 50Hz but RoboViz will show 2x the actual speed)"]
 
         spark_f = Path.home() / ".simspark/spark.rb"
         naoneckhead_f = self.source+"rsg/agent/nao/naoneckhead.rsg"
@@ -66,8 +73,10 @@ class Server():
                    "agentSyncMode = false")
         self.label("25Hz Monitor", "monitorStep = 0.04", "monitorStep = 0.02")
 
-        is_official_config = (v["Penalty Shootout"] == "Off" and v["Soccer Rules"] == "On" and v["Real Time"] == "On" and v["Cheats"] == "Off" and v["Full Vision"] == "Off" and
-                              v["Add Noise"] == "On" and v["Sync Mode"] == "Off" and v["25Hz Monitor"] == "On")
+        is_official_config = (
+            v["Penalty Shootout"] == "Off" and v["Soccer Rules"] == "On" and
+            v["Real Time"] == "On" and v["Cheats"] == "Off" and v["Full Vision"] == "Off" and
+            v["Add Noise"] == "On" and v["Sync Mode"] == "Off" and v["25Hz Monitor"] == "On")
         print(v["Penalty Shootout"], is_official_config)
         v["Official Config"] = "On" if is_official_config else "Off"
 

@@ -3,6 +3,7 @@ import xml.etree.ElementTree as xmlp
 import numpy as np
 from math_ops.math_ext import get_active_directory
 from world.World import World
+from behaviors.behavior_core import BehaviorCore
 
 
 class Slot_Engine:
@@ -52,7 +53,7 @@ class Slot_Engine:
                 robot_xml_root.attrib["auto_head"] == "1")
             self.behaviors[bname] = slots
 
-    def get_behaviors_callbacks(self):
+    def get_behaviors_callbacks(self) -> dict[str, BehaviorCore]:
         ''' 
         Returns callbacks for each slot behavior (used internally) 
 
@@ -62,8 +63,12 @@ class Slot_Engine:
         In the loop, the scope does not change, nor does the var name.
         However, default parameters are evaluated when the lambda is defined.
         '''
-        return {key: (self.descriptions[key], self.auto_head_flags[key],
-                lambda reset, key=key: self.execute(key, reset), lambda key=key: self.is_ready(key)) for key in self.behaviors}
+        return {
+            key:
+            BehaviorCore(
+                key, self.descriptions[key], self.auto_head_flags[key],
+                lambda reset, key=key: self.execute(key, reset), lambda key=key: self.is_ready(key))
+            for key in self.behaviors}
 
     def is_ready(self, name) -> bool:
         return True

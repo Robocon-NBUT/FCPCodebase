@@ -7,6 +7,7 @@ Poses may control all joints or just a subgroup defined by the "indices" variabl
 
 import numpy as np
 from world.World import World
+from behaviors.behavior_core import BehaviorCore
 
 
 class Poses():
@@ -88,7 +89,7 @@ class Poses():
                         # remove those joints
                         val[2], idxs), np.delete(val[3], idxs))
 
-    def get_behaviors_callbacks(self):
+    def get_behaviors_callbacks(self) -> dict[str, BehaviorCore]:
         ''' 
         Returns callbacks for each pose behavior (used internally)
 
@@ -98,7 +99,12 @@ class Poses():
         In the loop, the scope does not change, nor does the var name.
         However, default parameters are evaluated when the lambda is defined.
         '''
-        return {key: (val[0], val[1], lambda reset, key=key: self.execute(key), lambda: True) for key, val in self.poses.items()}
+        return {
+            key:
+            BehaviorCore(
+                key, val[0], val[1],
+                lambda reset, key=key: self.execute(key), lambda: True)
+                for key, val in self.poses.items()}
 
     def execute(self, name) -> bool:
         _, _, indices, values = self.poses[name]

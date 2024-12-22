@@ -3,7 +3,7 @@ from scripts.commons.Script import Script
 from scripts.commons.UI import UI
 
 
-class Behaviors():
+class Behaviors:
 
     def __init__(self, script: Script) -> None:
         self.script = script

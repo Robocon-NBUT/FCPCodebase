@@ -1,10 +1,10 @@
+import numpy as np
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Script import Script
 from world.commons.Draw import Draw
-import numpy as np
 
 
-class Joints():
+class Joints:
 
     def __init__(self, script: Script) -> None:
         self.script = script
