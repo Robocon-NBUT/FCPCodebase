@@ -5,8 +5,7 @@
  * Author: Rui Ferreira
  */
 
-#ifndef _ROBOVIZLOGGER_H_
-#define _ROBOVIZLOGGER_H_
+#pragma once
 
 #define RobovizLoggerInstance RobovizLogger::Instance()
 
@@ -54,5 +53,3 @@ private:
     struct addrinfo* p;
     struct addrinfo* servinfo;
 };
-
-#endif // _ROBOVIZLOGGER_H_

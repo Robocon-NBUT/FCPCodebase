@@ -1,4 +1,4 @@
-file(GLOB LOCALIZATION_SOURCES "*.cpp" "*.h")
+file(GLOB LOCALIZATION_SOURCES "*.cpp" "*.h" "*.hpp")
 
 add_library(localization SHARED ${LOCALIZATION_SOURCES})
 

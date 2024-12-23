@@ -14,8 +14,7 @@
  *  limitations under the License.
  */
 
-#ifndef _ROBOVIZDRAW_H_
-#define _ROBOVIZDRAW_H_
+#pragma once
 
 #include <string>
 #include <cstdio>
@@ -204,5 +203,3 @@ unsigned char* newAgentAnnotation(const string* text, bool leftTeam,
 
     return buf;
 }
-
-#endif

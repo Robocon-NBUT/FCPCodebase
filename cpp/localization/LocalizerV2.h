@@ -194,7 +194,6 @@
 #pragma once
 #include "Singleton.h"
 #include "Field.h"
-#include "Matrix4D.h"
 #include "FieldNoise.h"
 
 #include <gsl/gsl_multifit.h> //Linear least-squares fitting
@@ -231,7 +230,7 @@ public:
      * Head position
      * translation part of headTofieldTransform
      */
-    const Vector3f &head_position = final_translation;
+    const Vector3 &head_position = final_translation;
 
     /**
      * True if head_position and the transformation matrices are up to date
@@ -266,13 +265,13 @@ public:
      * Transform relative to absolute coordinates using headTofieldTransform
      * @return absolute coordinates
      */
-    Vector3f relativeToAbsoluteCoordinates(const Vector3f relativeCoordinates) const;
+    Vector3 relativeToAbsoluteCoordinates(const Vector3 relativeCoordinates) const;
 
     /**
      * Transform absolute to relative coordinates using fieldToheadTransform
      * @return relative coordinates
      */
-    Vector3f absoluteToRelativeCoordinates(const Vector3f absoluteCoordinates) const;
+    Vector3 absoluteToRelativeCoordinates(const Vector3 absoluteCoordinates) const;
 
     /**
      * Get 3D velocity (based on last n 3D positions)
@@ -287,7 +286,7 @@ public:
      *        the agent was able to self-locate on the last n visual steps
      * @return 3D velocity vector
      */
-    Vector3f get_velocity(unsigned int n) const;
+    Vector3 get_velocity(unsigned int n) const;
 
     /**
      * Get last known head z coordinate
@@ -308,7 +307,7 @@ private:
     bool find_z_axis_orient_vec(); //returns true if successful
     void fit_ground_plane();
 
-    void find_z(const Vector3f& Zvec);
+    void find_z(const Vector3& Zvec);
     bool find_xy();
     bool guess_xy();
 
@@ -336,7 +335,7 @@ private:
     Matrix4D final_fieldToheadTransform; // rotation + translation
     Matrix4D final_fieldToheadRotate;    // rotation
 
-    Vector3f final_translation; //translation
+    Vector3 final_translation; //translation
 
     float final_z; //independent z translation (may be updated more often)
 
@@ -344,7 +343,7 @@ private:
     //=============================================================================== useful statistics
     //=================================================================================================
 
-    std::array<Vector3f, 10> position_history;
+    std::array<Vector3, 10> position_history;
     unsigned int position_history_ptr = 0;
 
     float last_z = 0.5; 
@@ -357,7 +356,7 @@ private:
     //================================================================================ debug statistics
     //=================================================================================================
 
-    int stats_sample_position_error(const Vector3f sample, const Vector3f& cheat, double error_placeholder[]);
+    int stats_sample_position_error(const Vector3 sample, const Vector3& cheat, double error_placeholder[]);
     void stats_reset();
     
     double errorSum_fineTune_before[7] = {0};        //[0,1,2]- xyz err sum, [3]-2D err sum, [4]-2D err sq sum, [5]-3D err sum, [6]-3D err sq sum

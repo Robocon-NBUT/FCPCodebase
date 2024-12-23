@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -65,7 +64,3 @@ public:
     float x;
     float y;
 };
-
-
-
-#endif // GEOMETRY_H

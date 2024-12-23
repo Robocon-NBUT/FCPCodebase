@@ -1,9 +1,9 @@
 #include <iostream>
 #include "Geometry.h"
-#include "Vector3f.h"
-#include "Matrix4D.h"
+#include "Vector3.hpp"
+#include "Matrix4D.hpp"
 #include "FieldNoise.h"
-#include "Line6f.h"
+#include "Line6.hpp"
 #include "World.h"
 #include "Field.h"
 #include "LocalizerV2.h"
@@ -115,8 +115,8 @@ py::array_t<float> compute(
     world.lines_polar.clear();
 
     for(int i=0; i<lines_len; i++){
-        Vector3f s(lines_ptr[0],lines_ptr[1],lines_ptr[2]);
-        Vector3f e(lines_ptr[3],lines_ptr[4],lines_ptr[5]);
+        Vector3 s(lines_ptr[0],lines_ptr[1],lines_ptr[2]);
+        Vector3 e(lines_ptr[3],lines_ptr[4],lines_ptr[5]);
         world.lines_polar.emplace_back(s, e); 
         lines_ptr += 6;
     }

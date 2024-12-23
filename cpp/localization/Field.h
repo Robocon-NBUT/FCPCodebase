@@ -6,10 +6,10 @@
  */
 
 #pragma once
-#include "Vector3f.h"
+#include "Vector3.hpp"
 #include "Singleton.h"
-#include "Matrix4D.h"
-#include "Line6f.h"
+#include "Matrix4D.hpp"
+#include "Line6.hpp"
 #include <vector>
 #include <array>
 
@@ -33,21 +33,21 @@ public:
     struct sVector3d {
         double x,y,z;
 
-        //sVector3d(const Vector3f& v) : x(v.x), y(v.y), z(v.z) {} 
+        //sVector3d(const Vector3& v) : x(v.x), y(v.y), z(v.z) {} 
 
-        Vector3f get_vector() const {
-            return Vector3f(x,y,z);
+        Vector3 get_vector() const {
+            return Vector3(x,y,z);
         }
 
         void set(const sVector3d &pt){
             x=pt.x; y=pt.y; z=pt.z;
         }
 
-        void set(const Vector3f &pt){
+        void set(const Vector3 &pt){
             x=pt.x; y=pt.y; z=pt.z;
         }
 
-        float dist(const Vector3f &other) const{
+        float dist(const Vector3 &other) const{
             float dx = x-other.x;
             float dy = y-other.y;
             float dz = z-other.z;
@@ -60,8 +60,8 @@ public:
         const sVector3d pt;
         const char name[10];
 
-        Vector3f get_vector() const {
-            return Vector3f(pt.x,pt.y,pt.z);
+        Vector3 get_vector() const {
+            return Vector3(pt.x,pt.y,pt.z);
         }
     };
 
@@ -95,48 +95,48 @@ public:
          */
         const sFieldSegment *fieldSeg = nullptr;
 
-        Vector3f relPosPolar;
-        Vector3f relPosCart;
+        Vector3 relPosPolar;
+        Vector3 relPosCart;
 
         /**
          * Default constructor
          */
-        sMarker() : absPos({0,0,0}), relPosPolar(Vector3f()), relPosCart(Vector3f()) {};
+        sMarker() : absPos({0,0,0}), relPosPolar(Vector3()), relPosCart(Vector3()) {};
 
         /**
          * Constructor with absolute position and relative polar coordinates (the cartesian version is computed)
          */
-        sMarker(const sVector3d& absPos_, const Vector3f& relPosPolar_) 
+        sMarker(const sVector3d& absPos_, const Vector3& relPosPolar_) 
             : absPos(absPos_), relPosPolar(relPosPolar_), relPosCart(relPosPolar_.toCartesian()) {};
 
         /**
          * Constructor with field point and relative polar coordinates (the cartesian version is computed)
          */
-        sMarker(const sFieldPoint* fieldPt_, const Vector3f& relPosPolar_) 
+        sMarker(const sFieldPoint* fieldPt_, const Vector3& relPosPolar_) 
             : absPos(fieldPt_->pt), fieldPt(fieldPt_), relPosPolar(relPosPolar_), relPosCart(relPosPolar_.toCartesian()) {};
 
         /**
          * Constructor with float absolute position and relative polar coordinates (the cartesian version is computed)
          */
-        sMarker(const Vector3f& absPos_, const Vector3f& relPosPolar_) 
+        sMarker(const Vector3& absPos_, const Vector3& relPosPolar_) 
             : absPos(sVector3d({absPos_.x,absPos_.y,absPos_.z})), relPosPolar(relPosPolar_), relPosCart(relPosPolar_.toCartesian()) {};
 
         /**
          * Constructor with absolute position, relative polar & cartesian coordinates
          */
-        sMarker(const sVector3d& absPos_, const Vector3f& relPosPolar_, const Vector3f& relPosCart_) 
+        sMarker(const sVector3d& absPos_, const Vector3& relPosPolar_, const Vector3& relPosCart_) 
             : absPos(absPos_), relPosPolar(relPosPolar_), relPosCart(relPosCart_) {};
 
         /**
          * Constructor with field segment, absolute position, relative polar & cartesian coordinates (e.g. unknown marker)
          */
-        sMarker(const sFieldSegment* fieldSeg_, const sVector3d& absPos_, const Vector3f& relPosPolar_, const Vector3f& relPosCart_) 
+        sMarker(const sFieldSegment* fieldSeg_, const sVector3d& absPos_, const Vector3& relPosPolar_, const Vector3& relPosCart_) 
             : fieldSeg(fieldSeg_), absPos(absPos_), relPosPolar(relPosPolar_), relPosCart(relPosCart_) {};
 
         /**
          * Constructor with field point, relative polar & cartesian coordinates 
          */
-        sMarker(const sFieldPoint* fieldPt_, const Vector3f& relPosPolar_, const Vector3f& relPosCart_) 
+        sMarker(const sFieldPoint* fieldPt_, const Vector3& relPosPolar_, const Vector3& relPosCart_) 
             : absPos(fieldPt_->pt), fieldPt(fieldPt_), relPosPolar(relPosPolar_), relPosCart(relPosCart_) {};
 
 
@@ -163,15 +163,15 @@ public:
 
     struct sFixedMarker {
         bool visible;
-        Vector3f relPosPolar;
-        Vector3f relPosCart;
+        Vector3 relPosPolar;
+        Vector3 relPosCart;
 
         /**
          * Default constructor
          */
-        sFixedMarker() : relPosPolar(Vector3f()), relPosCart(Vector3f()), visible(false) {};
+        sFixedMarker() : relPosPolar(Vector3()), relPosCart(Vector3()), visible(false) {};
 
-        void set_relPos(Vector3f relPosPolar_){
+        void set_relPos(Vector3 relPosPolar_){
             relPosPolar = relPosPolar_;
             relPosCart =  relPosPolar_.toCartesian();
         }
@@ -416,7 +416,7 @@ public:
     /**
      * Visible line segments
      */
-    vector<Line6f> list_segments;
+    vector<Line6> list_segments;
 
     /**
      * Redundant list of all 8 landmarks' relative cartesian coordinates (to speed up lookups)
@@ -458,7 +458,7 @@ public:
      * Compute 3D distance between field line segment and cartesian point
      * Field lines are on the ground (z=0), so the method is simplified
      */
-    static float fieldLineSegmentDistToCartPoint(const sFieldSegment& fLine, const Vector3f& cp);
+    static float fieldLineSegmentDistToCartPoint(const sFieldSegment& fLine, const Vector3& cp);
 
     /**
      * Compute 2D distance between field line segment and cartesian point

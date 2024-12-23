@@ -1,5 +1,4 @@
-#ifndef SINGLETON_H
-#define SINGLETON_H  
+#pragma once
 
 template <class T>
 class Singleton {
@@ -17,4 +16,3 @@ private:
     Singleton& operator=(Singleton const&);
 };
 
-#endif // SINGLETON_H

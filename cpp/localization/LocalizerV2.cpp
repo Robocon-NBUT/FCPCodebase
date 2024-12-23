@@ -67,7 +67,7 @@ void LocalizerV2::run(){
 //=================================================================================================
 
 
-void add_gsl_regression_sample(gsl_matrix* m, gsl_vector* v, int sample_no, const Vector3f& relativeCoord, double absoluteCoord, double translCoeffMult=1){
+void add_gsl_regression_sample(gsl_matrix* m, gsl_vector* v, int sample_no, const Vector3& relativeCoord, double absoluteCoord, double translCoeffMult=1){
 
 	gsl_matrix_set(m, sample_no, 0, relativeCoord.x);
 	gsl_matrix_set(m, sample_no, 1, relativeCoord.y);
@@ -98,7 +98,7 @@ gsl_vector* create_gsl_vector(const std::array<double, SIZE> &content){
  * Get unit vector on plane Z=0, perpendicular to given vector
  * Mathematically this is (0,0,1)x(vec)/|vec| with some additional checks
  */
-Vector get_ground_unit_vec_perpendicular_to(const Vector3f& vec){
+Vector get_ground_unit_vec_perpendicular_to(const Vector3& vec){
 
 	float gx = 1, gy = 0; //rotation axis unit vector, default:(1,0,0)
 	const float aux = sqrtf(vec.x*vec.x + vec.y*vec.y); //rotation axis length before becoming a unit vector
@@ -119,13 +119,13 @@ Vector get_ground_unit_vec_perpendicular_to(const Vector3f& vec){
  * @param v vector to be rotated
  * @param Zvec unit normal vector of rotated ground plane
  */
-Vector3f fast_rotate_around_ground_axis(Vector3f v, Vector3f Zvec){
+Vector3 fast_rotate_around_ground_axis(Vector3 v, Vector3 Zvec){
 
 	Vector u = get_ground_unit_vec_perpendicular_to(Zvec);
 
 	//Angle between unit normal vector of original plane and unit normal vector of rotated plane:
 	//cos(a) = (ov.rv)/(|ov||rv|) = ((0,0,1).(rvx,rvy,rvz))/(1*1) = rvz
-	float& cos_a = Zvec.z; 
+	double& cos_a = Zvec.z; 
 	//assert(cos_a <= 1);
 	if(cos_a > 1) cos_a = 1; //Fix: it happens rarely, no cause was yet detected
 	float sin_a = -sqrtf(1 - cos_a*cos_a); //invert sin_a to invert a (direction was defined in method description)
@@ -141,7 +141,7 @@ Vector3f fast_rotate_around_ground_axis(Vector3f v, Vector3f Zvec){
 	float y = uxuy_i * v.x + (cos_a  + uyuy_i ) * v.y - uxsin_a * v.z;
 	float z = - uysin_a * v.x + uxsin_a * v.y + cos_a * v.z;
 
-	return Vector3f(x,y,z);
+	return Vector3(x,y,z);
 
 }
 
@@ -153,7 +153,7 @@ Vector3f fast_rotate_around_ground_axis(Vector3f v, Vector3f Zvec){
  * @param Xvec  output x-axis orientation vector 
  * @param Yvec  output y-axis orientation vector
  */
-void fast_compute_XYvec_from_Zvec(const Vector3f& Zvec, float agent_angle, Vector3f& Xvec, Vector3f& Yvec){
+void fast_compute_XYvec_from_Zvec(const Vector3& Zvec, float agent_angle, Vector3& Xvec, Vector3& Yvec){
 	/**
 	 * There are two coordinate systems being considered in this method:
 	 * - The actual agent's vision (RELATIVE system -> RELsys)
@@ -243,7 +243,7 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 	 * But those 2 lines can be both too short, which would not be ideal for the algorithms below.
 	 * Steps: find largest line, check if it is large enough
 	 */
-	const Line6f* l = &fd.list_segments.front();
+	const Line6* l = &fd.list_segments.front();
 	if(fd.list_segments.size() > 1){
 		for(const auto& ll: fd.list_segments){
 			if(ll.length > l->length) l = &ll;
@@ -264,13 +264,13 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 	//------------------------------ Prepare variables for solution A & B
 
 	// Get any crossbar point
-	Vector3f crossbar_pt;
+	Vector3 crossbar_pt;
 	auto& glist = fd.list_landmarks_goalposts;
 	if(goalNo == 1){
 		crossbar_pt = glist.front().relPosCart;
 	}else{
 		if(glist[0].absPos.x == glist[1].absPos.x){
-			crossbar_pt = Vector3f::determineMidpoint( glist[0].relPosCart, glist[1].relPosCart);
+			crossbar_pt = Vector3::determineMidpoint( glist[0].relPosCart, glist[1].relPosCart);
 		}else{
 			//extremely rare: there are other solutions when goalNo>2 but cost/benefit not worth it
 			crossbar_pt = glist.front().relPosCart; 
@@ -280,12 +280,12 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 	//------------------------------ Identify and apply solution A & B
 
 	//Get line point closest to crossbar point
-	Vector3f p = l->linePointClosestToCartPoint( crossbar_pt );
-	Vector3f possibleZvec = crossbar_pt - p;
+	Vector3 p = l->linePointClosestToCartPoint( crossbar_pt );
+	Vector3 possibleZvec = crossbar_pt - p;
 	float possibleZvecLength = possibleZvec.length();
 
 	if(abs(possibleZvecLength - 0.8) < 0.05){ //Solution A & B
-		Vector3f unit_zvec = possibleZvec / possibleZvecLength;
+		Vector3 unit_zvec = possibleZvec / possibleZvecLength;
 
 		// save as the new z axis orientation vector
 		prelimHeadToField.set(2,0,unit_zvec.x);
@@ -298,7 +298,7 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 
 	//------------------------------ Apply solution C
 
-	Vector3f crossbar_left_vec, crossbar_midp; //this crossbar vector points left if seen from the midfield (this is important for the cross product)
+	Vector3 crossbar_left_vec, crossbar_midp; //this crossbar vector points left if seen from the midfield (this is important for the cross product)
 
 	const auto& goal_mm = Field::list_8_landmarks::goal_mm;
 	const auto& goal_mp = Field::list_8_landmarks::goal_mp;
@@ -320,9 +320,9 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 	 * 		| line.crossbar | < cos(45deg) * |line| * ~2.1           <=>
 	 * 		| line.crossbar | < 1.485 * |line|
 	 */
-	Vector3f lvec = l->get_cart_vector();
-	if( goalNo > 1 && fabsf(lvec.innerProduct(crossbar_left_vec)) < 1.485 * l->length ){
-		Vector3f Zvec;
+	Vector3 lvec = l->get_cart_vector();
+	if( goalNo > 1 && abs(lvec.innerProduct(crossbar_left_vec)) < 1.485 * l->length ){
+		Vector3 Zvec;
 		if(l->startc.dist(crossbar_midp) > l->endc.dist(crossbar_midp)){
 			Zvec = lvec.crossProduct(crossbar_left_vec);
 		}else{
@@ -368,7 +368,7 @@ void LocalizerV2::fit_ground_plane(){
 	work = gsl_vector_alloc(3);
 
 	// Find the centroid
-	Vector3f centroid(0,0,0);
+	Vector3 centroid(0,0,0);
 	for(const auto& g : ground_markers){ // Insert all weighted groundmarks in matrix
 		centroid += g.relPosCart;
 	}
@@ -423,7 +423,7 @@ void LocalizerV2::fit_ground_plane(){
 	*/
 
 	if(!fd.list_landmarks_goalposts.empty()){ //If there are visible goal posts
-		const Vector3f& aerialpt = fd.list_landmarks_goalposts.front().relPosCart; //random aerial point (goal post)
+		const Vector3& aerialpt = fd.list_landmarks_goalposts.front().relPosCart; //random aerial point (goal post)
 		if( a*aerialpt.x + b*aerialpt.y + c*aerialpt.z < d ){ //the goalpost is on the negative side, so we invert the normal vector
 			a=-a;    b=-b;   c=-c;
 		}
@@ -455,17 +455,17 @@ void LocalizerV2::fit_ground_plane(){
  * Note: Apparently there's no real benefit in involving goalposts (weighted or not), only when the
  * 		 visible objects are below 5/6, and even then the difference is minimal. 
  */
-void LocalizerV2::find_z(const Vector3f& Zvec){
+void LocalizerV2::find_z(const Vector3& Zvec){
 
 	Field& fd = SField::getInstance();
 
-	Vector3f zsum;
+	Vector3 zsum;
 	for(const auto& g: fd.list_weighted_ground_markers){
 		zsum += g.relPosCart;
 	}
 
 	//Minimum height: 0.064m
-	float z =  max(  -(zsum/fd.list_weighted_ground_markers.size()).innerProduct(Zvec)  ,0.064f);
+	float z =  max(  -(zsum/fd.list_weighted_ground_markers.size()).innerProduct(Zvec)  ,0.064);
 
 	prelimHeadToField.set( 2,3,z ); 
 
@@ -494,9 +494,9 @@ double LocalizerV2::map_error_logprob(const gsl_vector *v, void *params){
 	}
 
 	Matrix4D& transfMat = SLocalizerV2::getInstance().prelimHeadToField;
-	Vector3f Zvec(transfMat.get(2,0), transfMat.get(2,1), transfMat.get(2,2));
+	Vector3 Zvec(transfMat.get(2,0), transfMat.get(2,1), transfMat.get(2,2));
 	
-	Vector3f Xvec, Yvec;
+	Vector3 Xvec, Yvec;
 	fast_compute_XYvec_from_Zvec(Zvec, angle, Xvec, Yvec );
 
 	//These are the transformation coefficients that are being optimized
@@ -520,12 +520,12 @@ double LocalizerV2::map_error_logprob(const gsl_vector *v, void *params){
 
 
 		//We know the closest field segment, so we can bring it to the agent's frame
-		Vector3f rel_field_s_start = inverseTransMat * u.fieldSeg->point[0]->get_vector();
-		Vector3f rel_field_s_end =   inverseTransMat * u.fieldSeg->point[1]->get_vector();
+		Vector3 rel_field_s_start = inverseTransMat * u.fieldSeg->point[0]->get_vector();
+		Vector3 rel_field_s_end =   inverseTransMat * u.fieldSeg->point[1]->get_vector();
 
-		Line6f rel_field_s(rel_field_s_start, rel_field_s_end, u.fieldSeg->length); //Convert to Line6f
+		Line6 rel_field_s(rel_field_s_start, rel_field_s_end, u.fieldSeg->length); //Convert to Line6
 
-		Vector3f closest_polar_pt = rel_field_s.segmentPointClosestToCartPoint(u.relPosCart).toPolar();
+		Vector3 closest_polar_pt = rel_field_s.segmentPointClosestToCartPoint(u.relPosCart).toPolar();
 
 		total_logprob += FieldNoise::log_prob_r(closest_polar_pt.x, u.relPosPolar.x);
 		total_logprob += FieldNoise::log_prob_h(closest_polar_pt.y, u.relPosPolar.y);
@@ -538,7 +538,7 @@ double LocalizerV2::map_error_logprob(const gsl_vector *v, void *params){
 	for(const auto& k : fd.list_known_markers){
 
 		//Bring marker to agent's frame
-		Vector3f rel_k = (inverseTransMat * k.absPos.get_vector()).toPolar();
+		Vector3 rel_k = (inverseTransMat * k.absPos.get_vector()).toPolar();
 
 		total_logprob += FieldNoise::log_prob_r(rel_k.x, k.relPosPolar.x);
 		total_logprob += FieldNoise::log_prob_h(rel_k.y, k.relPosPolar.y);
@@ -576,9 +576,9 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 	}
 
 	Matrix4D& transfMat = SLocalizerV2::getInstance().prelimHeadToField;
-	Vector3f Zvec(transfMat.get(2,0), transfMat.get(2,1), transfMat.get(2,2));
+	Vector3 Zvec(transfMat.get(2,0), transfMat.get(2,1), transfMat.get(2,2));
 	
-	Vector3f Xvec, Yvec;
+	Vector3 Xvec, Yvec;
 	fast_compute_XYvec_from_Zvec(Zvec, angle, Xvec, Yvec );
 
 
@@ -595,11 +595,11 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 
 	float total_err = 0;
 	int total_err_cnt =0;
-	for(const Line6f& l : fd.list_segments){
+	for(const Line6& l : fd.list_segments){
  
 		//Compute line absolute coordinates according to current transformation
-		Vector3f ls = transfMat * l.startc; 
-		Vector3f le = transfMat * l.endc; 
+		Vector3 ls = transfMat * l.startc; 
+		Vector3 le = transfMat * l.endc; 
 
 		//Compute line angle and establish a tolerance
 		float l_angle = 0;
@@ -617,7 +617,7 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 
 			//If the small line is touching a big line, they have different orientations (it's a characteristic from the field lines) 
 
-			for(const Line6f& lbig : fd.list_segments){
+			for(const Line6& lbig : fd.list_segments){
 				if(lbig.length < 2 || &lbig == &l ) continue; //check if line is big and different from current
 
 				if(lbig.segmentDistToSegment(l)<0.5){
@@ -627,8 +627,8 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 					//---------- get angle perpendicular to bigline (that is either the small line's angle, or at least close enough)
 
 					//get bigline angle
-					Vector3f lbigs = transfMat * lbig.startc; 
-					Vector3f lbige = transfMat * lbig.endc; 
+					Vector3 lbigs = transfMat * lbig.startc; 
+					Vector3 lbige = transfMat * lbig.endc; 
 					l_angle = atan2f(lbige.y - lbigs.y, lbige.x - lbigs.x);
 
 					// add 90deg while keeping the angle between 0-180deg (same logic used when l.length > 0.8)
@@ -672,7 +672,7 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 
 	for(const Field::sMarker& m : fd.list_landmarks){
 
-		Vector3f lpt = transfMat * m.relPosCart; //compute absolute coordinates according to current transformation
+		Vector3 lpt = transfMat * m.relPosCart; //compute absolute coordinates according to current transformation
 
 		float err = lpt.to2d().getDistanceTo(Vector(m.absPos.x,m.absPos.y));
 		total_err += err > 0.5 ? err * 100 : err;
@@ -704,13 +704,13 @@ bool LocalizerV2::fine_tune(float initial_angle, float initial_x, float initial_
 	Field& fd = SField::getInstance();
 
 	//Statistics before fine tune
-	counter_fineTune += stats_sample_position_error(Vector3f(initial_x,initial_y,prelimHeadToField.get(11)), world.my_cheat_abs_cart_pos, errorSum_fineTune_before);
+	counter_fineTune += stats_sample_position_error(Vector3(initial_x,initial_y,prelimHeadToField.get(11)), world.my_cheat_abs_cart_pos, errorSum_fineTune_before);
 
 	//Fine tune, changing the initial parameters directly
 	if(!fine_tune_aux(initial_angle, initial_x, initial_y, false)) return false;
 	
 	//Statistics for 1st fine tune
-	stats_sample_position_error(Vector3f(initial_x,initial_y,prelimHeadToField.get(11)), world.my_cheat_abs_cart_pos, errorSum_fineTune_euclidianDist);
+	stats_sample_position_error(Vector3(initial_x,initial_y,prelimHeadToField.get(11)), world.my_cheat_abs_cart_pos, errorSum_fineTune_euclidianDist);
 
 	//Identify new markers 
 	fd.update_from_transformation(prelimHeadToField);
@@ -719,7 +719,7 @@ bool LocalizerV2::fine_tune(float initial_angle, float initial_x, float initial_
 	fine_tune_aux(initial_angle, initial_x, initial_y, true);
 
 	//Statistics for 2nd fine tune
-	stats_sample_position_error(prelimHeadToField.toVector3f(), world.my_cheat_abs_cart_pos, errorSum_fineTune_probabilistic);
+	stats_sample_position_error(prelimHeadToField.toVector3(), world.my_cheat_abs_cart_pos, errorSum_fineTune_probabilistic);
 	
 	//Update unknown markers absolute position based on refined transformation matrix
 	fd.update_unknown_markers(prelimHeadToField);
@@ -793,8 +793,8 @@ bool LocalizerV2::fine_tune_aux(float &initial_angle, float &initial_x, float &i
 	 */
 
 	//Convert angle into Xvec and Yvec
-	Vector3f Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
-	Vector3f Xvec, Yvec;
+	Vector3 Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
+	Vector3 Xvec, Yvec;
 	fast_compute_XYvec_from_Zvec(Zvec, best_ang, Xvec, Yvec );
 
 	prelimHeadToField.set(0,0, Xvec.x);
@@ -818,7 +818,7 @@ bool LocalizerV2::find_xy(){
 
 	Field& fd = SField::getInstance();
 
-	Vector3f Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
+	Vector3 Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
 
 	Field::sMarker *m1 = nullptr, *m2 = nullptr;
 
@@ -834,17 +834,17 @@ bool LocalizerV2::find_xy(){
 		m2 = &fd.list_landmarks_goalposts[1];
 	}
 
-	Vector3f realVec(m2->absPos.x - m1->absPos.x,  m2->absPos.y - m1->absPos.y,  m2->absPos.z - m1->absPos.z);
+	Vector3 realVec(m2->absPos.x - m1->absPos.x,  m2->absPos.y - m1->absPos.y,  m2->absPos.z - m1->absPos.z);
 	float real_angle = atan2f(realVec.y, realVec.x); //angle of real vector
 
-	Vector3f seenVec(m2->relPosCart - m1->relPosCart);
-	Vector3f rotated_abs_vec = fast_rotate_around_ground_axis(seenVec, Zvec);
+	Vector3 seenVec(m2->relPosCart - m1->relPosCart);
+	Vector3 rotated_abs_vec = fast_rotate_around_ground_axis(seenVec, Zvec);
 	float seen_angle = atan2f(rotated_abs_vec.y, rotated_abs_vec.x); //angle of real vector
 	
 	float AgentAngle = real_angle - seen_angle; //no normalization is needed
 
 	
-	Vector3f Xvec, Yvec;
+	Vector3 Xvec, Yvec;
 	fast_compute_XYvec_from_Zvec(Zvec, AgentAngle, Xvec, Yvec );
 
 	/**
@@ -874,13 +874,13 @@ bool LocalizerV2::guess_xy(){
 	Field& fd = SField::getInstance();
 
 	//Get Zvec from previous steps
-	Vector3f Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
+	Vector3 Zvec(prelimHeadToField.get(2,0), prelimHeadToField.get(2,1), prelimHeadToField.get(2,2));
 	Vector last_known_position(head_position.x, head_position.y);
 
 	//------------------------------------------------------------ Get longest line and use it as X or Y vector
 
-	const Line6f* longestLine = &fd.list_segments.front();
-	for(const Line6f& l : fd.list_segments){
+	const Line6* longestLine = &fd.list_segments.front();
+	for(const Line6& l : fd.list_segments){
 		if(l.length > longestLine->length) longestLine = &l;
 	}
 
@@ -890,8 +890,8 @@ bool LocalizerV2::guess_xy(){
 	}
 
 	//Rotate line to real ground plane, where it loses the 3rd dimension
-	Vector3f longestLineVec = longestLine->endc - longestLine->startc;
-	Vector3f rotated_abs_line = fast_rotate_around_ground_axis(longestLineVec, Zvec);
+	Vector3 longestLineVec = longestLine->endc - longestLine->startc;
+	Vector3 rotated_abs_line = fast_rotate_around_ground_axis(longestLineVec, Zvec);
 
 	//The line can be aligned with X or Y, positively or negatively (these angles don't need to be normalized) 
 	float fixed_angle[4];
@@ -916,8 +916,8 @@ bool LocalizerV2::guess_xy(){
 
 	} else {
 
-		Vector3f Xvec = longestLineVec / longestLine->length;
-		Vector3f Yvec(Zvec.crossProduct(Xvec));
+		Vector3 Xvec = longestLineVec / longestLine->length;
+		Vector3 Yvec(Zvec.crossProduct(Xvec));
 
 		/**
 		 * Let m be a landmark, rel:(mx,my,mz), abs:(mabsx, mabsy, mabsz)
@@ -1080,7 +1080,7 @@ void LocalizerV2::commit_everything(){
 		final_fieldToheadRotate.set(i+8,final_fieldToheadTransform.get(i+8)); //Copy rotation line 3
 	}
 
-	final_translation = final_headTofieldTransform.toVector3f();
+	final_translation = final_headTofieldTransform.toVector3();
 
 	_is_uptodate = true;
 
@@ -1093,11 +1093,11 @@ void LocalizerV2::commit_everything(){
 }
 
 
-Vector3f LocalizerV2::relativeToAbsoluteCoordinates(const Vector3f relativeCoordinates) const{
+Vector3 LocalizerV2::relativeToAbsoluteCoordinates(const Vector3 relativeCoordinates) const{
 	return headTofieldTransform * relativeCoordinates;
 }
 
-Vector3f LocalizerV2::absoluteToRelativeCoordinates(const Vector3f absoluteCoordinates) const{
+Vector3 LocalizerV2::absoluteToRelativeCoordinates(const Vector3 absoluteCoordinates) const{
 	return fieldToheadTransform * absoluteCoordinates;
 }
 
@@ -1117,13 +1117,13 @@ void LocalizerV2::prelim_reset(){
 //=============================================================================== useful statistics
 //=================================================================================================
 
-Vector3f LocalizerV2::get_velocity(unsigned int n) const{
+Vector3 LocalizerV2::get_velocity(unsigned int n) const{
 	//assert(n > 0 && n < position_history.size() && "LocalizerV2::get_velocity(unsigned int n) -> n must be between 1 and 9!");
 
 	int l = position_history.size() - 1;
 
-	Vector3f current_pos = position_history[(position_history_ptr + l)     % position_history.size()];
-	Vector3f last_pos    = position_history[(position_history_ptr + l - n) % position_history.size()];
+	Vector3 current_pos = position_history[(position_history_ptr + l)     % position_history.size()];
+	Vector3 last_pos    = position_history[(position_history_ptr + l - n) % position_history.size()];
 	
 	return current_pos - last_pos;
 }
@@ -1221,9 +1221,9 @@ void LocalizerV2::stats_change_state(enum STATE s){
  * @param cheat actual position provided by server
  * @param error_placeholder variable where result is stored
  */
-int LocalizerV2::stats_sample_position_error(const Vector3f sample, const Vector3f& cheat, double error_placeholder[]){
+int LocalizerV2::stats_sample_position_error(const Vector3 sample, const Vector3& cheat, double error_placeholder[]){
 
-	if(world.my_cheat_abs_cart_pos == Vector3f(0,0,0)) return 0;
+	if(world.my_cheat_abs_cart_pos == Vector3(0,0,0)) return 0;
 
 	double x_err = sample.x - cheat.x;
 	double y_err = sample.y - cheat.y;
