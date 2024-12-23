@@ -24,6 +24,7 @@ pyinstaller \
 --add-data './behaviors/custom/Dribble/*.pkl:behaviors/custom/Dribble' \
 --add-data './behaviors/custom/Walk/*.pkl:behaviors/custom/Walk' \
 --add-data './behaviors/custom/Fall/*.pkl:behaviors/custom/Fall' \
+--add-data './behaviors/custom/Kick_Long/*.pkl:behaviors/custom/Kick_Long' \
 ${onefile} --distpath ./bundle/dist/ --workpath ./bundle/build/ --noconfirm --name fcp Run_Player.py
 
 # start.sh
