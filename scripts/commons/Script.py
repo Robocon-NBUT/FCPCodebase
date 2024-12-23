@@ -1,10 +1,9 @@
 import argparse
 import json
 import sys
-import pickle
+import shutil
 import subprocess
 from time import sleep
-from os import cpu_count
 from pathlib import Path
 from scripts.commons.UI import UI
 
@@ -13,7 +12,7 @@ class Script:
     # project root directory
     ROOT_DIR = str(Path(__file__).resolve().parents[2])
 
-    def __init__(self, cpp_builder_unum=0) -> None:
+    def __init__(self) -> None:
         '''
         Arguments specification
         -----------------------
@@ -71,8 +70,7 @@ class Script:
 
         self.players = []  # list of created players
 
-        Script.build_cpp_modules(exit_on_build=(
-            cpp_builder_unum != 0 and cpp_builder_unum != self.args.u))
+        Script.cmake_builds()
 
         if self.args.D:
             try:
@@ -111,99 +109,42 @@ class Script:
                 self.options = json.load(f)
 
     @staticmethod
-    def build_cpp_modules(special_environment_prefix=[], exit_on_build=False):
-        '''
-        Build C++ modules in folder /cpp using Pybind11
+    def cmake_builds():
+        """
+        Build C++ Modules With CMake
 
-        Parameters
-        ----------
-        special_environment_prefix : `list`
-            command prefix to run a given command in the desired environment
-            useful to compile C++ modules for different python interpreter versions (other than default version)
-            Conda Env. example: ['conda', 'run', '-n', 'myEnv']
-            If [] the default python interpreter is used as compilation target
-        exit_on_build : bool
-            exit if there is something to build (so that only 1 player per team builds c++ modules)
-        '''
-        cpp_path = Script.ROOT_DIR + "/cpp/"
-        exclusions = ["__pycache__"]
+        CMake File: ./cpp/CMakeLists.txt
+        """
+        cmake_dir = Path(Script.ROOT_DIR) / "cpp"
 
-        cpp_modules = [d.name for d in Path(cpp_path).iterdir(
-        ) if d.is_dir() and d.name not in exclusions]
+        if not cmake_dir.is_dir():
+            return
 
-        if not cpp_modules:
-            return  # no modules to build
+        # Check the .so files exist, .so file is in modules dir
+        module_dir = cmake_dir / "modules"
 
-        # "python3" can select the wrong version, this prevents that
-        python_cmd = f"python{sys.version_info.major}.{sys.version_info.minor}"
+        if len(list(module_dir.glob("*.so"))) == 3:
+            return
 
-        def init():
-            print("--------------------------\nC++ modules:", cpp_modules)
+        build_dir = cmake_dir / "build"
 
-            try:
-                process = subprocess.Popen(
-                    special_environment_prefix+[python_cmd, "-m", "pybind11", "--includes"], stdout=subprocess.PIPE)
-                (includes, _) = process.communicate()
-                process.wait()
-            except:
-                print(f"Error while executing child program: '{python_cmd} -m pybind11 --includes'")
-                exit()
+        if not build_dir.is_dir():
+            build_dir.mkdir()
 
-            # strip trailing newlines (and other whitespace chars)
-            includes = includes.decode().rstrip()
-            print("Using Pybind11 includes: '", includes, "'", sep="")
-            return includes
+        cmake_commands = ["cmake", ".."]
+        cmake_build_commands = ["cmake", "--build", "."]
 
-        nproc = str(cpu_count())
-        zero_modules = True
+        with subprocess.Popen(cmake_commands, cwd=build_dir) as process:
+            process.wait()
 
-        for module in cpp_modules:
-            module_path = Path(cpp_path) / module
+        with subprocess.Popen(cmake_build_commands, cwd=build_dir) as process:
+            process.wait()
 
-            # Skip module if there is no Makefile (typical distribution case)
-            if not (module_path / "Makefile").is_file():
-                continue
+        # remove build dir
+        shutil.rmtree(build_dir)
 
-            # Skip module in certain conditions
-            so_file = module_path / f"{module}.so"
-            c_info_file = module_path / f"{module}.c_info"
-            if so_file.is_file() and c_info_file.is_file():
-                with c_info_file.open('rb') as f:
-                    info = pickle.load(f)
-                if info == python_cmd:
-                    code_files = [
-                        f for f in module_path.iterdir() if f.suffix in (".cpp", ".h")]
-                    code_mod_time = max(f.stat().st_mtime for f in code_files)
-                    bin_mod_time = so_file.stat().st_mtime
-                    if bin_mod_time + 30 > code_mod_time:  # Favor not building with a margin of 30s
-                        continue
 
-            # init: print stuff & get Pybind11 includes
-            if zero_modules:
-                if exit_on_build:
-                    print("There are C++ modules to build. This player is not allowed to build. Aborting.")
-                    sys.exit()
-                zero_modules = False
-                includes = init()
-
-            # build module
-            print(f'{f"Building: {module}... ":40}', end='', flush=True)
-            process = subprocess.Popen(['make', '-j'+nproc, 'PYBIND_INCLUDES='+includes],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=module_path)
-            (output, err) = process.communicate()
-            exit_code = process.wait()
-            if exit_code == 0:
-                print("success!")
-                with (module_path / (module + ".c_info")).open("wb") as f:  # save python version
-                    # protocol 4 is backward compatible with Python 3.4
-                    pickle.dump(python_cmd, f, protocol=4)
-            else:
-                print("Aborting! Building errors:")
-                print(output.decode(), err.decode())
-                sys.exit()
-
-        if not zero_modules:
-            print("All modules were built successfully!\n--------------------------")
+        print("CMake Build Completed")
 
     def batch_create(self, agent_cls, args_per_player):
         ''' Creates batch of agents '''

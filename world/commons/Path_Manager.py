@@ -1,6 +1,6 @@
 import numpy as np
 
-from cpp.a_star import a_star
+from cpp.modules import a_star
 from math_ops.math_ext import (
     vector_angle, vector_from_angle, normalize_deg, normalize_vec)
 from world.World import PlayMode, World, TheirMode

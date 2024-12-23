@@ -284,7 +284,7 @@ bool LocalizerV2::find_z_axis_orient_vec(){
 	Vector3f possibleZvec = crossbar_pt - p;
 	float possibleZvecLength = possibleZvec.length();
 
-	if(fabsf(possibleZvecLength - 0.8) < 0.05){ //Solution A & B
+	if(abs(possibleZvecLength - 0.8) < 0.05){ //Solution A & B
 		Vector3f unit_zvec = possibleZvec / possibleZvecLength;
 
 		// save as the new z axis orientation vector
@@ -653,7 +653,7 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 			if( l.length > (s.length + 0.7) ){ continue; }
 
 			//Skip field line if orientation does not match
-			float angle_difference = fabsf(l_angle - s.angle);
+			float angle_difference = abs(l_angle - s.angle);
 			if(angle_difference > 1.57079632f) angle_difference = 3.14159265f - angle_difference;
 			if(angle_difference > l_angle_tolerance) continue;
 			
@@ -1149,17 +1149,17 @@ void LocalizerV2::print_report() const{
 	const double* ptr = errorSum_fineTune_before;
 	float e1_2d_var = (ptr[4] - (ptr[3]*ptr[3]) / c) / c1;
 	float e1_3d_var = (ptr[6] - (ptr[5]*ptr[5]) / c) / c1;
-	float e1[] = { ptr[3]/c, sqrt(e1_2d_var), ptr[5]/c, sqrt(e1_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
+	double e1[] = { ptr[3]/c, sqrt(e1_2d_var), ptr[5]/c, sqrt(e1_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
 
 	ptr = errorSum_fineTune_euclidianDist;
 	float e2_2d_var = (ptr[4] - (ptr[3]*ptr[3]) / c) / c1;
 	float e2_3d_var = (ptr[6] - (ptr[5]*ptr[5]) / c) / c1;
-	float e2[] = { ptr[3]/c, sqrt(e2_2d_var), ptr[5]/c, sqrt(e2_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
+	double e2[] = { ptr[3]/c, sqrt(e2_2d_var), ptr[5]/c, sqrt(e2_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
 
 	ptr = errorSum_fineTune_probabilistic;
 	float e3_2d_var = (ptr[4] - (ptr[3]*ptr[3]) / c) / c1;
 	float e3_3d_var = (ptr[6] - (ptr[5]*ptr[5]) / c) / c1;
-	float e3[] = { ptr[3]/c, sqrt(e3_2d_var), ptr[5]/c, sqrt(e3_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
+	double e3[] = { ptr[3]/c, sqrt(e3_2d_var), ptr[5]/c, sqrt(e3_3d_var), ptr[0]/c, ptr[1]/c, ptr[2]/c };
 
 	ptr = errorSum_ball;
 	float e4_2d_var=0, e4_3d_var=0;
@@ -1167,7 +1167,7 @@ void LocalizerV2::print_report() const{
 		e4_2d_var = (ptr[4] - (ptr[3]*ptr[3]) / cb) / cb1;
 		e4_3d_var = (ptr[6] - (ptr[5]*ptr[5]) / cb) / cb1;
 	}
-	float e4[] = { ptr[3]/cb, sqrt(e4_2d_var), ptr[5]/cb, sqrt(e4_3d_var), ptr[0]/cb, ptr[1]/cb, ptr[2]/cb };
+	double e4[] = { ptr[3]/cb, sqrt(e4_2d_var), ptr[5]/cb, sqrt(e4_3d_var), ptr[0]/cb, ptr[1]/cb, ptr[2]/cb };
 
 	const int* st = state_counter;
 	printf("---------------------------------- LocalizerV2 Report ----------------------------------\n");

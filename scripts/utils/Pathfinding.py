@@ -86,7 +86,7 @@ Obstacles:
 import time
 import numpy as np
 from agent.Base_Agent import Base_Agent as Agent
-from cpp.a_star import a_star
+from cpp.modules import a_star
 from scripts.commons.Script import Script
 
 

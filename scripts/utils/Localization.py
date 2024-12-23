@@ -1,6 +1,6 @@
 import numpy as np
 from agent.Agent import Agent
-from cpp.localization import localization
+from cpp.modules import localization
 from math_ops.math_ext import to_3d
 from scripts.commons.Script import Script
 from world.commons.Draw import Draw

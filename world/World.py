@@ -2,8 +2,7 @@ from collections import deque
 from enum import IntEnum
 import numpy as np
 
-from cpp.ball_predictor import ball_predictor
-from cpp.localization import localization
+from cpp.modules import ball_predictor, localization
 from logs.Logger import Logger
 from math_ops.Matrix_4x4 import Matrix_4x4
 from world.commons.Draw import Draw
