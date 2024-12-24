@@ -674,7 +674,7 @@ double LocalizerV2::map_error_2d(const gsl_vector *v, void *params){
 
 		Vector3 lpt = transfMat * m.relPosCart; //compute absolute coordinates according to current transformation
 
-		float err = lpt.to2d().getDistanceTo(Vector(m.absPos.x,m.absPos.y));
+		float err = lpt.to2d().distance(Vector(m.absPos.x,m.absPos.y));
 		total_err += err > 0.5 ? err * 100 : err;
 		total_err_cnt++;
 
@@ -1022,7 +1022,7 @@ bool LocalizerV2::guess_xy(){
 	int last_i;
 	for(int i=0; i<4; i++){
 		if(!plausible_solution[i]) continue;
-		bool isDistanceOk = (!noLandmarks) || last_known_position.getDistanceTo(best_xy[i]) < 0.5; //  distance to last known position
+		bool isDistanceOk = (!noLandmarks) || last_known_position.distance(best_xy[i]) < 0.5; //  distance to last known position
 		if(current_error[i] < 0.12 && isDistanceOk){ // mapping error  
 			plausible_count++; 
 			last_i = i;
@@ -1033,7 +1033,7 @@ bool LocalizerV2::guess_xy(){
 	if(!noLandmarks && plausible_count>1){
 		plausible_count = 0;
 		for(int i=0; i<4; i++){
-			if(plausible_solution[i] && last_known_position.getDistanceTo(best_xy[i]) < 0.5){ // distance to last known position
+			if(plausible_solution[i] && last_known_position.distance(best_xy[i]) < 0.5){ // distance to last known position
 				plausible_count++; 
 				last_i = i;
 			}
@@ -1047,7 +1047,7 @@ bool LocalizerV2::guess_xy(){
 	}else if(plausible_count>1){
 		stats_change_state(FAILguessMany);
 		return false;
-	}else if(current_error[last_i] > 0.06 || (noLandmarks && last_known_position.getDistanceTo(best_xy[last_i]) > 0.3)){ // mapping error  /  distance to last known position
+	}else if(current_error[last_i] > 0.06 || (noLandmarks && last_known_position.distance(best_xy[last_i]) > 0.3)){ // mapping error  /  distance to last known position
 		stats_change_state(FAILguessTest);
 		return false;
 	}

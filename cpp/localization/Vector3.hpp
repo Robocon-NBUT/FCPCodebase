@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Geometry.h"
+#include "Vector.hpp"
 struct Vector3
 {
     double x, y, z;

@@ -1,9 +1,6 @@
 #include <iostream>
-#include "Geometry.h"
 #include "Vector3.hpp"
 #include "Matrix4D.hpp"
-#include "FieldNoise.h"
-#include "Line6.hpp"
 #include "World.h"
 #include "Field.h"
 #include "LocalizerV2.h"

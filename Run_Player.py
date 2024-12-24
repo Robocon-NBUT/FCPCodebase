@@ -1,6 +1,6 @@
 from scripts.commons.Script import Script
 # Initialize: load config file, parse arguments, build cpp modules
-script = Script(cpp_builder_unum=1)
+script = Script()
 a = script.args
 
 if a.P:  # penalty shootout

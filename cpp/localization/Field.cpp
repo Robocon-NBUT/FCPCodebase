@@ -1,6 +1,7 @@
 #include "Field.h"
 #include "RobovizLogger.h"
 #include "World.h"
+#include <algorithm>
 
 static World &world = SWorld::getInstance();
 
@@ -612,6 +613,6 @@ float Field::fieldLineSegmentDistToCart2DPoint(const sFieldSegment &fLine, const
     if (w2.innerProduct(v) >= 0)
         return w2.length(); // if angle between vectors is <=90deg, we return the distance to segment end
 
-    return fabsf(v.crossProduct(w1)) /
+    return abs(v.crossProduct(w1)) /
            fLine.length; // distance line to point (area of parallelogram divided by base gives height)
 }

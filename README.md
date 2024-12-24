@@ -18,7 +18,7 @@ Robocup3D 主要由服务器(rcssserver3d)，监视器(Roboviz)，和球队组�
 
 ### 3.安装监视器(Roboviz)
 
-Roboviz 的运行需要 JRE(Java Runtime Environment) 环境，Roboviz 在 Windows 和 Linux 上均可用，但是 Java 环境建议两边都安装。
+Roboviz 需要 Java 运行环境（JRE）才能运行，因此具备跨平台的能力。它可以在 Windows 和 Linux 系统上使用，但建议在两者上都安装 Java 环境。
 
 ### Windows
 
@@ -36,7 +36,7 @@ Ubuntu 平台安装 Java 直接使用包管理器即可，在终端输入：
 
 ```bash
 sudo apt update && sudo apt upgrade
-sudo apt install openjdk-17-jdk
+sudo apt install openjdk-21-jdk
 ```
 
 安装完后，在终端输入：
@@ -56,7 +56,7 @@ java -version
 先安装基本的环境依赖：
 
 ```bash
-sudo apt install libgsl-dev python3-numpy python3-pybind11 python3-psutil python3-pip
+sudo apt install cmake clang libgsl-dev python3-numpy python3-pybind11 python3-psutil python3-pip
 ```
 
 更新 `pip` 的软件源地址：

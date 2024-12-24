@@ -3,6 +3,8 @@
 #include "Vector3.hpp"
 #include <vector>
 
+using namespace std;
+
 constexpr int M_ROWS = 4;
 constexpr int M_COLS = 4;
 constexpr int M_LENGTH = M_ROWS * M_COLS;
