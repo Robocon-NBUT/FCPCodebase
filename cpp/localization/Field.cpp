@@ -520,7 +520,7 @@ void Field::update_from_transformation(const Matrix4D &tmatrix)
             // and unknown markers)
 
             const Line6 field_line(best_line->point[0]->get_vector(), best_line->point[1]->get_vector(),
-                                    best_line->length);
+                                   best_line->length);
 
             sVector3d l_pt_d[2]; // final line segment points (double precision floating-points)
 
@@ -557,7 +557,7 @@ void Field::update_unknown_markers(const Matrix4D &tmatrix)
 
         // Push marker to existing field segment
         const Line6 field_seg(u.fieldSeg->point[0]->get_vector(), u.fieldSeg->point[1]->get_vector(),
-                               u.fieldSeg->length);
+                              u.fieldSeg->length);
         Vector3 fixed_abs_pos =
             field_seg.segmentPointClosestToCartPoint(raw_abs_pos); // push point to closest valid position
 
