@@ -17,8 +17,8 @@ int pos_pred_len = 0;
  * @param ret_y returned position (y) of intersection point
  * @param ret_d returned distance between robot and intersection point
  */
-void get_intersection_with_ball(float x, float y, float max_robot_sp_per_step, float ball_pos[], float ball_pos_len,
-                                float &ret_x, float &ret_y, float &ret_d)
+void get_intersection_with_ball(double x, double y, double max_robot_sp_per_step, double ball_pos[], double ball_pos_len,
+                                double &ret_x, double &ret_y, double &ret_d)
 {
 
     float robot_max_displacement = 0.2; // robot has an immediate reach radius of 0.2m

@@ -1,6 +1,6 @@
 import numpy as np
 
-from cpp.modules import a_star
+from cpp.modules import utils
 from math_ops.math_ext import (
     vector_angle, vector_from_angle, normalize_deg, normalize_vec)
 from world.World import PlayMode, World, TheirMode
@@ -632,7 +632,7 @@ class Path_Manager:
         params = np.array([*start, int(allow_out_of_bounds), go_to_goal,
                            *optional_2d_target, timeout, *obstacles], np.float32)
         # 使用 A* 算法计算路径
-        path_ret = a_star.compute(params)
+        path_ret = utils.astar_compute(params)
         # 获取路径（去掉最后两个返回值）
         path = path_ret[:-2]
         # 获取路径状态

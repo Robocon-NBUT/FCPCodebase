@@ -86,7 +86,7 @@ Obstacles:
 import time
 import numpy as np
 from agent.Base_Agent import Base_Agent as Agent
-from cpp.modules import a_star
+from cpp.modules import utils
 from scripts.commons.Script import Script
 
 
@@ -94,7 +94,7 @@ class Pathfinding:
     def __init__(self, script: Script) -> None:
         self.script = script
         # Initialize (not needed, but the first run takes a bit more time)
-        a_star.compute(np.zeros(6, np.float32))
+        utils.astar_compute(np.zeros(6, np.float32))
 
     def draw_grid(self):
         d = self.player.world.draw
@@ -103,11 +103,11 @@ class Pathfinding:
         for x in np.arange(-16, 16.01, 0.1):
             for y in np.arange(-11, 11.01, 0.1):
                 # do not allow out of bounds
-                s_in,  cost_in = a_star.compute(
+                s_in,  cost_in = utils.astar_compute(
                     np.array([x, y, 0, 0, x, y, 5000], np.float32))[-2:]
 
                 # allow out of bounds
-                s_out, cost_out = a_star.compute(
+                s_out, cost_out = utils.astar_compute(
                     np.array([x, y, 1, 0, x, y, 5000], np.float32))[-2:]
                 # print(path_cost_in, path_cost_out)
                 if s_out != 3:
@@ -217,9 +217,9 @@ class Pathfinding:
             param_vec_bp = np.array(
                 [*ball,  0, go_to_goal, *rpos, timeout, *obst[0]], np.float32)
             t1 = time.time()
-            path_ret_pb = a_star.compute(param_vec_pb)
+            path_ret_pb = utils.astar_compute(param_vec_pb)
             t2 = time.time()
-            path_ret_bp = a_star.compute(param_vec_bp)
+            path_ret_bp = utils.astar_compute(param_vec_bp)
             t3 = time.time()
 
             print(

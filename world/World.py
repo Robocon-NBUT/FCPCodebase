@@ -2,7 +2,7 @@ from collections import deque
 from enum import IntEnum
 import numpy as np
 
-from cpp.modules import ball_predictor, localization
+from cpp.modules import utils, localization
 from logs.Logger import Logger
 from math_ops.Matrix_4x4 import Matrix_4x4
 from world.commons.Draw import Draw
@@ -231,7 +231,7 @@ class World:
 
         params = np.array([*self.robot.location.Head.Position[:2],
                           player_speed*0.02, *self.Ball.Predicted2DPos.flat], np.float32)
-        pred_ret = ball_predictor.get_intersection(params)
+        pred_ret = utils.get_intersection(params)
         return pred_ret[:2], pred_ret[2]
 
     def update(self):
@@ -401,7 +401,7 @@ class World:
 
             params = np.array(
                 [*self.Ball.AbsolutePos[:2], *np.copy(self.get_ball_abs_vel(6)[:2])], np.float32)
-            pred_ret = ball_predictor.predict_rolling_ball(params)
+            pred_ret = utils.predict_rolling_ball(params)
             sample_no = len(pred_ret) // 5 * 2
             self.Ball.Predicted2DPos = pred_ret[:sample_no].reshape(-1, 2)
             self.Ball.Predicted2DVel = pred_ret[sample_no:sample_no *

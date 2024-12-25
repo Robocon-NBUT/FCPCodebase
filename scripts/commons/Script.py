@@ -123,7 +123,7 @@ class Script:
         # Check the .so files exist, .so file is in modules dir
         module_dir = cmake_dir / "modules"
 
-        if len(list(module_dir.glob("*.so"))) == 3:
+        if len(list(module_dir.glob("*.so"))) == 2:
             return
 
         build_dir = cmake_dir / "build"

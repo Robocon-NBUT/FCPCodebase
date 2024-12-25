@@ -12,6 +12,5 @@ set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 find_package(pybind11 REQUIRED)
 
-add_subdirectory(a_star)
-add_subdirectory(ball_predictor)
+add_subdirectory(utils)
 add_subdirectory(localization)

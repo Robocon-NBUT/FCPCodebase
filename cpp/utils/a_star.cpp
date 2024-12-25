@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <vector>
 #include <numbers>
+#include <vector>
 #define LINES 321
 #define COLS 221
 #define MAX_RADIUS 5     // obstacle max radius in meters
@@ -358,8 +358,8 @@ inline float diagonal_distance(bool go_to_goal, int line, int col, int end_l, in
 }
 
 inline Node *expand_child(Node *open_root, float cost, float wall_index, Node *curr_node, Node *board, int pos,
-                          int state, bool go_to_goal, int line, int col, int end_l, int end_c, vector<State>& node_state,
-                          float extra)
+                          int state, bool go_to_goal, int line, int col, int end_l, int end_c,
+                          vector<State> &node_state, float extra)
 {
     // child can be as inaccessible as current pos (but there is a cost penalty to avoid inaccessible paths)
     if (cost <= wall_index)
@@ -504,7 +504,7 @@ inline bool does_intersect_any_goal(float a_x, float a_y, float b_x, float b_y)
 /**
  * @brief Add space cushion near the midlines and endlines
  */
-void add_space_cushion(vector<double>& board_cost)
+void add_space_cushion(vector<double> &board_cost)
 {
     constexpr auto CUSHION_WIDTH = 6;
 
@@ -549,13 +549,13 @@ void add_space_cushion(vector<double>& board_cost)
  * Special case (start == end):
  *      The path is obstructed if start is inside any hard circumference
  */
-bool is_path_obstructed(float start_x, float start_y, float end_x, float end_y, float given_obstacles[],
-                        int given_obst_size, bool go_to_goal, int wall_index, vector<double>& board_cost)
+bool is_path_obstructed(double start_x, double start_y, double end_x, double end_y, double given_obstacles[],
+                        int given_obst_size, bool go_to_goal, int wall_index, vector<double> &board_cost)
 {
 
     // Restrict start coordinates to map
-    start_x = max(-16.f, min(start_x, 16.f));
-    start_y = max(-11.f, min(start_y, 11.f));
+    start_x = max(-16.0, min(start_x, 16.0));
+    start_y = max(-11.0, min(start_y, 11.0));
 
     int s_lin = x_to_line(start_x);
     int e_lin = x_to_line(end_x);
@@ -577,12 +577,12 @@ bool is_path_obstructed(float start_x, float start_y, float end_x, float end_y, 
     if (go_to_goal)
     { // This is a safe target. If it generates a collision with any goal post, we use A* instead.
         end_x = 15.2;
-        end_y = max(-0.8f, min(start_y, 0.8f));
+        end_y = max(-0.8, min(start_y, 0.8));
     }
     else
     { // Restrict end coordinates to map
-        end_x = max(-16.f, min(end_x, 16.f));
-        end_y = max(-11.f, min(end_y, 11.f));
+        end_x = max(-16.0, min(end_x, 16.0));
+        end_y = max(-11.0, min(end_y, 11.0));
 
         // Let A* handle it if the end position is unreachable or (is nearly out of bounds && out of bounds is not
         // allowed && not near end)
@@ -616,10 +616,8 @@ bool is_path_obstructed(float start_x, float start_y, float end_x, float end_y, 
      * - largest radius (equivalent to hard radius, since there is no soft radius)
      */
 
-    vector<double> obst = {
-        15.02,  1.07, 0.17, 0.17, 15.02,  -1.07, 0.17, 0.17,
-        -15.02, 1.07, 0.17, 0.17, -15.02, -1.07, 0.17, 0.17
-    };
+    vector<double> obst = {15.02,  1.07, 0.17, 0.17, 15.02,  -1.07, 0.17, 0.17,
+                           -15.02, 1.07, 0.17, 0.17, -15.02, -1.07, 0.17, 0.17};
 
     obst.resize(given_obst_size * 4 / 5 + 16);
 
@@ -739,20 +737,20 @@ bool is_path_obstructed(float start_x, float start_y, float end_x, float end_y, 
 // [optional target x][optional target y]
 // [timeout]
 // [x][y][hard radius][soft radius][force]
-void astar(float params[], int params_size)
+void astar(double params[], int params_size)
 {
 
     auto t1 = chrono::high_resolution_clock::now();
 
-    const float s_x = params[0]; // start x
-    const float s_y = params[1]; // start y
+    const double s_x = params[0]; // start x
+    const double s_y = params[1]; // start y
     const bool allow_out_of_bounds = params[2];
     const int wall_index = allow_out_of_bounds ? -3 : -2; // (cost <= wall_index) means 'unreachable'
     const bool go_to_goal = params[3];
-    const float opt_t_x = params[4]; // optional target x
-    const float opt_t_y = params[5]; // optional target y
+    const double opt_t_x = params[4]; // optional target x
+    const double opt_t_y = params[5]; // optional target y
     const int timeout_us = params[6];
-    float *obstacles = &params[7];
+    double *obstacles = &params[7];
     int obst_size = params_size - 7; // size of obstacles array
 
     //======================================================== Populate board 0: add field layout
@@ -891,7 +889,7 @@ void astar(float params[], int params_size)
     // Even if we are on top of the objective, the idea is to get away, to the nearest valid position.
     if (!go_to_goal)
     {
-        double& end_cost = board_cost[end_l * COLS + end_c];
+        double &end_cost = board_cost[end_l * COLS + end_c];
         if (end_cost > wall_index)
         {
             end_cost = -1;
