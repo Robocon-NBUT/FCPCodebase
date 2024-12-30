@@ -1,7 +1,6 @@
 import numpy as np
 from agent.Base_Agent import Base_Agent
 from math_ops.math_ext import normalize_deg
-import world.World as World
 
 
 class Env:
@@ -10,10 +9,11 @@ class Env:
         self.behavior = base_agent.behavior
         self.path_manager = base_agent.path_manager
         self.world = base_agent.world
-        self.obs = np.zeros(63, np.float32)
+        self.obs = np.zeros(64, np.float32)
         self.DEFAULT_ARMS = np.array(
             [-90, -90, 8, 8, 90, 90, 70, 70], np.float32)
         self.kick_ori = None
+        self.kick_dist = None
 
     def observe(self, init=False):
         w = self.world
@@ -29,9 +29,9 @@ class Env:
         self.obs[5:8] = r.gyro / 100
         self.obs[8:11] = r.acc / 10
         self.obs[11:17] = r.frp.get("lf", np.zeros(6)) * (10, 10, 10, 0.01, 0.01,
-                                                          0.01)
+                                                            0.01)
         self.obs[17:23] = r.frp.get("rf", np.zeros(6)) * (10, 10, 10, 0.01, 0.01,
-                                                          0.01)
+                                                            0.01)
         self.obs[23:39] = np.array(
             [joint.position for joint in r.joints[2:18]]) / 100
         self.obs[39:55] = np.array(
@@ -48,12 +48,13 @@ class Env:
             self.obs[61] = np.linalg.norm(ball_rel_hip_center) * 2
             self.obs[62] = normalize_deg(
                 self.kick_ori - r.IMU.TorsoOrientation) / 30
+            self.obs[63] = self.kick_dist / 9
         return self.obs
 
-    def execute(self, action, allow_aerial=True):
+    def execute(self, action):
         w = self.world
         r = self.world.robot
-        if self.step_counter < 6:
+        if self.step_counter < 2:
             arr = action * [2, 2, 1, 1, 0.2, 0.2, 0.2, 0.2, 2, 2, 1, 1, 1, 1, 1, 1]
             for i in range(2, 18):
                 r.joints[i].target_speed = arr[i-2]
@@ -70,11 +71,7 @@ class Env:
             r.joints[7].target_speed += 3
             r.joints[9].target_speed += 3
             r.joints[11].target_speed -= 1
-
-            if not allow_aerial:
-                r.joints[7].target_speed = np.clip(
-                    r.joints[7].target_speed, -10, 5)
             r.set_joints_target_position_direct(
                 [0, 1], (np.array([0, -44], float)), harmonize=False)
         self.step_counter += 1
-        return self.step_counter >= 16
+        return self.step_counter >= 10
