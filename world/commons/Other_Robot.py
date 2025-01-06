@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 import numpy as np
 
 # Note: When other robot is seen, all previous body part positions are deleted
@@ -40,3 +42,46 @@ class Other_Robot:
         self.state_body_parts_abs_pos = {}
         # 3D filtered velocity (m/s) (if the head is not visible, the 2D part is updated and v.z decays)
         self.state_filtered_velocity = np.zeros(3)
+
+
+class RobotList:
+    def __init__(self, length: int, is_teammate: bool):
+        self._robots = [Other_Robot(i + 1, is_teammate) for i in range(length)]
+        self._ball_pos: np.ndarray = []
+        self._time_local_ms = 0
+
+    def distance(self, ball_pos: np.ndarray, time_local_ms: int):
+        """
+        获取队员与球员的距离
+        """
+        self._ball_pos = ball_pos
+        self._time_local_ms = time_local_ms
+        for robot in self._robots:
+            yield self._single_distance(robot)
+
+    def _single_distance(self, r: Other_Robot):
+        # 如果对手不存在，或者状态信息不新（360毫秒），或者已经倒下，则强制设置为大距离
+        if r.state_last_update != 0 and (self._time_local_ms - r.state_last_update <= 360 or r.is_self) and not r.state_fallen:
+            return np.sum((r.state_abs_pos[:2] - self._ball_pos) ** 2)
+        return 1000
+
+    def _compare(self, r1: Other_Robot, r2: Other_Robot):
+        "123123"
+        return self._single_distance(r1) - self._single_distance(r2)
+
+    def sort_distance(self, ball_pos: np.ndarray, time_local_ms: int):
+        "123123"
+        self._ball_pos = ball_pos
+        self._time_local_ms = time_local_ms
+        _sorted_arr = sorted(self._robots, key=cmp_to_key(self._compare))
+        new_list = RobotList(0, False)
+        new_list._robots = _sorted_arr
+        return new_list
+        # self._robots = _sorted_arr
+        # return self
+
+    def __getitem__(self, index: int):
+        return self._robots[index]
+
+    def __iter__(self):
+        return iter(self._robots)

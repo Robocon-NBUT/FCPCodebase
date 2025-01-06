@@ -6,7 +6,7 @@ from cpp.modules import utils, localization
 from logs.Logger import Logger
 from math_ops.Matrix_4x4 import Matrix_4x4
 from world.commons.Draw import Draw
-from world.commons.Other_Robot import Other_Robot
+from world.commons.Other_Robot import Other_Robot, RobotList
 from world.Robot import Robot
 
 
@@ -122,9 +122,11 @@ class World:
         # True if the last server message contained vision information
         self.vision_is_up_to_date = False
         # List of teammates, ordered by unum
-        self.teammates = [Other_Robot(i, True) for i in range(1, 12)]
+        self.teammates = RobotList(12, True)
+        # self.teammates = [Other_Robot(i, True) for i in range(1, 12)]
         # List of opponents, ordered by unum
-        self.opponents = [Other_Robot(i, False) for i in range(1, 12)]
+        self.opponents = RobotList(12, False)
+        # self.opponents = [Other_Robot(i, False) for i in range(1, 12)]
         # This teammate is self
         self.teammates[unum-1].is_self = True
         # Draw object for current player
