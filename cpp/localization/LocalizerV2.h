@@ -193,7 +193,7 @@
 
 #pragma once
 #include "Field.h"
-#include "FieldNoise.h"
+#include "FieldNoise.hpp"
 #include "Singleton.h"
 
 #include <gsl/gsl_linalg.h>   //Singular value decomposition
