@@ -1,9 +1,14 @@
+"""
+    Robot Joint
+"""
+
 import xml.etree.ElementTree
 
 import numpy as np
+from math_ops.Matrix_4x4 import Matrix_4x4
 
 
-class Joint_Info:
+class JointInfo:
     def __init__(self, xml_element: xml.etree.ElementTree.Element) -> None:
         self.perceptor = xml_element.attrib['perceptor']
         self.effector = xml_element.attrib['effector']
@@ -25,3 +30,25 @@ class Joint_Info:
             -float(xml_element[1].attrib['y']),
             -float(xml_element[1].attrib['x']),
             -float(xml_element[1].attrib['z'])])  # x and y axes are switched
+
+
+class BodyPart:
+    def __init__(self, mass) -> None:
+        self.mass = float(mass)
+        self.joints = []
+        self.transform = Matrix_4x4()  # body part to head transformation matrix
+
+
+class Joint:
+    """
+    关节类
+    """
+
+    def __init__(self):
+        self.position = 0.0
+        self.speed = 0.0
+        self.target_speed = 0.0
+        self.target_last_speed = 0.0
+        self.info: JointInfo = None
+        self.transform = Matrix_4x4()
+        self.fix_effector_mask = 1

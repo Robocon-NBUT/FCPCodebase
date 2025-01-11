@@ -4,23 +4,7 @@ import numpy as np
 from math_ops.math_ext import get_active_directory
 from math_ops.Matrix_3x3 import Matrix_3x3
 from math_ops.Matrix_4x4 import Matrix_4x4
-from world.commons.Body_Part import Body_Part
-from world.commons.Joint_Info import Joint_Info
-
-
-class Joint:
-    """
-    关节类
-    """
-
-    def __init__(self):
-        self.position = 0.0
-        self.speed = 0.0
-        self.target_speed = 0.0
-        self.target_last_speed = 0.0
-        self.info: Joint_Info = None
-        self.transform = Matrix_4x4()
-        self.fix_effector_mask = 1
+from world.robot_joint import BodyPart, JointInfo, Joint
 
 
 class Location:
@@ -128,7 +112,7 @@ class Robot:
         for index in Robot.FIX_INDICES_LIST:
             self.joints[index].fix_effector_mask = -1
 
-        self.body_parts = {}  # 保存机器人的身体部件，键为部件名称，值为Body_Part对象
+        self.body_parts = {}  # 保存机器人的身体部件，键为部件名称，值为 BodyPart 对象
         self.unum = unum  # 机器人的编号
         self.gyro = np.zeros(3)  # 机器人躯干在三自由度轴上的角速度（单位：度/秒）
         self.acc = np.zeros(3)  # 机器人躯干在三自由度轴上的加速度（单位：m/s²）
@@ -177,16 +161,16 @@ class Robot:
 
         # ------------------ 解析机器人XML文件
 
-        dir = get_active_directory("/world/commons/robots/")
+        dir = get_active_directory("/world/robots/")
         robot_xml_root = xmlp.parse(dir + robot_xml).getroot()
 
         joint_no = 0
         for child in robot_xml_root:
             if child.tag == "bodypart":  # 如果是身体部件
-                self.body_parts[child.attrib['name']] = Body_Part(
+                self.body_parts[child.attrib['name']] = BodyPart(
                     child.attrib['mass'])  # 保存部件质量信息
             elif child.tag == "joint":  # 如果是关节
-                self.joints[joint_no].info = Joint_Info(child)
+                self.joints[joint_no].info = JointInfo(child)
                 self.joints[joint_no].position = 0.0
                 ji = self.joints[joint_no].info
 
@@ -511,7 +495,8 @@ class Robot:
 
         if isinstance(indices, slice):
             if indices.step:
-                indices = list(range(indices.start, indices.stop, indices.step))
+                indices = list(
+                    range(indices.start, indices.stop, indices.step))
             else:
                 indices = list(range(indices.start, indices.stop))
 

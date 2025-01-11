@@ -1,5 +1,5 @@
 from time import sleep
-from world.commons.Draw import Draw
+from world.Draw import Draw
 
 
 class Drawings:

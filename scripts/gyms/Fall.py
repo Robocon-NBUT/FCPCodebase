@@ -47,7 +47,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from agent.Base_Agent import Base_Agent as Agent
-from world.commons.Draw import Draw
+from world.Draw import Draw
 from scripts.commons.Server import Server
 from scripts.commons.Train_Base import Train_Base
 

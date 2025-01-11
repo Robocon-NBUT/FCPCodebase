@@ -4,7 +4,7 @@ from importlib import import_module
 from scripts.commons.Script import Script
 from scripts.commons.UI import UI
 
-from world.commons.Draw import Draw
+from world.Draw import Draw
 from agent.Base_Agent import Base_Agent
 
 

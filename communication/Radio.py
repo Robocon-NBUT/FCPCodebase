@@ -1,6 +1,6 @@
 import numpy as np
 
-from world.commons.Other_Robot import Other_Robot
+from world.Other_Robot import Other_Robot
 from world.World import World
 
 

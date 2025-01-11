@@ -5,8 +5,8 @@ import numpy as np
 from cpp.modules import utils, localization
 from logs.Logger import Logger
 from math_ops.Matrix_4x4 import Matrix_4x4
-from world.commons.Draw import Draw
-from world.commons.Other_Robot import Other_Robot, RobotList
+from world.Draw import Draw
+from world.Other_Robot import Other_Robot, RobotList
 from world.Robot import Robot
 
 

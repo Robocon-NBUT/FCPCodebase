@@ -20,7 +20,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Server import Server
 from scripts.commons.Train_Base import Train_Base
-from world.commons.Draw import Draw
+from world.Draw import Draw
 
 
 class Get_Up(gym.Env):

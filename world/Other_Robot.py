@@ -66,11 +66,15 @@ class RobotList:
         return 1000
 
     def _compare(self, r1: Other_Robot, r2: Other_Robot):
-        "123123"
+        """
+        比较两个球员离球的距离
+        """
         return self._single_distance(r1) - self._single_distance(r2)
 
     def sort_distance(self, ball_pos: np.ndarray, time_local_ms: int):
-        "123123"
+        """
+        按照和球的距离对球员进行排序
+        """
         self._ball_pos = ball_pos
         self._time_local_ms = time_local_ms
         _sorted_arr = sorted(self._robots, key=cmp_to_key(self._compare))

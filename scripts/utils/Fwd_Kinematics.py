@@ -1,7 +1,7 @@
 import numpy as np
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Script import Script
-from world.commons.Draw import Draw
+from world.Draw import Draw
 
 
 class Fwd_Kinematics:

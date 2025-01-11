@@ -1,7 +1,7 @@
 from itertools import count
 from agent.Agent import Agent
 from scripts.commons.Script import Script
-from world.commons.Draw import Draw
+from world.Draw import Draw
 
 
 class Radio_Localization:

@@ -3,8 +3,8 @@ from agent.Agent import Agent
 from cpp.modules import localization
 from math_ops.math_ext import to_3d
 from scripts.commons.Script import Script
-from world.commons.Draw import Draw
-from world.commons.Other_Robot import Other_Robot
+from world.Draw import Draw
+from world.Other_Robot import Other_Robot
 
 
 class Localization:

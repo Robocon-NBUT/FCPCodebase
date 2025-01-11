@@ -14,7 +14,7 @@ onefile="--onefile"
 # bundle app, dependencies and data files into single executable
 
 pyinstaller \
---add-data './world/commons/robots:world/commons/robots' \
+--add-data './world/robots:world/robots' \
 --add-data './behaviors/slot/common:behaviors/slot/common' \
 --add-data './behaviors/slot/r0:behaviors/slot/r0' \
 --add-data './behaviors/slot/r1:behaviors/slot/r1' \

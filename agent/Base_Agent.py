@@ -5,7 +5,7 @@ from communication.server import Server
 from communication.world_parser import WorldParser
 from logs.Logger import Logger
 from math_ops.Inverse_Kinematics import Inverse_Kinematics
-from world.commons.Path_Manager import Path_Manager
+from world.Path_Manager import Path_Manager
 from world.World import World
 
 
