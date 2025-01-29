@@ -1,11 +1,11 @@
 from tabulate import tabulate
-from typing import List, Optional, Tuple
+from typing import Optional
 import numpy as np
 
 
 class UI:
     @staticmethod
-    def read_particle(prompt: str, str_options: List[str], dtype=str, interval=[-np.inf, np.inf]) -> Tuple[int or dtype, bool]:
+    def read_particle(prompt: str, str_options: list[str], dtype=str, interval=[-np.inf, np.inf]):
         if dtype is str and len(str_options) == 1:
             print(prompt, str_options[0], sep="")
             return 0, True
@@ -42,12 +42,12 @@ class UI:
 
     @staticmethod
     def print_table(
-        data: List[List[str]],
-        titles: Optional[List[str]] = None,
-        alignment: Optional[List[str]] = None,
-        numbering: Optional[List[bool]] = False,
+        data: list[list[str]],
+        titles: Optional[list[str]] = None,
+        colalign: Optional[list[str]] = None,
+        numbering: Optional[list[bool]] = False,
         prompt: Optional[str] = None,
-    ) -> Optional[Tuple[int, int, int]]:
+    ) -> Optional[tuple[int, int, int]]:
         """
         打印表格，支持列对齐方式和选项编号。
 
@@ -57,8 +57,8 @@ class UI:
             表格数据，每一行是一个列表。
         titles : Optional[List[str]]
             列标题，默认为 None。
-        alignment : Optional[List[str]]
-            列对齐方式，默认为 None（左对齐）。支持 '<'（左对齐）、'>'（右对齐）、'^'（居中对齐）。
+        colalign : Optional[List[str]]
+            列对齐方式，默认为 None（左对齐）。支持 'left'（左对齐）、'right'（右对齐）、'center'（居中对齐）。
         numbering : bool
             是否为每行添加编号，默认为 False。
         prompt : Optional[str]
@@ -70,20 +70,8 @@ class UI:
             返回用户选择的全局索引、列内索引和列号。如果未提供 prompt，则返回 None。
         """
         # 默认对齐方式为左对齐
-        if alignment is None:
-            alignment = ["<"] * len(data[0]) if data else []
-
-        # 将 alignment 转换为 tabulate 支持的格式
-        colalign = []
-        for align in alignment:
-            if align == "<":
-                colalign.append("left")
-            elif align == ">":
-                colalign.append("right")
-            elif align == "^":
-                colalign.append("center")
-            else:
-                colalign.append("left")  # 默认左对齐
+        if colalign is None:
+            colalign = ["left"] * len(data[0]) if data else []
 
         # 如果 numbering 为 True，为每行添加编号
         numbered_data = data
@@ -119,7 +107,7 @@ class UI:
             return None
 
     @staticmethod
-    def print_list(data: List[str], numbering=True, prompt: Optional[str] = None) -> Optional[Tuple[int, str]]:
+    def print_list(data: list[str], numbering=True, prompt: Optional[str] = None) -> Optional[tuple[int, str]]:
         if numbering:
             num_data = [[f"{i}-{item}"] for i, item in enumerate(data)]
         table = tabulate(num_data, tablefmt="fancy_outline")

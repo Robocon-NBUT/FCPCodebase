@@ -84,7 +84,7 @@ class Script:
 
             UI.print_table(
                 columns,
-                ["Argument", "Default at /config.json", "Active"], alignment=["<", "^", "^"])
+                ["Argument", "Default at /config.json", "Active"], colalign=["left", "center", "center"])
 
     def read_or_create_config(self) -> None:
 
