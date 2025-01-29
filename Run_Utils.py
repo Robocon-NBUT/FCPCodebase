@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
 from importlib import import_module
+from itertools import zip_longest
 from scripts.commons.Script import Script
-from scripts.commons.UI import UI
+from scripts.console_ui import UI
 
 from world.Draw import Draw
 from agent.Base_Agent import Base_Agent
@@ -29,8 +30,9 @@ def main():
 
     while True:
         _, col_idx, col = UI.print_table(
-            [utils, gyms], ["Demos & Tests & Utils", "Gyms"], cols_per_title=[2, 1],
-            numbering=[True]*2, prompt='选择要执行的内容 (ctrl+c to exit): ')
+            list(map(list, zip_longest(utils, gyms))),
+            ["Demos & Tests & Utils", "Gyms"],
+            numbering=[True, True], prompt='选择要执行的内容 (ctrl+c to exit): ')
 
         is_gym = False
         if col == 0:
