@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from time import sleep
 from pathlib import Path
-from scripts.commons.UI import UI
+from scripts.console_ui import UI
 
 
 class Script:
@@ -78,15 +78,13 @@ class Script:
             except:
                 pass
 
-            columns = [[], [], []]
+            columns = []
             for key, value in vars(self.args).items():
-                columns[0].append(o[key][0])
-                columns[1].append(o[key][1])
-                columns[2].append(value)
+                columns.append([o[key][0], o[key][1], value])
 
             UI.print_table(
                 columns,
-                ["Argument", "Default at /config.json", "Active"], alignment=["<", "^", "^"])
+                ["Argument", "Default at /config.json", "Active"], colalign=["left", "center", "center"])
 
     def read_or_create_config(self) -> None:
 
@@ -142,7 +140,6 @@ class Script:
 
         # remove build dir
         shutil.rmtree(build_dir)
-
 
         print("CMake Build Completed")
 

@@ -1,6 +1,6 @@
 from agent.Base_Agent import Base_Agent as Agent
 from scripts.commons.Script import Script
-from scripts.commons.UI import UI
+from scripts.console_ui import UI
 
 
 class Behaviors:
@@ -12,7 +12,7 @@ class Behaviors:
     def ask_for_behavior(self):
         names, descriptions = self.player.behavior.get_all_behaviors()
 
-        UI.print_table([names, descriptions], ["Behavior Name",
+        UI.print_table(list(map(list, zip(names, descriptions))), ["Behavior Name",
                        "Description"], numbering=[True, False])
         choice, is_str_opt = UI.read_particle(
             'Choose behavior ("" to skip 2 time steps, "b" to beam, ctrl+c to return): ', ["", "b"], int, [0, len(names)])

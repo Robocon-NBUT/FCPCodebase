@@ -106,11 +106,12 @@ class Server:
             self.read_config()
 
             # Convert convenient values dict to list
-            values_list = [self.values[o] for o in self.options]
+            values = [[item[0], self.values[item[0]], item[1]]
+                      for item in zip(self.options, self.descriptions)]
 
             print()
-            UI.print_table([self.options, values_list, self.descriptions], [
-                           "Setting", "Value", "Description"], numbering=[True, False, False])
+            UI.print_table(
+                values, ["Setting", "Value", "Description"], numbering=[True, False, False])
             choice = UI.input_num(
                 'Choose setting (ctrl+c to return): ', 0, len(self.options))
             opt = self.options[choice]
@@ -184,4 +185,4 @@ if __name__ == "__main__":
         s.change_config(*sys.argv[i:i+5])
 else:
     import subprocess
-    from scripts.commons.UI import UI
+    from scripts.console_ui import UI

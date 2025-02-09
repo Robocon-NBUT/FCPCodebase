@@ -15,7 +15,7 @@ import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback, CallbackList, BaseCallback
-from scripts.commons.UI import UI
+from scripts.console_ui import UI
 from world.World import World
 
 
@@ -35,13 +35,14 @@ class Train_Base():
         self.ip = args.i
         self.server_p = args.p              # (initial) server port
         self.monitor_p = args.m             # monitor port when testing
-        self.monitor_p_1000 = args.m + 1000 # initial monitor port when training
+        self.monitor_p_1000 = args.m + 1000  # initial monitor port when training
         self.robot_type = args.r
         self.team = args.t
         self.uniform = args.u
         self.cf_last_time = 0
         self.cf_delay = 0
-        self.cf_target_period = World.STEPTIME # target simulation speed while testing (default: real-time)
+        # target simulation speed while testing (default: real-time)
+        self.cf_target_period = World.STEPTIME
 
     @staticmethod
     def prompt_user_for_model():
@@ -56,19 +57,22 @@ class Train_Base():
                     [f.name for f in folders], prompt="Choose folder (ctrl+c to return): ")[1]
             except KeyboardInterrupt:
                 print()
-                return None # ctrl+c
+                return None  # ctrl+c
 
             folder_dir = gyms_logs_path / folder_name
-            models = [m.stem for m in folder_dir.iterdir() if m.is_file() and m.suffix == ".zip"]
+            models = [m.stem for m in folder_dir.iterdir() if m.is_file()
+                      and m.suffix == ".zip"]
 
             if not models:
                 print("The chosen folder does not contain any .zip file!")
                 continue
 
-            models.sort(key=lambda m: (folder_dir / (m + ".zip")).stat().st_mtime, reverse=True)
+            models.sort(key=lambda m: (folder_dir / (m + ".zip")
+                                       ).stat().st_mtime, reverse=True)
 
             try:
-                model_name = UI.print_list(models,prompt="Choose model (ctrl+c to return): ")[1]
+                model_name = UI.print_list(
+                    models, prompt="Choose model (ctrl+c to return): ")[1]
                 break
             except KeyboardInterrupt:
                 print()
@@ -76,8 +80,7 @@ class Train_Base():
         return {"folder_dir": str(folder_dir), "folder_name": folder_name,
                 "model_file": str((folder_dir / (model_name + ".zip")).absolute())}
 
-
-    def control_fps(self, read_input = False):
+    def control_fps(self, read_input=False):
         ''' Add delay to control simulation speed '''
 
         if read_input:
@@ -87,7 +90,8 @@ class Train_Base():
                 print("Changed simulation speed to MAX")
             else:
                 if speed == '0':
-                    inp = input("Paused. Set new speed or '' to use previous speed:")
+                    inp = input(
+                        "Paused. Set new speed or '' to use previous speed:")
                     if inp != '':
                         speed = inp
 
@@ -110,8 +114,7 @@ class Train_Base():
         else:
             self.cf_delay = 0
 
-
-    def test_model(self, model:BaseAlgorithm, env, log_path:str=None, model_path:str=None, max_episodes=0, enable_FPS_control=True, verbose=1):
+    def test_model(self, model: BaseAlgorithm, env, log_path: str = None, model_path: str = None, max_episodes=0, enable_FPS_control=True, verbose=1):
         '''
         Test model and log results
 
@@ -134,7 +137,8 @@ class Train_Base():
         '''
 
         if model_path is not None:
-            assert Path(model_path).is_dir(), f"{model_path} is not a valid path"
+            assert Path(model_path).is_dir(), f"{
+                model_path} is not a valid path"
             self.display_evaluations(model_path)
 
         if log_path is not None:
@@ -151,10 +155,12 @@ class Train_Base():
                 log_path += "/test.csv"
 
             with open(log_path, 'w') as f:
-                f.write("reward,ep. length,rew. cumulative avg., ep. len. cumulative avg.\n")
+                f.write(
+                    "reward,ep. length,rew. cumulative avg., ep. len. cumulative avg.\n")
             print("Train statistics are saved to:", log_path)
 
-        if enable_FPS_control: # control simulation speed (using non blocking user input)
+        # control simulation speed (using non blocking user input)
+        if enable_FPS_control:
             print("\nThe simulation speed can be changed by sending a non-negative integer\n"
                   "(e.g. '50' sets speed to 50%, '0' pauses the simulation, '' sets speed to MAX)\n")
 
@@ -173,7 +179,8 @@ class Train_Base():
             ep_reward += reward
             ep_length += 1
 
-            if enable_FPS_control: # control simulation speed (using non blocking user input)
+            # control simulation speed (using non blocking user input)
+            if enable_FPS_control:
                 self.control_fps(select.select([sys.stdin], [], [], 0)[0])
 
             if done:
@@ -187,13 +194,14 @@ class Train_Base():
                 avg_rewards = rewards_sum/ep_no
 
                 if verbose > 0:
-                    print(  f"\rEpisode: {ep_no:<3}  Ep.Length: {ep_length:<4.0f}  Reward: {ep_reward:<6.2f}                                                             \n",
-                        end=f"--AVERAGE--   Ep.Length: {avg_ep_lengths:<4.0f}  Reward: {avg_rewards:<6.2f}  (Min: {reward_min:<6.2f}  Max: {reward_max:<6.2f})", flush=True)
+                    print(f"\rEpisode: {ep_no:<3}  Ep.Length: {ep_length:<4.0f}  Reward: {ep_reward:<6.2f}                                                             \n",
+                          end=f"--AVERAGE--   Ep.Length: {avg_ep_lengths:<4.0f}  Reward: {avg_rewards:<6.2f}  (Min: {reward_min:<6.2f}  Max: {reward_max:<6.2f})", flush=True)
 
                 if log_path is not None:
                     with open(log_path, 'a') as f:
                         writer = csv.writer(f)
-                        writer.writerow([ep_reward, ep_length, avg_rewards, avg_ep_lengths])
+                        writer.writerow(
+                            [ep_reward, ep_length, avg_rewards, avg_ep_lengths])
 
                 if ep_no == max_episodes:
                     return
@@ -287,7 +295,7 @@ class Train_Base():
 
         # 将所有回调整合到回调列表中
         callbacks = CallbackList([c for c in [
-                                eval_callback, custom_callback, checkpoint_callback, export_callback] if c is not None])
+            eval_callback, custom_callback, checkpoint_callback, export_callback] if c is not None])
 
         # 开始训练
         model.learn(total_timesteps=total_steps, callback=callbacks)
@@ -309,8 +317,8 @@ class Train_Base():
         if backup_env_file is not None:
             with open(backup_file, 'a') as f:
                 f.write(f"\n# Train start:    {start_date}\n")
-                f.write(  f"# Train end:      {end_date}\n")
-                f.write(  f"# Train duration: {duration}")
+                f.write(f"# Train end:      {end_date}\n")
+                f.write(f"# Train duration: {duration}")
 
         return path
 
@@ -329,36 +337,39 @@ class Train_Base():
 
         with np.load(eval_npz) as data:
             time_steps = data["timesteps"]
-            results_raw = np.mean(data["results"],axis=1)
-            ep_lengths_raw = np.mean(data["ep_lengths"],axis=1)
+            results_raw = np.mean(data["results"], axis=1)
+            ep_lengths_raw = np.mean(data["ep_lengths"], axis=1)
         sample_no = len(results_raw)
 
         xvals = np.linspace(0, sample_no-1, 80)
-        results    = np.interp(xvals, range(sample_no), results_raw)
+        results = np.interp(xvals, range(sample_no), results_raw)
         ep_lengths = np.interp(xvals, range(sample_no), ep_lengths_raw)
 
-        results_limits    = np.min(results),    np.max(results)
+        results_limits = np.min(results),    np.max(results)
         ep_lengths_limits = np.min(ep_lengths), np.max(ep_lengths)
 
-        results_discrete    = np.digitize(results,    np.linspace(results_limits[0]-1e-5, results_limits[1]+1e-5,    console_height+1))-1
-        ep_lengths_discrete = np.digitize(ep_lengths, np.linspace(0,                      ep_lengths_limits[1]+1e-5, console_height+1))-1
+        results_discrete = np.digitize(results,    np.linspace(
+            results_limits[0]-1e-5, results_limits[1]+1e-5,    console_height+1))-1
+        ep_lengths_discrete = np.digitize(ep_lengths, np.linspace(
+            0,                      ep_lengths_limits[1]+1e-5, console_height+1))-1
 
         matrix = np.zeros((console_height, console_width, 2), int)
-        matrix[results_discrete[0]   ][0][0] = 1    # draw 1st column
+        matrix[results_discrete[0]][0][0] = 1    # draw 1st column
         matrix[ep_lengths_discrete[0]][0][1] = 1    # draw 1st column
-        rng = [[results_discrete[0], results_discrete[0]], [ep_lengths_discrete[0], ep_lengths_discrete[0]]]
+        rng = [[results_discrete[0], results_discrete[0]], [
+            ep_lengths_discrete[0], ep_lengths_discrete[0]]]
 
         # Create continuous line for both plots
         for k in range(2):
-            for i in range(1,console_width):
+            for i in range(1, console_width):
                 x = [results_discrete, ep_lengths_discrete][k][i]
                 if x > rng[k][1]:
                     rng[k] = [rng[k][1]+1, x]
                 elif x < rng[k][0]:
                     rng[k] = [x, rng[k][0]-1]
                 else:
-                    rng[k] = [x,x]
-                for j in range(rng[k][0],rng[k][1]+1):
+                    rng[k] = [x, x]
+                for j in range(rng[k][0], rng[k][1]+1):
                     matrix[j][i][k] = 1
 
         print(f'{"-"*console_width}')
@@ -374,8 +385,10 @@ class Train_Base():
                     print(end=symb_o)
             print()
         print(f'{"-"*console_width}')
-        print(f"({symb_x})-reward          min:{results_limits[0]:11.2f}    max:{results_limits[1]:11.2f}")
-        print(f"({symb_o})-ep. length      min:{ep_lengths_limits[0]:11.0f}    max:{ep_lengths_limits[1]:11.0f}    {time_steps[-1]/1000:15.0f}k steps")
+        print(f"({symb_x})-reward          min:{
+              results_limits[0]:11.2f}    max:{results_limits[1]:11.2f}")
+        print(f"({symb_o})-ep. length      min:{ep_lengths_limits[0]:11.0f}    max:{
+              ep_lengths_limits[1]:11.0f}    {time_steps[-1]/1000:15.0f}k steps")
         print(f'{"-"*console_width}')
 
         # save CSV
@@ -385,10 +398,10 @@ class Train_Base():
                 writer = csv.writer(f)
                 if sample_no == 1:
                     writer.writerow(["time_steps", "reward ep.", "length"])
-                writer.writerow([time_steps[-1],results_raw[-1],ep_lengths_raw[-1]])
+                writer.writerow(
+                    [time_steps[-1], results_raw[-1], ep_lengths_raw[-1]])
 
-
-    def generate_slot_behavior(self, path, slots, auto_head:bool, xml_name):
+    def generate_slot_behavior(self, path, slots, auto_head: bool, xml_name):
         '''
         Function that generates the XML file for the optimized slot behavior, overwriting previous files
         '''
@@ -396,15 +409,18 @@ class Train_Base():
 
         # create the file structure
         auto_head = '1' if auto_head else '0'
-        EL_behavior = ET.Element('behavior',{'description':'Add description to XML file', "auto_head":auto_head})
+        EL_behavior = ET.Element('behavior', {
+                                 'description': 'Add description to XML file', "auto_head": auto_head})
 
         for i, s in enumerate(slots):
-            el_slot = ET.SubElement(EL_behavior, 'slot', {'delta':str(s[0]/1000)})
-            for j in s[1]: # go through all joint indices
-                ET.SubElement(el_slot, 'move', {'id':str(j), 'angle':str(s[2][j])})
+            el_slot = ET.SubElement(EL_behavior, 'slot', {
+                                    'delta': str(s[0]/1000)})
+            for j in s[1]:  # go through all joint indices
+                ET.SubElement(el_slot, 'move', {
+                              'id': str(j), 'angle': str(s[2][j])})
 
         # create XML file
-        xml_rough = ET.tostring( EL_behavior, 'utf-8' )
+        xml_rough = ET.tostring(EL_behavior, 'utf-8')
         xml_pretty = minidom.parseString(xml_rough).toprettyxml(indent="    ")
         with open(file, "w") as x:
             x.write(xml_pretty)
@@ -420,7 +436,7 @@ class Train_Base():
         ----------
         initial_value : float
             Initial learning rate
-        
+
         Returns
         -------
         schedule : Callable[[float], float]
@@ -434,7 +450,7 @@ class Train_Base():
             ----------
             progress_remaining : float
                 Progress will decrease from 1 (beginning) to 0
-            
+
             Returns
             -------
             learning_rate : float
@@ -468,25 +484,29 @@ class Train_Base():
                     break
 
         model = PPO.load(input_file)
-        weights = model.policy.state_dict() # dictionary containing network layers
+        weights = model.policy.state_dict()  # dictionary containing network layers
 
-        w = lambda name : weights[name].detach().cpu().numpy() # extract weights from policy
+        def w(name): return weights[name].detach(
+        ).cpu().numpy()  # extract weights from policy
 
         var_list = []
-        for i in count(0,2): # add hidden layers (step=2 because that's how SB3 works)
+        for i in count(0, 2):  # add hidden layers (step=2 because that's how SB3 works)
             if f"mlp_extractor.policy_net.{i}.bias" not in weights:
                 break
-            var_list.append([w(f"mlp_extractor.policy_net.{i}.bias"), w(f"mlp_extractor.policy_net.{i}.weight"), "tanh"])
+            var_list.append([w(f"mlp_extractor.policy_net.{i}.bias"), w(
+                f"mlp_extractor.policy_net.{i}.weight"), "tanh"])
 
-        var_list.append( [w("action_net.bias"), w("action_net.weight"), "none"] ) # add final layer
+        var_list.append([w("action_net.bias"), w(
+            "action_net.weight"), "none"])  # add final layer
 
-        with open(output_file,"wb") as f:
-            pickle.dump(var_list, f, protocol=4) # protocol 4 is backward compatible with Python 3.4
-
+        with open(output_file, "wb") as f:
+            # protocol 4 is backward compatible with Python 3.4
+            pickle.dump(var_list, f, protocol=4)
 
 
 class Cyclic_Callback(BaseCallback):
     ''' Stable baselines custom callback '''
+
     def __init__(self, freq, function):
         super().__init__(1)
         self.freq = freq
@@ -495,10 +515,12 @@ class Cyclic_Callback(BaseCallback):
     def _on_step(self) -> bool:
         if self.n_calls % self.freq == 0:
             self.function()
-        return True # If the callback returns False, training is aborted early
+        return True  # If the callback returns False, training is aborted early
+
 
 class Export_Callback(BaseCallback):
     ''' Stable baselines custom callback '''
+
     def __init__(self, freq, load_path, export_name):
         super().__init__(1)
         self.freq = freq
@@ -507,6 +529,8 @@ class Export_Callback(BaseCallback):
 
     def _on_step(self) -> bool:
         if self.n_calls % self.freq == 0:
-            path = str(Path(self.load_path) / f"model_{self.num_timesteps}_steps.zip")
-            Train_Base.export_model(path, f"./scripts/gyms/export/{self.export_name}")
-        return True # If the callback returns False, training is aborted early
+            path = str(Path(self.load_path) /
+                       f"model_{self.num_timesteps}_steps.zip")
+            Train_Base.export_model(
+                path, f"./scripts/gyms/export/{self.export_name}")
+        return True  # If the callback returns False, training is aborted early
