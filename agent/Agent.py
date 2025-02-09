@@ -245,12 +245,12 @@ class Agent(Base_Agent):
                     self.state = 2
         else:
             if ball_2d[1] > 0:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 1)), kick_distance=9, enable_pass_command=enable_pass_command):
+                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 0.88)), kick_distance=9, enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
             else:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, -1)), kick_distance=9, enable_pass_command=enable_pass_command):
+                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, -0.88)), kick_distance=9, enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
@@ -351,15 +351,15 @@ class Agent(Base_Agent):
                         y = -1.5
                     self.move((x, y), orientation=ball_dir)
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 0), active_player_unum):
-                if slow_ball_pos[0]+15 > 15:
-                    self.move((14, 0), orientation=goal_dir)
+                if slow_ball_pos[0]+15 > 13:
+                    self.move((12.5, 0), orientation=goal_dir)
                 else:
                     self.move((slow_ball_pos[0]+15, 0), orientation=goal_dir)
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 0), active_player_unum)+1:
-                if slow_ball_pos[0]+17 > 15:
-                    self.move((14, 0.8), orientation=goal_dir)
+                if slow_ball_pos[0]+17 > 13:
+                    self.move((12, 0.8), orientation=goal_dir)
                 else:
-                    self.move((slow_ball_pos[0]+17, 1), orientation=goal_dir)
+                    self.move((slow_ball_pos[0]+13, 1), orientation=goal_dir)
             elif r.unum in (2, 3, 4):
                 if r.unum == self.nearest_teammate((-13, 0), active_player_unum):
                     if slow_ball_pos[0] == -15:
@@ -415,6 +415,9 @@ class Agent(Base_Agent):
                 self.kick_short(-np.sign(slow_ball_pos[1])*95, 5)
             elif w.play_mode == OurMode.GOAL_KICK:
                 self.move((slow_ball_pos[0]+0.5, 0.5), orientation=goal_dir)
+            elif ball_2d[0] > 13 and ball_2d[1] > -1 and ball_2d[1] < 1:
+                self.move(
+                    (slow_ball_pos[0], slow_ball_pos[1]), orientation=goal_dir)
             elif self.min_opponent_ball_dist + 0.5 - self.min_teammate_ball_dist >= 0:
                 if sorted_opponents[0].state_abs_pos is not None and np.any(sorted_opponents[0].state_abs_pos):
                     opponent_2d = sorted_opponents[0].state_abs_pos[:2]
