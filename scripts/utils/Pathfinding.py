@@ -5,38 +5,38 @@
 
 A* 自动寻路优化算法
 
-param_vec: numpy 数组，类型是 float32
+param_vec: numpy 数组，类型为 float32
 
-param_vec[0] - 起始点的 x 坐标
-param_vec[1] - 起始点的 y 坐标
-param_vec[2] - 是否允许球员走到球场边界之外(在球员不带球的情况下会有用)
-param_vec[3] - 是否将终点定为球门(目标自动设定为对方球门最有效区域)
-param_vec[4] - 目标点的 x 坐标（仅当 param_vec[3] == 0 时有效）
-param_vec[5] - 目标点的 y 坐标（仅当 param_vec[3] == 0 时有效）
-param_vec[6] - timeout in us (maximum execution time)
+param_vec[0] - 起始点 x 坐标
+param_vec[1] - 起始点 y 坐标
+param_vec[2] - 是否允许球员走出球场边界（无球状态下有效）
+param_vec[3] - 是否以球门为终点（自动设为对方球门最佳区域）
+param_vec[4] - 目标点 x 坐标（仅当 param_vec[3] == 0 时生效）
+param_vec[5] - 目标点 y 坐标（仅当 param_vec[3] == 0 时生效）
+param_vec[6] - 超时时间（微秒，最大执行时间）
 -------------- [optional] ----------------
-param_vec[7-11] - 障碍物 1: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
-                - 障碍物 2: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
-                - 障碍物 n: x, y, 硬半径（最大5m），软半径（最大5m），软半径内的排斥力（最小0）
+param_vec[7-11] - 障碍物 1: x, y, 硬半径（最大5m），软半径（最大5m），软半径排斥力（最小0）
+                - 障碍物 2: x, y, 硬半径（最大5m），软半径（最大5m），软半径排斥力（最小0）
+                - 障碍物 n: x, y, 硬半径（最大5m），软半径（最大5m），软半径排斥力（最小0）
 ---------------- return ------------------
-path_ret : numpy array (float32)
+path_ret : numpy 数组 (float32)
     path_ret[:-2]
-        contains path from start to target (up to a maximum of 1024 positions)
-        each position is composed of x,y coordinates (so, up to 2048 coordinates)
-        the return vector is flat (1 dimension) (e.g. [x1,y1,x2,y2,x3,y3,...])
-        reasons why path may not end in target:
-            - path is longer than 1024 positions (which is at least 102 meters!)
-            - reaching target is impossible or timeout (in which case, the path ends in the closest position to target found)
+        包含从起点到目标的路径（最多1024个坐标点）
+        每个坐标点由x,y组成（最多2048个坐标值）
+        返回数组为一维扁平结构（例如 [x1,y1,x2,y2,x3,y3,...]）
+        路径未达目标的情况可能包括：
+            - 路径超过1024个点（至少102米！）
+            - 无法到达或超时（返回最接近目标的路径）
     path_ret[-2]
-        number indicating the path status
-        0 - success
-        1 - timeout before the target was reached (may be impossible)
-        2 - impossible to reach target (all options were tested)
-        3 - no obstacles between start and target (path_ret[:-2] contains only 2 points: the start and target)
+        路径状态码：
+        0 - 成功
+        1 - 超时未达目标（可能不可达）
+        2 - 目标不可达（已穷尽所有可能）
+        3 - 起点与目标间无障碍（仅含起点和终点）
     path_ret[-1]
-        A* path cost
+        A* 路径总成本
 ::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::::::Notes:::::::::::::::::::
+::::::::::::::::注意事项::::::::::::::::::
 ::::::::::::::::::::::::::::::::::::::::::
 
 Map of field:

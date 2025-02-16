@@ -50,27 +50,25 @@ class Agent(Base_Agent):
 
     def move(self, target_2d=(0, 0), orientation=None, is_orientation_absolute=True,
              avoid_obstacles=True, priority_unums=[], is_aggressive=False, timeout=3000):
-        '''
-        Walk to target position
-
-        Parameters
+        """
+        参数
         ----------
         target_2d : array_like
-            2D target in absolute coordinates
+            绝对坐标系下的2D目标位置
         orientation : float
-            absolute or relative orientation of torso, in degrees
-            set to None to go towards the target (is_orientation_absolute is ignored)
+            躯干的绝对或相对朝向角度（单位为度）
+            设为None时会自动朝向目标方向（此时is_orientation_absolute参数将被忽略）
         is_orientation_absolute : bool
-            True if orientation is relative to the field, False if relative to the robot's torso
+            True表示朝向角度是相对于场地坐标系，False表示相对于机器人自身躯干朝向
         avoid_obstacles : bool
-            True to avoid obstacles using path planning (maybe reduce timeout arg if this function is called multiple times per simulation cycle)
+            是否启用障碍物规避路径规划（若在单个仿真周期内多次调用此函数，可能需要调小timeout参数）
         priority_unums : list
-            list of teammates to avoid (since their role is more important)
+            需要优先避让的队友号码列表（这些队友承担更重要的场上角色）
         is_aggressive : bool
-            if True, safety margins are reduced for opponents
+            激进模式开关（开启时会减少对对手的安全距离限制）
         timeout : float
-            restrict path planning to a maximum duration (in microseconds)    
-        '''
+            路径规划的最大允许耗时（单位：微秒）
+        """
         r = self.world.robot
 
         if self.fat_proxy_cmd is not None:  # fat proxy behavior
@@ -394,17 +392,20 @@ class Agent(Base_Agent):
                 # 优化位置选择和移动策略
                 if r.unum % 2 == 0:
                     # 假设偶数球员在场地左侧
-                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
+                    target_pos = (
+                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
                 else:
                     # 假设奇数球员在场地右侧
-                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
+                    target_pos = (
+                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
 
                 # 确保球员在移动时能够避开对手，并且能够快速到达目标位置
-                self.move(target_pos, orientation=ball_dir, priority_unums=[active_player_unum])
+                self.move(target_pos, orientation=ball_dir,
+                          priority_unums=[active_player_unum])
         else:  # 我是活跃球员
             # 启用活跃球员的路径绘制（如果self.enable_draw为False则忽略）
             path_draw_options(enable_obstacles=True,
-                            enable_path=True, use_team_drawing_channel=True)
+                              enable_path=True, use_team_drawing_channel=True)
             enable_pass_command = (
                 w.play_mode == NeuMode.PLAY_ON and slow_ball_pos[0] < 6)
 
@@ -422,14 +423,16 @@ class Agent(Base_Agent):
                 if sorted_opponents[0].state_abs_pos is not None and np.any(sorted_opponents[0].state_abs_pos):
                     opponent_2d = sorted_opponents[0].state_abs_pos[:2]
                     if r.location.Head.Position[0] > opponent_2d[0] or enable_pass_command:
-                        self.deliberate_kick(slow_ball_pos, enable_pass_command)
+                        self.deliberate_kick(
+                            slow_ball_pos, enable_pass_command)
                     elif distance_diff < 0.5:
                         if self.kick_short(kick_direction=goal_dir, kick_distance=9, enable_pass_command=enable_pass_command):
                             self.state = 0
                         else:
                             self.state = 2
                     else:
-                        self.deliberate_kick(slow_ball_pos, enable_pass_command)
+                        self.deliberate_kick(
+                            slow_ball_pos, enable_pass_command)
                 else:
                     self.deliberate_kick(slow_ball_pos, enable_pass_command)
             # 如果对手明显更接近球，则防守
@@ -464,7 +467,7 @@ class Agent(Base_Agent):
                 d.point(w.Ball.Predicted2DPos[-1], 5,
                         d.Color.pink, "status", False)
                 d.annotation((*my_head_pos_2d, 0.6), "I've got it!",
-                            d.Color.yellow, "status")
+                             d.Color.yellow, "status")
             else:
                 d.clear("status")  # 清除状态信息
 

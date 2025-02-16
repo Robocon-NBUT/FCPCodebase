@@ -304,10 +304,10 @@ class Robot:
     def head_to_body_part_transform(self, body_part_name, coords, is_batch=False):
         '''
         If coord is a vector or list of vectors:
-        Convert cartesian coordinates that are relative to head to coordinates that are relative to a body part 
+        Convert cartesian coordinates that are relative to head to coordinates that are relative to a body part
 
         If coord is a Matrix_4x4 or a list of Matrix_4x4:
-        Convert pose that is relative to head to a pose that is relative to a body part 
+        Convert pose that is relative to head to a pose that is relative to a body part
 
         Parameters
         ----------
@@ -464,29 +464,29 @@ class Robot:
             tolerance=0.012,
             limit_joints=True) -> int:
         '''
-        Computes the speed of a list of joints, taking as argument the target position
+        计算一组关节的速度，以目标位置作为参数
 
-        Parameters
+        参数
         ----------
         indices : `int`/`list`/`slice`/numpy array
-            joint indices
-        values : numpy array 
-            target position for each listed joint index
+            关节索引
+        values : numpy数组
+            每个列出的关节索引的目标位置
         harmonize : `bool`
-            if True, all joints reach target at same time
+            若为True，所有关节将同时到达目标位置
         max_speed : `float`
-            max. speed for all joints in deg/step
-            Most joints have a maximum speed of 351.77 deg/s according to rcssserver3d/data/rsg/agent/nao/hingejoint.rsg
-            That translates as 7.0354 deg/step or 6.1395 rad/s
+            所有关节的最大速度（度/步）
+            根据 rcssserver3d/data/rsg/agent/nao/hingejoint.rsg 大多数关节的最大速度为351.77度/秒
+            换算为7.0354度/步 或 6.1395弧度/秒
         tolerance : `float`
-            angle error tolerance (in degrees) to return that target was reached (returns -1)
+            判定目标已到达的角度误差容限（单位：度）（返回-1）
         limit_joints : `bool`
-            limit values to the joints' range of motion
+            将关节值限制在关节运动范围内
 
-        Returns
+        返回
         -------
         remaining_steps : `int`
-            predicted number of remaining steps or -1 if target was already reached
+            预测的剩余步数，如果目标已到达则返回 -1
         '''
         assert isinstance(
             values, np.ndarray), "'values' argument must be a numpy array"
