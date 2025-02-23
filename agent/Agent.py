@@ -10,7 +10,7 @@ class Agent(Base_Agent):
                  team_name: str, enable_log, enable_draw, wait_for_server=True, is_fat_proxy=False) -> None:
 
         # define robot type
-        robot_type = (0, 1, 1, 1, 2, 3, 3, 3, 3, 3, 4)[unum-1]
+        robot_type = (3, 0, 0, 1, 1, 1, 1, 1, 3, 1, 1)[unum-1]
 
         # Initialize base agent
         # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw, play mode correction, Wait for Server, Hear Callback
@@ -158,7 +158,7 @@ class Agent(Base_Agent):
         else:  # fat proxy behavior
             return self.fat_proxy_kick()
 
-    def kick_long(self, kick_direction=None, kick_distance=None, abort=False, enable_pass_command=False):
+    def kick_long(self, kick_direction=None, kick_distance=None, allow_aerial=True, enable_pass_command=False):
         '''
         Walk to ball and kick
 
@@ -189,7 +189,7 @@ class Agent(Base_Agent):
 
         if self.fat_proxy_cmd is None:  # normal behavior
             # Basic_Kick has no kick distance control
-            return self.behavior.execute("Kick_Long", self.kick_direction)
+            return self.behavior.execute("Kick_Long", self.kick_direction, allow_aerial)
         else:  # fat proxy behavior
             return self.fat_proxy_kick()
 
@@ -225,30 +225,48 @@ class Agent(Base_Agent):
 
     def deliberate_kick(self, ball_2d, enable_pass_command):
         goal_dir = target_abs_angle(ball_2d, (15.05, 0))  # 球门方向角度
-        if ball_2d[0] < 0:
-            if self.kick_long(kick_direction=goal_dir, enable_pass_command=enable_pass_command):
-                self.state = 0
-            else:
-                self.state = 2
-        elif ball_2d[0] < 7:
+        goal_dist = np.sqrt((15.05 - ball_2d[0])**2 + ball_2d[1]**2)
+        if goal_dist > 15:
             if ball_2d[1] > 0:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.7)), enable_pass_command=enable_pass_command):
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.4)), enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
             else:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.7)), enable_pass_command=enable_pass_command):
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.4)), enable_pass_command=enable_pass_command):
+                    self.state = 0
+                else:
+                    self.state = 2
+        elif goal_dist > 10:
+            if ball_2d[1] > 0:
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.5)), enable_pass_command=enable_pass_command):
+                    self.state = 0
+                else:
+                    self.state = 2
+            else:
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.5)), enable_pass_command=enable_pass_command):
+                    self.state = 0
+                else:
+                    self.state = 2
+        elif goal_dist > 5:
+            if ball_2d[1] > 0:
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.6)), allow_aerial=False, enable_pass_command=enable_pass_command):
+                    self.state = 0
+                else:
+                    self.state = 2
+            else:
+                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.6)), allow_aerial=False, enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
         else:
             if ball_2d[1] > 0:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 0.88)), kick_distance=9, enable_pass_command=enable_pass_command):
+                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 0.7)), kick_distance=9, enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
             else:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, -0.88)), kick_distance=9, enable_pass_command=enable_pass_command):
+                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, -0.7)), kick_distance=9, enable_pass_command=enable_pass_command):
                     self.state = 0
                 else:
                     self.state = 2
@@ -292,6 +310,15 @@ class Agent(Base_Agent):
             goalkeeper_is_active_player = True
             active_player_unum = second_active_player_unum
 
+        if ball_2d[0] > 0:
+            pos_x = 2
+        else:
+            pos_x = -2
+        if ball_2d[1] > 0:
+            pos_y = 7
+        else:
+            pos_y = -7
+
         # --------------------------------------- 2. 决定动作
 
         if w.play_mode == NeuMode.GAME_OVER:
@@ -305,14 +332,14 @@ class Agent(Base_Agent):
             self.state = 0 if behavior.execute("Get_Up") else 1
         elif w.play_mode == OurMode.KICK_OFF:
             if r.unum == 9:
-                self.kick_short(kick_direction=160, kick_distance=9)
+                self.kick(kick_direction=130, kick_distance=9)
             else:
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
         elif w.play_mode == TheirMode.KICKOFF:
             self.move(self.init_pos, orientation=ball_dir)  # 原地行走
         elif active_player_unum != r.unum:  # 当前队员不是活跃球员
             enable_pass_command = (
-                w.play_mode == NeuMode.PLAY_ON and slow_ball_pos[0] < 6)
+                w.play_mode == NeuMode.PLAY_ON and ball_2d[0] < 6)
             if r.unum == 1:  # 当前球员是守门员
                 if goalkeeper_is_active_player and slow_ball_pos[0] < -13 and slow_ball_pos[1] > -3 and slow_ball_pos[1] < 3:
                     if self.min_opponent_ball_dist > 0.5 or enable_pass_command:
@@ -348,16 +375,28 @@ class Agent(Base_Agent):
                     elif y < -1.5:
                         y = -1.5
                     self.move((x, y), orientation=ball_dir)
-            elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 0), active_player_unum):
+            elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 1), active_player_unum):
                 if slow_ball_pos[0]+15 > 13:
-                    self.move((12.5, 0), orientation=goal_dir)
+                    if slow_ball_pos[1] > 0:
+                        self.move((12.5, 1), orientation=goal_dir)
+                    else:
+                        self.move((12.5, -1), orientation=goal_dir)
                 else:
-                    self.move((slow_ball_pos[0]+15, 0), orientation=goal_dir)
-            elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 0), active_player_unum)+1:
-                if slow_ball_pos[0]+17 > 13:
-                    self.move((12, 0.8), orientation=goal_dir)
+                    if slow_ball_pos[1] > 0:
+                        self.move((slow_ball_pos[0]+15, 1), orientation=goal_dir)
+                    else:
+                        self.move((slow_ball_pos[0]+15,  -1), orientation=goal_dir)
+            elif r.unum == self.nearest_teammate((slow_ball_pos[0]+7, -1), active_player_unum):
+                if slow_ball_pos[0]+7 > 13:
+                    if slow_ball_pos[1] > 0:
+                        self.move((12, 0.8), orientation=goal_dir)
+                    else:
+                        self.move((12, -0.8), orientation=goal_dir)
                 else:
-                    self.move((slow_ball_pos[0]+13, 1), orientation=goal_dir)
+                    if slow_ball_pos[1] > 0:
+                        self.move((slow_ball_pos[0]+7, 1), orientation=goal_dir)
+                    else:
+                        self.move((slow_ball_pos[0]+7, -1), orientation=goal_dir)
             elif r.unum in (2, 3, 4):
                 if r.unum == self.nearest_teammate((-13, 0), active_player_unum):
                     if slow_ball_pos[0] == -15:
@@ -385,56 +424,51 @@ class Agent(Base_Agent):
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+2, slow_ball_pos[1]+0.5), active_player_unum):
                 self.move(
                     (slow_ball_pos[0]+2, slow_ball_pos[1]+0.5), orientation=goal_dir)
-            elif r.unum == self.nearest_teammate((slow_ball_pos[0]+2, slow_ball_pos[1]+0.5), active_player_unum)+1:
+            elif r.unum == self.nearest_teammate((pos_x, pos_y), active_player_unum):
                 self.move(
-                    (slow_ball_pos[0]+2, slow_ball_pos[1]-0.5), orientation=goal_dir)
+                    (pos_x, pos_y), orientation=goal_dir)
             else:
                 # 优化位置选择和移动策略
                 if r.unum % 2 == 0:
                     # 假设偶数球员在场地左侧
-                    target_pos = (
-                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
+                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
                 else:
                     # 假设奇数球员在场地右侧
-                    target_pos = (
-                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
+                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
 
                 # 确保球员在移动时能够避开对手，并且能够快速到达目标位置
-                self.move(target_pos, orientation=ball_dir,
-                          priority_unums=[active_player_unum])
+                self.move(target_pos, orientation=ball_dir, priority_unums=[active_player_unum])
         else:  # 我是活跃球员
             # 启用活跃球员的路径绘制（如果self.enable_draw为False则忽略）
             path_draw_options(enable_obstacles=True,
-                              enable_path=True, use_team_drawing_channel=True)
+                            enable_path=True, use_team_drawing_channel=True)
             enable_pass_command = (
-                w.play_mode == NeuMode.PLAY_ON and slow_ball_pos[0] < 6)
+                w.play_mode == NeuMode.PLAY_ON and ball_2d[0] < 6)
 
             distance_diff = abs(self.min_opponent_ball_dist -
                                 self.min_teammate_ball_dist)  # 队友和对方与球距离的差值
             if w.play_mode == OurMode.CORNER_KICK:
                 # 将球踢到对方球门前的空位
-                self.kick_short(-np.sign(slow_ball_pos[1])*95, 5)
-            elif w.play_mode == OurMode.GOAL_KICK:
-                self.move((slow_ball_pos[0]+0.5, 0.5), orientation=goal_dir)
-            elif ball_2d[0] > 13 and ball_2d[1] > -1 and ball_2d[1] < 1:
+                self.kick_short(-np.sign(ball_2d[1])*95, 5)
+            elif goalkeeper_is_active_player:
+                self.move((slow_ball_pos[0]+0, 0.66), orientation=goal_dir)
+            elif ball_2d[0] > 13 and ball_2d[1] > -1 and ball_2d[1] < 1 and ball_dir > -30 and ball_dir < 30:
                 self.move(
-                    (slow_ball_pos[0], slow_ball_pos[1]), orientation=goal_dir)
+                    (slow_ball_pos[0]+0.5, slow_ball_pos[1]), orientation=goal_dir)
             elif self.min_opponent_ball_dist + 0.5 - self.min_teammate_ball_dist >= 0:
                 if sorted_opponents[0].state_abs_pos is not None and np.any(sorted_opponents[0].state_abs_pos):
                     opponent_2d = sorted_opponents[0].state_abs_pos[:2]
-                    if r.location.Head.Position[0] > opponent_2d[0] or enable_pass_command:
-                        self.deliberate_kick(
-                            slow_ball_pos, enable_pass_command)
+                    if enable_pass_command:
+                        self.deliberate_kick(ball_2d, enable_pass_command)
                     elif distance_diff < 0.5:
                         if self.kick_short(kick_direction=goal_dir, kick_distance=9, enable_pass_command=enable_pass_command):
                             self.state = 0
                         else:
                             self.state = 2
                     else:
-                        self.deliberate_kick(
-                            slow_ball_pos, enable_pass_command)
+                        self.deliberate_kick(ball_2d, enable_pass_command)
                 else:
-                    self.deliberate_kick(slow_ball_pos, enable_pass_command)
+                    self.deliberate_kick(ball_2d, enable_pass_command)
             # 如果对手明显更接近球，则防守
             else:
                 if self.state == 2:  # 中止踢球并提交
@@ -467,7 +501,7 @@ class Agent(Base_Agent):
                 d.point(w.Ball.Predicted2DPos[-1], 5,
                         d.Color.pink, "status", False)
                 d.annotation((*my_head_pos_2d, 0.6), "I've got it!",
-                             d.Color.yellow, "status")
+                            d.Color.yellow, "status")
             else:
                 d.clear("status")  # 清除状态信息
 
