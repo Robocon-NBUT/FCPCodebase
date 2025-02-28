@@ -25,7 +25,7 @@ class Script:
             'i': ('Server Hostname/IP', 'localhost'),
             'p': ('Agent Port',         '3100'),
             'm': ('Monitor Port',       '3200'),
-            't': ('Team Name',          'FCPortugal'),
+            't': ('Team Name',          'DarkBlue3D'),
             'u': ('Uniform Number',     '1'),
             'r': ('Robot Type',         '1'),
             'P': ('Penalty Shootout',   '0'),
@@ -61,7 +61,8 @@ class Script:
         t = self.op_types
 
         for id in self.options:  # shorter metavar for aesthetic reasons
-            parser.add_argument(f"-{id}", help=f"{o[id][0]:30}[{o[id][1]:20}]", type=t[id][0], nargs='?', default=o[id][1], metavar='X', choices=t[id][1])
+            parser.add_argument(f"-{id}", help=f"{o[id][0]:30}[{o[id][1]:20}]", type=t[id]
+                                [0], nargs='?', default=o[id][1], metavar='X', choices=t[id][1])
 
         self.args = parser.parse_args()
 
