@@ -50,20 +50,19 @@ class RobotList:
         self._ball_pos: np.ndarray = []
         self._time_local_ms = 0
 
-    def distance(self, ball_pos: np.ndarray, time_local_ms: int):
+    def distance(self, ball_pos: np.ndarray, time_local_ms: int) -> list[float]:
         """
-        获取队员与球员的距离
+        获取球员与球的距离
         """
         self._ball_pos = ball_pos
         self._time_local_ms = time_local_ms
-        for robot in self._robots:
-            yield self._single_distance(robot)
+        return [self._single_distance(robot) for robot in self._robots]
 
-    def _single_distance(self, r: Other_Robot):
+    def _single_distance(self, r: Other_Robot) -> float:
         # 如果对手不存在，或者状态信息不新（360毫秒），或者已经倒下，则强制设置为大距离
         if r.state_last_update != 0 and (self._time_local_ms - r.state_last_update <= 360 or r.is_self) and not r.state_fallen:
             return np.sum((r.state_abs_pos[:2] - self._ball_pos) ** 2)
-        return 1000
+        return 1000.0
 
     def _compare(self, r1: Other_Robot, r2: Other_Robot):
         """
