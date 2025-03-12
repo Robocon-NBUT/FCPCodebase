@@ -76,7 +76,7 @@ def main():
             while True:
                 try:
                     idx = UI.print_table(
-                        [["Train", "Test", "Retrain"]], numbering=[True],
+                        [["Train"], ["Test"], ["Retrain"]], [], numbering=[True, False],
                         prompt='Choose option (ctrl+c to return): ')[0]
                 except KeyboardInterrupt:
                     print()
