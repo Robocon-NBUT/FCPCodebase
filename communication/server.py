@@ -172,10 +172,10 @@ class Server:
         '''
         Say something to every player on the field.
         Maximum 20 characters, ascii between 0x20, 0x7E except ' ', '(', ')'
-        Accepted: letters+numbers+symbols: !"#$%&'*+,-./:;<=>?@[\]^_`{|}~
+        Accepted: letters+numbers+symbols: !"#$%&'*+,-./:;<=>?@[\\]^_`{|}~  # 双反斜杠修复
         Message range: 50m (the field is 36m diagonally, so ignore this limitation)
         A player can only hear a teammate's message every 2 steps (0.04s)
-        This ability exists independetly for messages from both teams
+        This ability exists independently for messages from both teams
         (i.e. our team cannot spam the other team to block their messages)
         Messages from oneself are always heard
         '''

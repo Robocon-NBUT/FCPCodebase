@@ -285,7 +285,7 @@ class Agent(Base_Agent):
         biased_dir = normalize_deg(direction + bias_dir)  # add bias to rectify direction
         next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
             x_ori=biased_dir, x_dev=-ball_x_center, y_dev=-ball_y_center, torso_ori=biased_dir)
-        if ball_dir > -15 and ball_dir < 15:  # to avoid kicking immediately without preparation & stability
+        if ball_dir > -30 and ball_dir < 30:  # to avoid kicking immediately without preparation & stability
             self.move((slow_ball_pos[0]+1, slow_ball_pos[1]), orientation=0)
         else:
             dist = max(0.07, dist_to_final_target)
