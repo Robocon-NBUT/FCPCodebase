@@ -78,7 +78,7 @@ class WorldParser:
             retval = float(self.exp[start:end])
         except:
             logger.warning(
-                f"{self.file_name}String to float conversion failed: {self.exp[start:end]} at msg[{start},{end}], \nMsg: {self.exp.decode()}")
+                f"{self.file_name}String to float conversion failed: {self.exp[start:end]} at msg[{start},{end}]")
             retval = 0
         return retval, end
 
@@ -158,7 +158,7 @@ class WorldParser:
                         # if increment > 0.021: print ("up",last_time,self.world.time_server)
                     else:
                         logger.warning(
-                            f"Unknown tag inside 'time': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"Unknown tag inside 'time': {tag} at {end}")
 
             elif tag == b'GS':
                 while True:
@@ -197,7 +197,7 @@ class WorldParser:
                             self.world.play_mode = self.play_mode_to_id[aux]
                     else:
                         logger.warning(
-                            f"Unknown tag inside 'GS': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"Unknown tag inside 'GS': {tag} at {end}")
 
             elif tag == b'GYR':
                 while True:
@@ -222,7 +222,7 @@ class WorldParser:
                         self.world.robot.gyro[1] *= -1
                     else:
                         logger.warning(
-                            f"{self.file_name}Unknown tag inside 'GYR': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"{self.file_name}Unknown tag inside 'GYR': {tag} at {end}")
 
             elif tag == b'ACC':
                 while True:
@@ -248,7 +248,7 @@ class WorldParser:
                         self.world.robot.acc[1] *= -1
                     else:
                         logger.warning(
-                            f"{self.file_name}Unknown tag inside 'ACC': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"{self.file_name}Unknown tag inside 'ACC': {tag} at {end}")
 
             elif tag == b'HJ':
                 while True:
@@ -272,7 +272,7 @@ class WorldParser:
                         self.world.robot.joints[joint_index].position = joint_angle
                     else:
                         logger.warning(
-                            f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}")
 
             elif tag == b'FRP':
                 while True:
@@ -307,7 +307,7 @@ class WorldParser:
                         foot_toe_ref[4] *= -1
                     else:
                         logger.warning(
-                            f"{self.file_name}Unknown tag inside 'FRP': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"{self.file_name}Unknown tag inside 'FRP': {tag} at {end}")
 
             elif tag == b'See':
                 self.world.vision_is_up_to_date = True
@@ -430,7 +430,7 @@ class WorldParser:
                                         (c1, c2, c3))
                             else:
                                 logger.warning(
-                                    f"{self.file_name}Unknown tag inside 'P': {tag} at {end}, \nMsg: {exp.decode()}")
+                                    f"{self.file_name}Unknown tag inside 'P': {tag} at {end}")
 
                     elif tag == b'L':
                         l = self.world.lines[self.world.line_count]
@@ -451,7 +451,7 @@ class WorldParser:
 
                     else:
                         logger.warning(
-                            f"Unknown tag inside 'see': {tag} at {end}, \nMsg: {exp.decode()}")
+                            f"Unknown tag inside 'see': {tag} at {end}")
 
             elif tag == b'hear':
 
@@ -474,5 +474,5 @@ class WorldParser:
 
             else:
                 logger.warning(
-                    f"Unknown root tag: {tag} at {end}, \nMsg: {exp.decode()}")
+                    f"Unknown root tag: {tag} at {end}")
                 tag, end, min_depth = self.get_next_tag(end)
