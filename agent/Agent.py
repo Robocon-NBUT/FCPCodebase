@@ -258,11 +258,6 @@ class Agent(Base_Agent):
                     self.state = 0
                 else:
                     self.state = 2
-        elif ball_2d[0] > 12.5 and ball_2d[1] > -1.1 and ball_2d[1] < 1.1:
-            if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.5, ball_2d[1])), enable_pass_command=enable_pass_command):
-                self.state = 0
-            else:
-                self.state = 2
         else:
             if ball_2d[1] > 0:
                 if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 0.88)), enable_pass_command=enable_pass_command):
@@ -274,6 +269,29 @@ class Agent(Base_Agent):
                     self.state = 0
                 else:
                     self.state = 2
+
+    def dash_to_ball(self):
+        w = self.world
+        r = self.world.robot
+        ball_x_center = 0.20
+        ball_y_center = -0.04
+        ball_2d = w.Ball.AbsolutePos[:2]
+        my_head_pos_2d = r.location.Head.Position[:2]
+        ball_vec = ball_2d - my_head_pos_2d
+        ball_dir = vector_angle(ball_vec)
+        slow_ball_pos = w.get_predicted_ball_pos(0.5)
+        direction = 0
+        bias_dir = [0.09, 0.1, 0.14, 0.08, 0.05][r.type]
+        biased_dir = normalize_deg(direction + bias_dir)  # add bias to rectify direction
+        next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
+            x_ori=biased_dir, x_dev=-ball_x_center, y_dev=-ball_y_center, torso_ori=biased_dir)
+        if ball_dir > -15 and ball_dir < 15:  # to avoid kicking immediately without preparation & stability
+            self.move((slow_ball_pos[0]+1, slow_ball_pos[1]), orientation=0)
+        else:
+            dist = max(0.07, dist_to_final_target)
+            reset_walk = self.behavior.previous_behavior != "Walk"  # reset walk if it wasn't the previous behavior
+            self.behavior.execute_sub_behavior("Walk", reset_walk, next_pos, True, next_ori, True,
+                                                dist)  # target, is_target_abs, ori, is_ori_abs, distance
 
     def think_and_send(self):
         w = self.world
@@ -475,9 +493,8 @@ class Agent(Base_Agent):
                 self.kick_short(-np.sign(ball_2d[1])*95)
             elif goalkeeper_is_active_player:
                 self.move((slow_ball_pos[0]+0, 0.66), orientation=goal_dir)
-            elif ball_2d[0] > 12.5 and ball_2d[1] > -1.1 and ball_2d[1] < 1.1 and ball_dir > -5 and ball_dir < 5:
-                self.move(
-                    (slow_ball_pos[0]+0.5, slow_ball_pos[1]), orientation=0)
+            elif ball_2d[0] > 12.5 and ball_2d[1] > -1.1 and ball_2d[1] < 1.1:
+                self.dash_to_ball()
             elif self.min_opponent_ball_dist + 0.5 - self.min_teammate_ball_dist >= 0:
                 if enable_pass_command:
                     self.deliberate_kick(ball_2d, enable_pass_command)
