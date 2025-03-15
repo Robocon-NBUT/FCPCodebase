@@ -1,5 +1,5 @@
-from tabulate import tabulate
 from typing import Optional
+from tabulate import tabulate
 import numpy as np
 
 

@@ -5,6 +5,7 @@ import socket
 import time
 import sys
 from select import select
+from loguru import logger
 # from agent.Base_Agent import Base_Agent
 from communication.world_parser import WorldParser
 from world.World import World
@@ -120,7 +121,7 @@ class Server:
                 if self.socket.recv_into(self.rcv_buff, nbytes=msg_size, flags=socket.MSG_WAITALL) != msg_size:
                     raise ConnectionResetError()
             except ConnectionResetError:
-                print("\nError: socket was closed by rcssserver3d!")
+                print("Error: socket was closed by rcssserver3d!")
                 sys.exit()
 
             self.world_parser.parse(self.rcv_buff[:msg_size])
@@ -130,17 +131,12 @@ class Server:
             i += 1
 
         if update:
-            if i == 1:
-                self.world.log(
-                    "server.py: The agent lost 1 packet! Is syncmode enabled?")
-            elif i > 1:
-                self.world.log(
-                    f"server.py: Agent 丢失了 {i} 个连续的数据包！Syncmode 是否被禁用？")
+            if i >= 1:
+                logger.info(f"The agent lost {i} packet(s)! Is syncmode enabled?")
             self.world.update()
 
             if len(select([self.socket], [], [], 0.0)[0]) != 0:
-                self.world.log(
-                    "server.py: Received a new packet while on world.update()!")
+                logger.info("Received a new packet while on world.update()")
                 self.receive()
 
     def send_immediate(self, msg: bytes) -> None:
@@ -158,8 +154,7 @@ class Server:
             self.send_buff.append(b'(syn)')
             self.send_immediate(b''.join(self.send_buff))
         else:
-            self.world.log(
-                "server.py: Received a new packet while thinking!")
+            logger.info("Received a new packet while thinking!")
         self.send_buff = []  # clear buffer
 
     def commit(self, msg: bytes) -> None:

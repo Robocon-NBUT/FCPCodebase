@@ -3,7 +3,6 @@ from enum import IntEnum
 import numpy as np
 
 from cpp.modules import utils, localization
-from logs.Logger import Logger
 from math_ops.Matrix_4x4 import Matrix_4x4
 from world.Draw import Draw
 from world.Other_Robot import Other_Robot, RobotList
@@ -84,7 +83,7 @@ class World:
         Predicted2DSpeed = np.zeros(1)
 
     def __init__(self, robot_type: int, team_name: str, unum: int, apply_play_mode_correction: bool,
-                 enable_draw: bool, logger: Logger, host: str) -> None:
+                 enable_draw: bool, host: str) -> None:
 
         self.team_name = team_name
         self.team_name_opponent: str = None
@@ -133,21 +132,7 @@ class World:
         self.draw = Draw(enable_draw, unum, host, 32769)
         # Draw object shared with teammates
         self.team_draw = Draw(enable_draw, 0, host, 32769)
-        self.logger = logger
         self.robot = Robot(unum, robot_type)
-
-    def log(self, msg: str):
-        '''
-        Shortcut for:
-
-        self.logger.write(msg, True, self.step)
-
-        Parameters
-        ----------
-        msg : str
-            message to be written after the simulation step
-        '''
-        self.logger.write(msg, True, self.step)
 
     def get_ball_rel_vel(self, history_steps: int):
         '''

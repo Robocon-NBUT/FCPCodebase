@@ -5,6 +5,7 @@ import shutil
 import subprocess
 from time import sleep
 from pathlib import Path
+from loguru import logger
 from scripts.console_ui import UI
 
 
@@ -45,6 +46,16 @@ class Script:
             'F': (int, [0, 1]),
             'D': (int, [0, 1])
         }
+
+        logger.remove(0)
+        logger.add(
+            "logs/app_{time:YYYY-MM-DD HH:mm:ss}.log",
+            rotation="00:00",
+            retention="7 days",
+            level="INFO",
+            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+            compression="zip"
+        )
 
         '''
         End of arguments specification

@@ -3,7 +3,6 @@ from behaviors.Behavior import Behavior
 from communication.Radio import Radio
 from communication.server import Server
 from communication.world_parser import WorldParser
-from logs.Logger import Logger
 from math_ops.Inverse_Kinematics import Inverse_Kinematics
 from world.Path_Manager import Path_Manager
 from world.World import World
@@ -19,9 +18,8 @@ class Base_Agent:
             hear_callback=None) -> None:
 
         self.radio = None  # hear_message may be called during Server instantiation
-        self.logger = Logger(enable_log, f"{team_name}_{unum}")
         self.world = World(robot_type, team_name, unum,
-                           apply_play_mode_correction, enable_draw, self.logger, host)
+                           apply_play_mode_correction, enable_draw, host)
         self.world_parser = WorldParser(
             self.world, self.hear_message if hear_callback is None else hear_callback)
         self.server = Server(host, agent_port, monitor_port, unum, robot_type, team_name,

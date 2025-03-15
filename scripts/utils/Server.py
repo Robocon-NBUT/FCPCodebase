@@ -22,14 +22,14 @@ class Server:
             "Official Config", "Penalty Shootout", "Soccer Rules",
             "Sync Mode", "Real Time", "Cheats", "Full Vision", "Add Noise", "25Hz Monitor"]
         self.descriptions = [
-            "Configuration used in official matches",
-            "Server's Penalty Shootout mode", "Play modes, automatic referee, etc.",
-            "Synchronous communication between agents and server",
-            "Real Time (or maximum server speed)",
-            "Agent position & orientation, ball position",
-            "See 360 deg instead of 120 deg (vertically & horizontally)",
-            "Noise added to the position of visible objects",
-            "25Hz Monitor (or 50Hz but RoboViz will show 2x the actual speed)"]
+            "官方比赛中使用的配置",
+            "服务器的点球大战模式", "比赛模式、自动裁判等",
+            "代理与服务器之间的同步通信",
+            "实时模式（或最大服务器速度）",
+            "代理位置与方向、球的位置",
+            "可360度视角（替代120度，垂直与水平方向）",
+            "为可见物体位置添加噪声",
+            "25Hz监视器（或50Hz但RoboViz将以双倍实际速度显示）"]
 
         spark_f = Path.home() / ".simspark/spark.rb"
         naoneckhead_f = self.source+"rsg/agent/nao/naoneckhead.rsg"
@@ -44,7 +44,7 @@ class Server:
                       "25Hz Monitor": spark_f}
 
     def label(self, setting_name, t_on, t_off):
-        with open(self.files[setting_name], "r") as sources:
+        with open(self.files[setting_name], "r", encoding="UTF-8") as sources:
             content = sources.read()
 
         if t_on in content:

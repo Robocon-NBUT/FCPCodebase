@@ -1,5 +1,6 @@
 from pathlib import Path
 import numpy as np
+from loguru import logger
 
 from math_ops.math_ext import deg_sph2cart
 from world.Robot import Robot
@@ -76,7 +77,7 @@ class WorldParser:
         try:
             retval = float(self.exp[start:end])
         except:
-            self.world.log(
+            logger.warning(
                 f"{self.file_name}String to float conversion failed: {self.exp[start:end]} at msg[{start},{end}], \nMsg: {self.exp.decode()}")
             retval = 0
         return retval, end
@@ -156,8 +157,8 @@ class WorldParser:
                         # if increment < 0.019: print ("down",last_time,self.world.time_server)
                         # if increment > 0.021: print ("up",last_time,self.world.time_server)
                     else:
-                        self.world.log(
-                            f"{self.file_name}Unknown tag inside 'time': {tag} at {end}, \nMsg: {exp.decode()}")
+                        logger.warning(
+                            f"Unknown tag inside 'time': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'GS':
                 while True:
@@ -195,8 +196,8 @@ class WorldParser:
                         if self.play_mode_to_id is not None:
                             self.world.play_mode = self.play_mode_to_id[aux]
                     else:
-                        self.world.log(
-                            f"{self.file_name}Unknown tag inside 'GS': {tag} at {end}, \nMsg: {exp.decode()}")
+                        logger.warning(
+                            f"Unknown tag inside 'GS': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'GYR':
                 while True:
@@ -220,7 +221,7 @@ class WorldParser:
                         self.world.robot.gyro[2], end = self.read_float(end+1)
                         self.world.robot.gyro[1] *= -1
                     else:
-                        self.world.log(
+                        logger.warning(
                             f"{self.file_name}Unknown tag inside 'GYR': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'ACC':
@@ -246,7 +247,7 @@ class WorldParser:
                         self.world.robot.acc[2], end = self.read_float(end+1)
                         self.world.robot.acc[1] *= -1
                     else:
-                        self.world.log(
+                        logger.warning(
                             f"{self.file_name}Unknown tag inside 'ACC': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'HJ':
@@ -270,7 +271,7 @@ class WorldParser:
                             joint_angle - old_angle) / World.STEPTIME * np.pi / 180
                         self.world.robot.joints[joint_index].position = joint_angle
                     else:
-                        self.world.log(
+                        logger.warning(
                             f"{self.file_name}Unknown tag inside 'HJ': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'FRP':
@@ -305,7 +306,7 @@ class WorldParser:
                         foot_toe_ref[5], end = self.read_float(end+1)
                         foot_toe_ref[4] *= -1
                     else:
-                        self.world.log(
+                        logger.warning(
                             f"{self.file_name}Unknown tag inside 'FRP': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'See':
@@ -428,7 +429,7 @@ class WorldParser:
                                     self.world.opponents[player_id-1].body_parts_cart_rel_pos[tag_str] = deg_sph2cart(
                                         (c1, c2, c3))
                             else:
-                                self.world.log(
+                                logger.warning(
                                     f"{self.file_name}Unknown tag inside 'P': {tag} at {end}, \nMsg: {exp.decode()}")
 
                     elif tag == b'L':
@@ -444,14 +445,13 @@ class WorldParser:
                         l[5], end = self.read_float(end+1)
 
                         if np.isnan(l).any():
-                            self.world.log(
-                                f"{self.file_name}Received field line with NaNs {l}")
+                            logger.info(f"Received field line with NaNs {l}")
                         else:
                             self.world.line_count += 1  # accept field line if there are no NaNs
 
                     else:
-                        self.world.log(
-                            f"{self.file_name}Unknown tag inside 'see': {tag} at {end}, \nMsg: {exp.decode()}")
+                        logger.warning(
+                            f"Unknown tag inside 'see': {tag} at {end}, \nMsg: {exp.decode()}")
 
             elif tag == b'hear':
 
@@ -473,6 +473,6 @@ class WorldParser:
                 tag, end, _ = self.get_next_tag(end)
 
             else:
-                self.world.log(
-                    f"{self.file_name}Unknown root tag: {tag} at {end}, \nMsg: {exp.decode()}")
+                logger.warning(
+                    f"Unknown root tag: {tag} at {end}, \nMsg: {exp.decode()}")
                 tag, end, min_depth = self.get_next_tag(end)
