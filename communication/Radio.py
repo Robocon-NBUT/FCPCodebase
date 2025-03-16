@@ -1,6 +1,5 @@
 import numpy as np
 
-from world.Other_Robot import Other_Robot
 from world.World import World
 
 

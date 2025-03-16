@@ -282,16 +282,18 @@ class Agent(Base_Agent):
         slow_ball_pos = w.get_predicted_ball_pos(0.5)
         direction = 0
         bias_dir = [0.09, 0.1, 0.14, 0.08, 0.05][r.type]
-        biased_dir = normalize_deg(direction + bias_dir)  # add bias to rectify direction
+        # add bias to rectify direction
+        biased_dir = normalize_deg(direction + bias_dir)
         next_pos, next_ori, dist_to_final_target = self.path_manager.get_path_to_ball(
             x_ori=biased_dir, x_dev=-ball_x_center, y_dev=-ball_y_center, torso_ori=biased_dir)
         if ball_dir > -30 and ball_dir < 30:  # to avoid kicking immediately without preparation & stability
             self.move((slow_ball_pos[0]+1, slow_ball_pos[1]), orientation=0)
         else:
             dist = max(0.07, dist_to_final_target)
-            reset_walk = self.behavior.previous_behavior != "Walk"  # reset walk if it wasn't the previous behavior
+            # reset walk if it wasn't the previous behavior
+            reset_walk = self.behavior.previous_behavior != "Walk"
             self.behavior.execute_sub_behavior("Walk", reset_walk, next_pos, True, next_ori, True,
-                                                dist)  # target, is_target_abs, ori, is_ori_abs, distance
+                                               dist)  # target, is_target_abs, ori, is_ori_abs, distance
 
     def think_and_send(self):
         w = self.world
@@ -424,9 +426,11 @@ class Agent(Base_Agent):
                         self.move((12.5, -1), orientation=goal_dir)
                 else:
                     if slow_ball_pos[1] > 0:
-                        self.move((slow_ball_pos[0]+15, 1), orientation=ball_dir)
+                        self.move(
+                            (slow_ball_pos[0]+15, 1), orientation=ball_dir)
                     else:
-                        self.move((slow_ball_pos[0]+15,  -1), orientation=ball_dir)
+                        self.move(
+                            (slow_ball_pos[0]+15,  -1), orientation=ball_dir)
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+7, -1), active_player_unum):
                 if slow_ball_pos[0]+7 > 13:
                     if slow_ball_pos[1] > 0:
@@ -435,9 +439,11 @@ class Agent(Base_Agent):
                         self.move((12, -0.8), orientation=goal_dir)
                 else:
                     if slow_ball_pos[1] > 0:
-                        self.move((slow_ball_pos[0]+7, 1), orientation=ball_dir)
+                        self.move((slow_ball_pos[0]+7, 1),
+                                  orientation=ball_dir)
                     else:
-                        self.move((slow_ball_pos[0]+7, -1), orientation=ball_dir)
+                        self.move(
+                            (slow_ball_pos[0]+7, -1), orientation=ball_dir)
             elif r.unum in (2, 3, 4):
                 if r.unum == self.nearest_teammate((-13, 0), active_player_unum):
                     if slow_ball_pos[0] == -15:
@@ -472,17 +478,20 @@ class Agent(Base_Agent):
                 # 优化位置选择和移动策略
                 if r.unum % 2 == 0:
                     # 假设偶数球员在场地左侧
-                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
+                    target_pos = (
+                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] - 0.5)
                 else:
                     # 假设奇数球员在场地右侧
-                    target_pos = (slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
+                    target_pos = (
+                        slow_ball_pos[0] - 0.5, slow_ball_pos[1] + 0.5)
 
                 # 确保球员在移动时能够避开对手，并且能够快速到达目标位置
-                self.move(target_pos, orientation=ball_dir, priority_unums=[active_player_unum])
+                self.move(target_pos, orientation=ball_dir,
+                          priority_unums=[active_player_unum])
         else:  # 我是活跃球员
             # 启用活跃球员的路径绘制（如果self.enable_draw为False则忽略）
             path_draw_options(enable_obstacles=True,
-                            enable_path=True, use_team_drawing_channel=True)
+                              enable_path=True, use_team_drawing_channel=True)
             enable_pass_command = (
                 w.play_mode == NeuMode.PLAY_ON and ball_2d[0] < 6)
 
@@ -537,7 +546,7 @@ class Agent(Base_Agent):
                 d.point(w.Ball.Predicted2DPos[-1], 5,
                         d.Color.pink, "status", False)
                 d.annotation((*my_head_pos_2d, 0.6), "I've got it!",
-                            d.Color.yellow, "status")
+                             d.Color.yellow, "status")
             else:
                 d.clear("status")  # 清除状态信息
 
@@ -549,8 +558,7 @@ class Agent(Base_Agent):
 
         if np.linalg.norm(ball_2d - my_head_pos_2d) < 0.25:
             # fat proxy kick arguments: power [0,10]; relative horizontal angle [-180,180]; vertical angle [0,70]
-            self.fat_proxy_cmd += f"(proxy kick 10 {normalize_deg(
-                self.kick_direction - r.IMU.TorsoOrientation): .2f} 20)"
+            self.fat_proxy_cmd += f"(proxy kick 10 {normalize_deg(self.kick_direction - r.IMU.TorsoOrientation): .2f} 20)"
             self.fat_proxy_walk = np.zeros(3)  # reset fat proxy walk
             return True
         else:

@@ -25,7 +25,13 @@ class Server:
         self.send_buff = []
         self.world_parser = world_parser
         self.unum = unum
-        self._beam_msg = f"(agent (unum {unum}) (team {{}}) (move "
+
+        # During initialization, it's not clear whether we are on the left or right side
+        self._unofficial_beam_msg_left = "(agent (unum " + \
+            str(unum) + ") (team Left) (move "
+        self._unofficial_beam_msg_right = "(agent (unum " + \
+            str(unum) + ") (team Right) (move "
+
         self.world = world
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -132,7 +138,8 @@ class Server:
 
         if update:
             if i >= 1:
-                logger.info(f"The agent lost {i} packet(s)! Is syncmode enabled?")
+                logger.info(
+                    f"The agent lost {i} packet(s)! Is syncmode enabled?")
             self.world.update()
 
             if len(select([self.socket], [], [], 0.0)[0]) != 0:
@@ -226,11 +233,11 @@ class Server:
 
         # there is no need to normalize the angle, the server accepts any angle
         if self.world.team_side_is_left:
-            msg = f"{self._beam_msg.format(
-                "Left")}{pos3d[0]} {pos3d[1]} {pos3d[2]} {rot-90}))".encode()
+            msg = f"{self._unofficial_beam_msg_left }{ pos3d[0]} { pos3d[1]} {pos3d[2]} {rot-90}))".encode(
+            )
         else:
-            msg = f"{self._beam_msg.format(
-                "Right")}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode()
+            msg = f"{self._unofficial_beam_msg_right}{-pos3d[0]} {-pos3d[1]} {pos3d[2]} {rot+90}))".encode(
+            )
 
         self.monitor_socket.send((len(msg)).to_bytes(4, byteorder='big') + msg)
 
@@ -255,7 +262,8 @@ class Server:
             vel3d) == 3, "To move the ball we need a 3D position and velocity"
 
         if self.world.team_side_is_left:
-            msg = f"(ball (pos {pos3d[0]} {pos3d[1]} {pos3d[2]}) (vel {vel3d[0]} {vel3d[1]} {vel3d[2]}))".encode()
+            msg = f"(ball (pos {pos3d[0]} {pos3d[1]} {pos3d[2]}) (vel {vel3d[0]} {vel3d[1]} {vel3d[2]}))".encode(
+            )
         else:
             msg = f"(ball (pos {-pos3d[0]} {-pos3d[1]} {pos3d[2]}) (vel {-vel3d[0]} {-vel3d[1]} {vel3d[2]}))".encode()
 

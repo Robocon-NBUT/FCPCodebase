@@ -29,8 +29,8 @@ class Draw:
             'l_10' and 'l_11'. To avoid that, we swap the separator to 'l-10', 'l-11'
         """
         self._is_team_right = is_right
-        self._prefix = f"{'r' if is_right else 'l'}{
-            '_' if self._unum < 10 else '-'}{self._unum}_".encode()  # e.g. b'l_5', b'l-10'
+        # e.g. b'l_5', b'l-10'
+        self._prefix = f"{'r' if is_right else 'l'}{'_' if self._unum < 10 else '-'}{self._unum}_".encode()
 
     @staticmethod
     def _send(msg, id, flush):

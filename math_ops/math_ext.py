@@ -9,8 +9,6 @@ try:
 except AttributeError:
     GLOBAL_DIR = "."
 
-type Number = int | float
-
 
 def deg_sph2cart(spherical_vec):
     """
@@ -53,28 +51,28 @@ def get_active_directory(_dir: str) -> str:
     return GLOBAL_DIR + _dir
 
 
-def acos(value: Number) -> float:
+def acos(value: float) -> float:
     """
     计算 np.arccos ，同时限制其输入范围
     """
     return np.arccos(np.clip(value, -1, 1))
 
 
-def asin(value: Number) -> float:
+def asin(value: float) -> float:
     """
     计算 np.arcsin ，同时限制其输入范围
     """
     return np.arcsin(np.clip(value, -1, 1))
 
 
-def normalize_deg(deg: Number) -> float:
+def normalize_deg(deg: float) -> float:
     """
     将输入的角度映射到 [-180, 180) 范围内
     """
     return (deg + 180.0) % 360 - 180
 
 
-def normalize_rad(rad: Number) -> float:
+def normalize_rad(rad: float) -> float:
     """
     将输入的弧度映射到 [-pi, pi) 范围内
     """
