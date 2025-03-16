@@ -21,10 +21,10 @@ pyinstaller \
 --add-data './behaviors/slot/r2:behaviors/slot/r2' \
 --add-data './behaviors/slot/r3:behaviors/slot/r3' \
 --add-data './behaviors/slot/r4:behaviors/slot/r4' \
---add-data './behaviors/custom/Dribble/*.pkl:behaviors/custom/Dribble' \
 --add-data './behaviors/custom/Walk/*.pkl:behaviors/custom/Walk' \
 --add-data './behaviors/custom/Fall/*.pkl:behaviors/custom/Fall' \
 --add-data './behaviors/custom/Kick_Long/*.pkl:behaviors/custom/Kick_Long' \
+--add-data './behaviors/custom/Kick/*.pkl:behaviors/custom/Kick' \
 ${onefile} --distpath ./bundle/dist/ --workpath ./bundle/build/ --noconfirm --name fcp Run_Player.py
 
 # start.sh

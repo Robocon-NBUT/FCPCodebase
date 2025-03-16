@@ -86,7 +86,6 @@ class Agent(Base_Agent):
         # Args: target, is_target_abs, ori, is_ori_abs, distance
         self.behavior.execute("Walk", target_2d, True, orientation,
                               is_orientation_absolute, distance_to_final_target)
-        # self.behavior.execute("Dribble", target_2d, orientation, is_orientation_absolute)
 
     def kick(self, kick_direction=None, kick_distance=None, abort=False, enable_pass_command=False):
         '''
@@ -192,23 +191,6 @@ class Agent(Base_Agent):
             return self.behavior.execute("Kick_Long", self.kick_direction, allow_aerial)
         else:  # fat proxy behavior
             return self.fat_proxy_kick()
-
-    def dribble(self):
-        '''
-        Dribble to ball
-
-        Parameters
-        ----------
-        orientation : float
-            absolute or relative orientation of torso, in degrees
-            set to None to dribble towards the ball (is_orientation_absolute is ignored)
-        is_orientation_absolute : bool
-            True if orientation is relative to the field, False if relative to the robot's torso
-        '''
-        if self.fat_proxy_cmd is None:  # normal behavior
-            return self.behavior.execute("Dribble", None, True)
-        else:  # fat proxy behavior
-            self.fat_proxy_cmd += "(proxy dribble 0 0 0)"
 
     def nearest_teammate(self, pos, active_player_unum):
         w = self.world

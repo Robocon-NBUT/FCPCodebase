@@ -40,15 +40,13 @@ class Behavior:
 
         # Declaration of behaviors
         from behaviors.custom.Basic_Kick.Basic_Kick import Basic_Kick
-        from behaviors.custom.Dribble.Dribble import Dribble
         from behaviors.custom.Fall.Fall import Fall
         from behaviors.custom.Get_Up.Get_Up import Get_Up
         from behaviors.custom.Step.Step import Step
         from behaviors.custom.Walk.Walk import Walk
         from behaviors.custom.Kick_Long.Kick_Long import Kick_Long
-        from behaviors.custom.Kick_Short.Kick_Short import Kick_Short
         from behaviors.custom.Kick.Kick import Kick
-        classes = [Basic_Kick, Dribble, Fall, Get_Up, Step, Walk, Kick_Long, Kick_Short, Kick]
+        classes = [Basic_Kick, Fall, Get_Up, Step, Walk, Kick_Long, Kick]
 
         self.objects = {cls.__name__: cls(self.base_agent) for cls in classes}
 
