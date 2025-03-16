@@ -18,11 +18,11 @@ Robocup3D 主要由服务器(rcssserver3d)，监视器(Roboviz)，和球队组�
 
 ### 3.安装监视器(Roboviz)
 
-Roboviz 需要 Java 运行环境（JRE）才能运行，因此具备跨平台的能力。它可以在 Windows 和 Linux 系统上使用，但建议在两者上都安装 Java 环境。
+Roboviz 需要依赖 Java 运行时，Windows 和 Ubuntu 都可以安装。
 
 ### Windows
 
-Windows 平台可以下载 [OpenJDK](https://learn.microsoft.com/zh-cn/java/openjdk/download) 安装包，安装时务必添加 JAVA_HOME 环境变量。安装结束后，打开终端输入：
+Windows 平台可以下载 [OpenJDK](https://learn.microsoft.com/zh-cn/java/openjdk/download) 安装包，安装时确保添加 JAVA_HOME 环境变量。安装结束后，打开终端输入：
 
 ```powershell
 java -version
@@ -62,13 +62,13 @@ sudo apt install cmake clang libgsl-dev python3-numpy python3-pybind11 python3-p
 更新 `pip` 的软件源地址：
 
 ```bash
-pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+sudo pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 用 `pip` 安装 Python 模块：
 
 ```bash
-pip3 install stable-baselines3 gym shimmy pyinstaller --break-system-packages
+sudo pip3 install stable-baselines3 gym shimmy pyinstaller tabulate loguru wcwidth --break-system-packages
 ```
 
 最后再拉取源码
@@ -77,10 +77,16 @@ pip3 install stable-baselines3 gym shimmy pyinstaller --break-system-packages
 git clone https://github.com/Robocon-NBUT/FCPCodebase.git
 ```
 
-输入下面两行内容验证安装是否成功：
+先编译模块
 
 ```bash
 cd FCPCodebase
+python3 Run_Player.py
+```
+
+再输入下面两行内容验证安装是否成功：
+
+```bash
 python3 Run_Utils.py
 ```
 
