@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from agent.Base_Agent import Base_Agent
 from world.World import OurMode, NeuMode, PlayMode, TheirMode
@@ -6,23 +7,20 @@ from math_ops.math_ext import (
 
 
 class Agent(Base_Agent):
-    def __init__(self, host: str, agent_port: int, monitor_port: int, unum: int,
-                 team_name: str, enable_log, enable_draw, wait_for_server=True, is_fat_proxy=False) -> None:
-
-        # define robot type
+    def __init__(
+            self,
+            host: str, agent_port: int, mmonitor_port: int,
+            unum: int, mteam_name: str,
+            enable_log, enable_draw, wait_for_server=True, is_fat_proxy=False) -> None:
         robot_type = (1, 1, 1, 1, 3, 3, 3, 3, 3, 0, 0)[unum-1]
-
-        # Initialize base agent
-        # Args: Server IP, Agent Port, Monitor Port, Uniform No., Robot Type, Team Name, Enable Log, Enable Draw, play mode correction, Wait for Server, Hear Callback
-        super().__init__(host, agent_port, monitor_port, unum, robot_type,
-                         team_name, enable_log, enable_draw, True, wait_for_server, None)
+        super().__init__(host, agent_port, mmonitor_port, unum, robot_type, mteam_name,
+                         enable_log, enable_draw, wait_for_server, is_fat_proxy)
 
         self.enable_draw = enable_draw
         self.state = 0  # 0-Normal, 1-Getting up, 2-Kicking
         self.kick_direction = 0
         self.kick_distance = 0
         self.fat_proxy_cmd = "" if is_fat_proxy else None
-        # filtered walk parameters for fat proxy
         self.fat_proxy_walk = np.zeros(3)
 
         self.init_pos = ([-14, 0], [-9, -5], [-9, 0], [-9, 5], [-5, -5], [-5, 0], [-5, 5],
@@ -99,7 +97,7 @@ class Agent(Base_Agent):
             kick distance in meters
         abort : bool
             True to abort.
-            The method returns True upon successful abortion, which is immediate while the robot is aligning itself. 
+            The method returns True upon successful abortion, which is immediate while the robot is aligning itself.
             However, if the abortion is requested during the kick, it is delayed until the kick is completed.
         avoid_pass_command : bool
             When False, the pass command will be used when at least one opponent is near the ball
@@ -134,7 +132,7 @@ class Agent(Base_Agent):
             kick distance in meters
         abort : bool
             True to abort.
-            The method returns True upon successful abortion, which is immediate while the robot is aligning itself. 
+            The method returns True upon successful abortion, which is immediate while the robot is aligning itself.
             However, if the abortion is requested during the kick, it is delayed until the kick is completed.
         avoid_pass_command : bool
             When False, the pass command will be used when at least one opponent is near the ball
@@ -169,7 +167,7 @@ class Agent(Base_Agent):
             kick distance in meters
         abort : bool
             True to abort.
-            The method returns True upon successful abortion, which is immediate while the robot is aligning itself. 
+            The method returns True upon successful abortion, which is immediate while the robot is aligning itself.
             However, if the abortion is requested during the kick, it is delayed until the kick is completed.
         avoid_pass_command : bool
             When False, the pass command will be used when at least one opponent is near the ball
@@ -206,51 +204,30 @@ class Agent(Base_Agent):
         return sorted_teammates[i].unum
 
     def deliberate_kick(self, ball_2d, enable_pass_command):
-        goal_dist = np.sqrt((15.05 - ball_2d[0])**2 + ball_2d[1]**2)
+        goal_dist = math.hypot(15.05, 0, ball_2d[0], ball_2d[1])
+        target_y = max(0.4, 1.0 - goal_dist/30)
+        if ball_2d[1] < 0:
+            target_y = -target_y
         if goal_dist > 15:
-            if ball_2d[1] > 0:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.4)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+                self.state = 0
             else:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.4)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+                self.state = 2
         elif goal_dist > 10:
-            if ball_2d[1] > 0:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.5)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+                self.state = 0
             else:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.5)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+                self.state = 2
         elif goal_dist > 6:
-            if ball_2d[1] > 0:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, 0.6)), allow_aerial=False, enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), allow_aerial=False, enable_pass_command=enable_pass_command):
+                self.state = 0
             else:
-                if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, -0.6)), allow_aerial=False, enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+                self.state = 2
         else:
-            if ball_2d[1] > 0:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, 0.88)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+            if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+                self.state = 0
             else:
-                if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, -0.88)), enable_pass_command=enable_pass_command):
-                    self.state = 0
-                else:
-                    self.state = 2
+                self.state = 2
 
     def dash_to_ball(self):
         w = self.world
@@ -316,14 +293,7 @@ class Agent(Base_Agent):
             goalkeeper_is_active_player = True
             active_player_unum = second_active_player_unum
 
-        if ball_2d[0] > 8:
-            pos_x = 2
-        else:
-            pos_x = -2
-        if ball_2d[1] > 0:
-            pos_y = 7
-        else:
-            pos_y = -7
+        pos = (ball_2d[0] - 8) * 2, ball_2d[1] / 2
 
         # --------------------------------------- 2. 决定动作
 
@@ -360,22 +330,11 @@ class Agent(Base_Agent):
                             else:
                                 self.state = 2
                     else:
-                        if slow_ball_pos[0] == -15:
-                            k = -slow_ball_pos[1] / (-15.1 - slow_ball_pos[0])
-                        else:
-                            k = -slow_ball_pos[1] / (-15 - slow_ball_pos[0])
-                        x = slow_ball_pos[0]
-                        y = k * (x + 15)
-                        if x > -14.2:
-                            x = -14.2
-                            y = k * (x + 15)
-                        elif x < -14.8:
-                            x = -14.8
-                            y = k * (x + 15)
-                        if y > 1.5:
-                            y = 1.5
-                        elif y < -1.5:
-                            y = -1.5
+                        k = self.points_distance(
+                            slow_ball_pos[0], slow_ball_pos[1], -15, 0)
+                        x = np.clip(slow_ball_pos[0], -14.8, -14.2)
+                        y = np.clip(k * (x + 15), -1.5, 1.5)
+
                         self.move((x-0.4, y), orientation=ball_dir)
                 elif w.play_mode == OurMode.GOAL_KICK:
                     if self.kick_long(kick_direction=goal_dir, enable_pass_command=enable_pass_command):
@@ -383,22 +342,11 @@ class Agent(Base_Agent):
                     else:
                         self.state = 2
                 else:
-                    if slow_ball_pos[0] == -15:
-                        k = -slow_ball_pos[1] / (-15.1 - slow_ball_pos[0])
-                    else:
-                        k = -slow_ball_pos[1] / (-15 - slow_ball_pos[0])
-                    x = slow_ball_pos[0]
-                    y = k * (x + 15)
-                    if x > -14.2:
-                        x = -14.2
-                        y = k * (x + 15)
-                    elif x < -14.8:
-                        x = -14.8
-                        y = k * (x + 15)
-                    if y > 1.5:
-                        y = 1.5
-                    elif y < -1.5:
-                        y = -1.5
+                    k = self.points_distance(
+                        slow_ball_pos[0], slow_ball_pos[1], -15, 0)
+                    x = np.clip(slow_ball_pos[0], -14.8, -14.2)
+                    y = np.clip(k * (x + 15), -1.5, 1.5)
+
                     self.move((x, y), orientation=ball_dir)
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+15, 1), active_player_unum):
                 if slow_ball_pos[0]+15 > 13:
@@ -428,22 +376,12 @@ class Agent(Base_Agent):
                             (slow_ball_pos[0]+7, -1), orientation=ball_dir)
             elif r.unum in (2, 3, 4):
                 if r.unum == self.nearest_teammate((-13, 0), active_player_unum):
-                    if slow_ball_pos[0] == -15:
-                        k = -slow_ball_pos[1] / (-15.1 - slow_ball_pos[0])
-                    else:
-                        k = -slow_ball_pos[1] / (-15 - slow_ball_pos[0])
-                    x = slow_ball_pos[0]
-                    y = k * (x + 15)
-                    if x > -14.2:
-                        x = -14.2
-                        y = k * (x + 15)
-                    elif x < -14.8:
-                        x = -14.8
-                        y = k * (x + 15)
-                    if y > 1.5:
-                        y = 1.5
-                    elif y < -1.5:
-                        y = -1.5
+                    k = self.points_distance(
+                        slow_ball_pos[0], slow_ball_pos[1], -15, 0)
+
+                    x = np.clip(slow_ball_pos[0], -14.8, -14.2)
+                    y = np.clip(k * (x + 15), -1.5, 1.5)
+
                     self.move((x+0.5, y+0.5), orientation=ball_dir)
                 else:
                     new_x = max(0.5, (slow_ball_pos[0]+15)/15) * \
@@ -453,9 +391,9 @@ class Agent(Base_Agent):
             elif r.unum == self.nearest_teammate((slow_ball_pos[0]+2, slow_ball_pos[1]+0.5), active_player_unum):
                 self.move(
                     (slow_ball_pos[0]+2, slow_ball_pos[1]+0.5), orientation=goal_dir)
-            elif r.unum == self.nearest_teammate((pos_x, pos_y), active_player_unum):
+            elif r.unum == self.nearest_teammate(pos, active_player_unum):
                 self.move(
-                    (pos_x, pos_y), orientation=goal_dir)
+                    pos, orientation=goal_dir)
             else:
                 # 优化位置选择和移动策略
                 if r.unum % 2 == 0:
@@ -531,6 +469,14 @@ class Agent(Base_Agent):
                              d.Color.yellow, "status")
             else:
                 d.clear("status")  # 清除状态信息
+
+    def points_distance(self, x1: float, y1: float, x2: float, y2: float) -> float:
+        """
+        两点距离的 sin 值
+        """
+        delta_y = y2 - y1
+        distance = math.hypot(x2 - x1, delta_y)
+        return delta_y / distance
 
     def fat_proxy_kick(self):
         w = self.world
