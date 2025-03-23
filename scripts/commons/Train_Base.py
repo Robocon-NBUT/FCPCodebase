@@ -137,8 +137,7 @@ class Train_Base():
         '''
 
         if model_path is not None:
-            assert Path(model_path).is_dir(), f"{
-                model_path} is not a valid path"
+            assert Path(model_path).is_dir(), f"{model_path} is not a valid path"
             self.display_evaluations(model_path)
 
         if log_path is not None:
@@ -385,10 +384,8 @@ class Train_Base():
                     print(end=symb_o)
             print()
         print(f'{"-"*console_width}')
-        print(f"({symb_x})-reward          min:{
-              results_limits[0]:11.2f}    max:{results_limits[1]:11.2f}")
-        print(f"({symb_o})-ep. length      min:{ep_lengths_limits[0]:11.0f}    max:{
-              ep_lengths_limits[1]:11.0f}    {time_steps[-1]/1000:15.0f}k steps")
+        print(f"({symb_x})-reward          min:{results_limits[0]:11.2f}    max:{results_limits[1]:11.2f}")
+        print(f"({symb_o})-ep. length      min:{ep_lengths_limits[0]:11.0f}    max:{ep_lengths_limits[1]:11.0f}    {time_steps[-1]/1000:15.0f}k steps")
         print(f'{"-"*console_width}')
 
         # save CSV

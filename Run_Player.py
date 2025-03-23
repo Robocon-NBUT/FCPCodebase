@@ -10,6 +10,7 @@ else:  # normal agent
 
 # Args: Server IP, Agent Port, Monitor Port, Uniform No., Team name, Enable Log, Enable Draw, Wait for Server, is magmaFatProxy
 if a.D:  # debug mode
+    a.u = 9
     player = Agent(a.i, a.p, a.m, a.u, a.t, True, True, False, a.F)
 else:
     player = Agent(a.i, a.p, None, a.u, a.t, False, False, False, a.F)
