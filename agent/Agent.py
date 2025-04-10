@@ -328,33 +328,34 @@ class Agent(Base_Agent):
             if r.unum == 1:  # 当前球员是守门员
                 if slow_ball_pos[0] < -13 and slow_ball_pos[1] > -3 and slow_ball_pos[1] < 3:
                     if goalkeeper_is_active_player:
-                        if self.min_opponent_ball_dist > 0.5 or enable_pass_command:
+                        if self.min_opponent_ball_dist > 1 or enable_pass_command or w.play_mode == OurMode.GOAL_KICK:
                             if self.kick_long(kick_direction=goal_dir, enable_pass_command=enable_pass_command):
                                 self.state = 0
                             else:
                                 self.state = 2
                         else:
-                            if self.kick_short(kick_direction=40, enable_pass_command=enable_pass_command):
-                                self.state = 0
+                            if ball_2d[1] > 0:
+                                if self.kick_short(kick_direction=30, enable_pass_command=enable_pass_command):
+                                    self.state = 0
+                                else:
+                                    self.state = 2
                             else:
-                                self.state = 2
+                                if self.kick_short(kick_direction=-30, enable_pass_command=enable_pass_command):
+                                    self.state = 0
+                                else:
+                                    self.state = 2
                     else:
-                        k = self.points_distance(
-                            slow_ball_pos[0], slow_ball_pos[1], -15, 0)
+                        k, b = self.get_line_params(
+                            slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
                         x = np.clip(slow_ball_pos[0], -14.8, -14.6)
-                        y = np.clip(k * (x + 15), -1.5, 1.5)
+                        y = np.clip(k * x + b, -1, 1)
 
                         self.move((x-0.4, y), orientation=ball_dir)
-                elif w.play_mode == OurMode.GOAL_KICK:
-                    if self.kick_long(kick_direction=goal_dir, enable_pass_command=enable_pass_command):
-                        self.state = 0
-                    else:
-                        self.state = 2
                 else:
-                    k = self.points_distance(
-                        slow_ball_pos[0], slow_ball_pos[1], -15, 0)
+                    k, b = self.get_line_params(
+                        slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
                     x = np.clip(slow_ball_pos[0], -14.8, -14.6)
-                    y = np.clip(k * (x + 15), -1.5, 1.5)
+                    y = np.clip(k * x + b, -1, 1)
 
                     self.move((x, y), orientation=ball_dir)
             elif r.unum in (2, 3, 4):
@@ -369,11 +370,10 @@ class Agent(Base_Agent):
                 else:
                     new_y = 2
                 if r.unum == self.nearest_teammate((-15, 0), [active_player_unum]):
-                    k = self.points_distance(
-                        slow_ball_pos[0], slow_ball_pos[1], -15, 0)
-
+                    k, b = self.get_line_params(
+                        slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
                     x = np.clip(slow_ball_pos[0], -14.8, -14.6)
-                    y = np.clip(k * (x + 15), -1.5, 1.5)
+                    y = np.clip(k * x + b, -1, 1)
                     if slow_ball_pos[1] > 0:
                         self.move((x+0.3, y+0.7), orientation=ball_dir)
                     else:
@@ -489,7 +489,7 @@ class Agent(Base_Agent):
                 # 将球踢到对方球门前的空位
                 self.kick_short(-np.sign(ball_2d[1])*95)
             elif w.play_mode == TheirMode.GOAL_KICK:
-                self.move((12.5, 0), orientation=ball_dir)
+                self.move((13, 0), orientation=ball_dir)
             elif goalkeeper_is_active_player:
                 self.move((slow_ball_pos[0]+0, 0.66), orientation=goal_dir)
             elif ball_2d[0] > 12.5 and ball_2d[1] > -1.1 and ball_2d[1] < 1.1:
@@ -540,13 +540,15 @@ class Agent(Base_Agent):
             else:
                 d.clear("status")  # 清除状态信息
 
-    def points_distance(self, x1: float, y1: float, x2: float, y2: float) -> float:
+    def get_line_params(self, x1: float, y1: float, x2: float, y2: float) -> float:
         """
-        两点距离的 sin 值
+        求直线的k和b
         """
+        delta_x = x2 - x1
         delta_y = y2 - y1
-        distance = math.hypot(x2 - x1, delta_y)
-        return delta_y / distance
+        k = delta_y / delta_x
+        b = y2 - k * x2
+        return k, b
 
     def fat_proxy_kick(self):
         w = self.world
