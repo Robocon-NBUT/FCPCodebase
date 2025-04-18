@@ -204,27 +204,27 @@ class Agent(Base_Agent):
         return sorted_teammates[i].unum
 
     def deliberate_kick(self, ball_2d, enable_pass_command):
-        goal_dist = math.hypot(15.05 - ball_2d[0], 0 - ball_2d[1])
+        goal_dist = math.hypot(14.9 - ball_2d[0], 0 - ball_2d[1])
         target_y = max(0.4, 1.0 - goal_dist/30)
         if ball_2d[1] < 0:
             target_y = -target_y
         if goal_dist > 15:
-            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (14.9, target_y)), enable_pass_command=enable_pass_command):
                 self.state = 0
             else:
                 self.state = 2
         elif goal_dist > 10:
-            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (14.9, target_y)), enable_pass_command=enable_pass_command):
                 self.state = 0
             else:
                 self.state = 2
         elif goal_dist > 6:
-            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), allow_aerial=False, enable_pass_command=enable_pass_command):
+            if self.kick_long(kick_direction=target_abs_angle(ball_2d, (14.9, target_y)), allow_aerial=False, enable_pass_command=enable_pass_command):
                 self.state = 0
             else:
                 self.state = 2
         else:
-            if self.kick_short(kick_direction=target_abs_angle(ball_2d, (15.05, target_y)), enable_pass_command=enable_pass_command):
+            if self.kick_short(kick_direction=target_abs_angle(ball_2d, (14.9, target_y)), enable_pass_command=enable_pass_command):
                 self.state = 0
             else:
                 self.state = 2
@@ -286,13 +286,18 @@ class Agent(Base_Agent):
         self.min_opponent_ball_dist = min(
             w.opponents.distance(slow_ball_pos, w.time_local_ms))
 
+        active_player = sorted_teammates[0]
+        second_active_player = sorted_teammates[1]
         active_player_unum = sorted_teammates[0].unum
         second_active_player_unum = sorted_teammates[1].unum
 
         goalkeeper_is_active_player = False
         if active_player_unum == 1:
             goalkeeper_is_active_player = True
-            active_player_unum = second_active_player_unum
+            active_player = sorted_teammates[1]
+            second_active_player = sorted_teammates[2]
+            active_player_unum = sorted_teammates[1].unum
+            second_active_player_unum = sorted_teammates[2].unum
 
         if ball_2d[0] > 8:
             pos_x = 2
@@ -304,6 +309,13 @@ class Agent(Base_Agent):
             pos_y = -7
         pos = (pos_x, pos_y)
 
+        # if r.unum == active_player_unum:
+        #     if (ball_dir >= 90 and ball_dir <= 180) or (ball_dir <= -90 and ball_dir >= -180) and abs(w.teammates._compare(second_active_player, active_player)) < 0.5:
+        #         if second_active_player.state_abs_pos.any != None:
+        #             second_ball_dir = vector_angle(ball_2d - second_active_player.state_abs_pos[:2])
+        #             if second_ball_dir >= -90 and second_ball_dir <= 90:
+        #                 active_player_unum = second_active_player_unum
+                
         # --------------------------------------- 2. 决定动作
 
         if w.play_mode == NeuMode.GAME_OVER:
@@ -317,7 +329,7 @@ class Agent(Base_Agent):
             self.state = 0 if behavior.execute("Get_Up") else 1
         elif w.play_mode == OurMode.KICK_OFF:
             if r.unum == 9:
-                self.kick_short(kick_direction=130, kick_distance=9)
+                self.kick_short(kick_direction=120, kick_distance=9)
             else:
                 self.move(self.init_pos, orientation=ball_dir)  # 原地行走
         elif w.play_mode == TheirMode.KICKOFF:
@@ -347,32 +359,37 @@ class Agent(Base_Agent):
                     else:
                         k, b = self.get_line_params(
                             slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
-                        x = np.clip(slow_ball_pos[0], -14.8, -14.6)
+                        x = np.clip(slow_ball_pos[0] - 0.2, -14.8, -14.6)
                         y = np.clip(k * x + b, -1, 1)
 
                         self.move((x-0.4, y), orientation=ball_dir)
                 else:
                     k, b = self.get_line_params(
                         slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
-                    x = np.clip(slow_ball_pos[0], -14.8, -14.6)
+                    x = np.clip(slow_ball_pos[0] - 0.2, -14.8, -14.6)
                     y = np.clip(k * x + b, -1, 1)
 
                     self.move((x, y), orientation=ball_dir)
             elif r.unum in (2, 3, 4):
                 new_x = max(0.5, (slow_ball_pos[0]+15)/15) * \
-                        (self.init_pos[0]+15) - 15
-                if slow_ball_pos[0] > -3:
+                    (self.init_pos[0]+15) - 16
+                new_x = np.clip(new_x, -13, 0)
+                if ball_2d[0] > -1:
                     new_y = 5
-                elif slow_ball_pos[0] > -6:
+                elif ball_2d[0] > -3:
                     new_y = 4
-                elif slow_ball_pos[0] > -9:
+                elif ball_2d[0] > -5:
                     new_y = 3
-                else:
+                elif ball_2d[0] > -7:
                     new_y = 2
+                elif ball_2d[0] > -9:
+                    new_y = 1
+                else:
+                    new_y = 0.5
                 if r.unum == self.nearest_teammate((-15, 0), [active_player_unum]):
                     k, b = self.get_line_params(
                         slow_ball_pos[0], slow_ball_pos[1], -15.3, 0)
-                    x = np.clip(slow_ball_pos[0], -14.8, -14.6)
+                    x = np.clip(slow_ball_pos[0] - 0.2, -14.8, -14.6)
                     y = np.clip(k * x + b, -1, 1)
                     if slow_ball_pos[1] > 0:
                         self.move((x+0.3, y+0.7), orientation=ball_dir)
